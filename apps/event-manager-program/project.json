@@ -1,0 +1,27 @@
+{
+  "root": "apps/event-manager-program",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@danmt/nx-anchor:build",
+      "options": {
+        "projectPath": "apps/event-manager-program",
+        "monitor": true
+      }
+    },
+    "test": {
+      "executor": "@danmt/nx-anchor:test",
+      "options": {
+        "projectPath": "apps/event-manager-program",
+        "monitor": true
+      }
+    },
+    "deploy": {
+      "executor": "@danmt/nx-anchor:deploy",
+      "options": {
+        "projectPath": "apps/event-manager-program",
+        "monitor": true
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "root": "apps/event-manager-web-client-e2e",
+  "sourceRoot": "apps/event-manager-web-client-e2e/src",
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "executor": "@nrwl/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/event-manager-web-client-e2e/cypress.json",
+        "devServerTarget": "event-manager-web-client:serve:development"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "event-manager-web-client:serve:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/event-manager-web-client-e2e/**/*.{js,ts}"]
+      }
+    }
+  },
+  "tags": [],
+  "implicitDependencies": ["event-manager-web-client"]
+}

@@ -1,0 +1,52 @@
+{
+  "root": "apps/event-manager-api",
+  "sourceRoot": "apps/event-manager-api/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/node:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/event-manager-api",
+        "main": "apps/event-manager-api/src/main.ts",
+        "tsConfig": "apps/event-manager-api/tsconfig.app.json",
+        "assets": ["apps/event-manager-api/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/event-manager-api/src/environments/environment.ts",
+              "with": "apps/event-manager-api/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "event-manager-api:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/event-manager-api/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/event-manager-api"],
+      "options": {
+        "jestConfig": "apps/event-manager-api/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,97 @@
+{
+  "projectType": "application",
+  "root": "apps/event-manager-web-client",
+  "sourceRoot": "apps/event-manager-web-client/src",
+  "prefix": "em",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/angular:webpack-browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/event-manager-web-client",
+        "index": "apps/event-manager-web-client/src/index.html",
+        "main": "apps/event-manager-web-client/src/main.ts",
+        "polyfills": "apps/event-manager-web-client/src/polyfills.ts",
+        "tsConfig": "apps/event-manager-web-client/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          "apps/event-manager-web-client/src/favicon.ico",
+          "apps/event-manager-web-client/src/assets"
+        ],
+        "styles": ["apps/event-manager-web-client/src/styles.scss"],
+        "scripts": [],
+        "customWebpackConfig": {
+          "path": "apps/event-manager-web-client/webpack.config.js"
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "3mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/event-manager-web-client/src/environments/environment.ts",
+              "with": "apps/event-manager-web-client/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@nrwl/angular:webpack-server",
+      "configurations": {
+        "production": {
+          "browserTarget": "event-manager-web-client:build:production"
+        },
+        "development": {
+          "browserTarget": "event-manager-web-client:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "browserTarget": "event-manager-web-client:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "apps/event-manager-web-client/src/**/*.ts",
+          "apps/event-manager-web-client/src/**/*.html"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/event-manager-web-client"],
+      "options": {
+        "jestConfig": "apps/event-manager-web-client/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

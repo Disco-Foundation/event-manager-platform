@@ -1,0 +1,28 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/features/list-events",
+  "sourceRoot": "libs/event-manager/web-client/features/list-events/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/event-manager/web-client/features/list-events"
+      ],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/features/list-events/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/features/list-events/src/**/*.ts",
+          "libs/event-manager/web-client/features/list-events/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

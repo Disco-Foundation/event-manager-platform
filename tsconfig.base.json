@@ -1,0 +1,45 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2017", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@event-manager-web-client/buy-tickets": [
+        "libs/event-manager/web-client/features/buy-tickets/src/index.ts"
+      ],
+      "@event-manager-web-client/create-event": [
+        "libs/event-manager/web-client/features/create-event/src/index.ts"
+      ],
+      "@event-manager-web-client/data-access": [
+        "libs/event-manager/web-client/data-access/src/index.ts"
+      ],
+      "@event-manager-web-client/list-events": [
+        "libs/event-manager/web-client/features/list-events/src/index.ts"
+      ],
+      "@event-manager-web-client/profile": [
+        "libs/event-manager/web-client/features/profile/src/index.ts"
+      ],
+      "@event-manager-web-client/shell": [
+        "libs/event-manager/web-client/shell/src/index.ts"
+      ],
+      "@event-manager-web-client/view-event": [
+        "libs/event-manager/web-client/features/view-event/src/index.ts"
+      ],
+      "@event-manager/event-manager-generator": [
+        "libs/event-manager-generator/src/index.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

@@ -1,0 +1,20 @@
+{
+  "recharge": {
+    "action": "RECHARGE",
+    "inst": {
+      "wId": 9494436311,
+      "eId": "BLPF8SygYpDkrX8Uiu2hnyRwx8tTawdp9RPXDb3kfiD6",
+      "amount": 4
+    },
+    "ref": "3cq7a3wFecykY9C9Qt5E23HEwHfGVZTzhczgg11XEdoa"
+  },
+  "checkin": {
+    "action": "CHECKIN",
+    "inst": {
+      "wId": 9494436311,
+      "eId": "BLPF8SygYpDkrX8Uiu2hnyRwx8tTawdp9RPXDb3kfiD6",
+      "PIN": "0032"
+    },
+    "ref": "3cq7a3wFecykY9C9Qt5E23HEwHfGVZTzhczgg11XEdoa"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/data-access",
+  "sourceRoot": "libs/event-manager/web-client/data-access/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/event-manager/web-client/data-access"],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/data-access/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/data-access/src/**/*.ts",
+          "libs/event-manager/web-client/data-access/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

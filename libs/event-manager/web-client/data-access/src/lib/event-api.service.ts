@@ -1,0 +1,297 @@
+import { Injectable } from '@angular/core';
+import { BN, Program, Provider } from '@heavy-duty/anchor';
+import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
+import {
+  getAccount,
+  getAssociatedTokenAddress,
+  getMint,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  TransactionSignature,
+} from '@solana/web3.js';
+import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
+import { EventManager, IDL } from './event_manager';
+
+export interface EventAccountInfo {
+  acceptedMint: PublicKey;
+  authority: PublicKey;
+  banner: string;
+  certifier: PublicKey;
+  description: string;
+  eventBump: number;
+  eventEndDate: BN;
+  eventId: BN;
+  eventMint: PublicKey;
+  eventMintBump: number;
+  eventStartDate: BN;
+  gainVault: PublicKey;
+  gainVaultBump: number;
+  location: string;
+  name: string;
+  temporalVault: PublicKey;
+  temporalVaultBump: number;
+  ticketMint: PublicKey;
+  ticketMintBump: number;
+  ticketPrice: BN;
+  ticketQuantity: number;
+  totalDeposited: BN;
+  totalValueLocked: BN;
+  totalValueLockedInTickets: BN;
+  totalValueLockedInRecharges: BN;
+  totalProfit: BN;
+  totalProfitInTickets: BN;
+  totalProfitInPurchases: BN;
+}
+
+export interface EventAccount {
+  publicKey: PublicKey;
+  account: EventAccountInfo;
+}
+
+export interface CreateEventArguments {
+  name: string;
+  description: string;
+  location: string;
+  banner: string;
+  startDate: string;
+  endDate: string;
+  ticketPrice: number;
+  ticketQuantity: number;
+  acceptedMint: string;
+  certifierFunds: number;
+}
+
+export interface BuyTicketsArguments {
+  event: PublicKey;
+  acceptedMint: PublicKey;
+  ticketQuantity: number;
+}
+
+export const EVENT_PROGRAM_ID = new PublicKey(
+  'FYMHu78S37EpfuBFcQ6XyCqaQLhtTqkVxZbuKm8CY6A6'
+);
+
+@Injectable({ providedIn: 'root' })
+export class EventApiService {
+  reader: Program<EventManager> | null = null;
+  writer: Program<EventManager> | null = null;
+
+  constructor(
+    private readonly _connectionStore: ConnectionStore,
+    private readonly _walletStore: WalletStore
+  ) {
+    combineLatest([
+      this._connectionStore.connection$,
+      this._walletStore.anchorWallet$,
+    ]).subscribe(([connection, anchorWallet]) => {
+      if (connection === null) {
+        this.reader = null;
+        this.writer = null;
+      } else {
+        this.reader = new Program<EventManager>(
+          IDL,
+          EVENT_PROGRAM_ID,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          new Provider(connection, {} as any, Provider.defaultOptions())
+        );
+
+        if (anchorWallet !== undefined) {
+          this.writer = new Program<EventManager>(
+            IDL,
+            EVENT_PROGRAM_ID,
+            new Provider(connection, anchorWallet, Provider.defaultOptions())
+          );
+        }
+      }
+    });
+  }
+
+  findAll(): Observable<EventAccount[]> {
+    return defer(() => {
+      const reader = this.reader;
+
+      if (reader === null) {
+        return throwError(() => new Error('ProgramReaderMissing'));
+      }
+
+      return from(reader.account.event.all()).pipe(
+        map((events) => events as EventAccount[])
+      );
+    });
+  }
+
+  findById(eventId: string): Observable<EventAccount | null> {
+    return defer(() => {
+      const reader = this.reader;
+
+      if (reader === null) {
+        return throwError(() => new Error('ProgramReaderMissing'));
+      }
+
+      return from(
+        reader.account.event.fetchNullable(new PublicKey(eventId))
+      ).pipe(
+        map((event) =>
+          event
+            ? ({
+                publicKey: new PublicKey(eventId),
+                account: event,
+              } as EventAccount)
+            : null
+        )
+      );
+    });
+  }
+
+  findByTicketOwner(owner: PublicKey) {
+    return defer(() => {
+      const reader = this.reader;
+
+      if (reader === null) {
+        return throwError(() => new Error('ProgramReaderMissing'));
+      }
+
+      return from(
+        reader.provider.connection
+          .getTokenAccountsByOwner(owner, {
+            programId: TOKEN_PROGRAM_ID,
+          })
+          .then((tokenAccounts) =>
+            Promise.all(
+              tokenAccounts.value.map((tokenAccount) =>
+                getAccount(reader.provider.connection, tokenAccount.pubkey)
+              )
+            )
+          )
+          .then((accounts) =>
+            Promise.all(
+              [
+                ...new Set(accounts.map((account) => account.mint.toBase58())),
+              ].map((mint) =>
+                getMint(reader.provider.connection, new PublicKey(mint))
+              )
+            )
+          )
+          .then((mints) =>
+            Promise.all(
+              [
+                ...new Set(
+                  mints
+                    .map((mint) => mint.mintAuthority?.toBase58() ?? null)
+                    .filter(
+                      (mintAuthority): mintAuthority is string =>
+                        mintAuthority !== null
+                    )
+                ),
+              ].map((mintAuthority) =>
+                reader.provider.connection
+                  .getAccountInfo(new PublicKey(mintAuthority))
+                  .then((account) => ({ pubkey: mintAuthority, account }))
+              )
+            )
+          )
+          .then(async (mintAuthorityOwners) => {
+            const eventPublicKeys = [
+              ...new Set(
+                mintAuthorityOwners
+                  .filter((mintAuthorityOwner) =>
+                    mintAuthorityOwner.account?.owner.equals(EVENT_PROGRAM_ID)
+                  )
+                  .map(({ pubkey }) => pubkey)
+              ),
+            ];
+            const eventAccounts = await reader.account.event.fetchMultiple(
+              eventPublicKeys
+            );
+            return eventAccounts
+              .map((account, index) => ({
+                publicKey: new PublicKey(eventPublicKeys[index]),
+                account,
+              }))
+              .filter(
+                (eventAccount): eventAccount is EventAccount =>
+                  eventAccount.account !== null
+              );
+          })
+      );
+    });
+  }
+
+  create(
+    args: CreateEventArguments
+  ): Observable<{ signature: TransactionSignature; certifier: Keypair }> {
+    return defer(() => {
+      const writer = this.writer;
+      const certifierKeypair = Keypair.generate();
+
+      if (writer === null) {
+        return throwError(() => new Error('ProgramWriterMissing'));
+      }
+
+      return from(
+        writer.methods
+          .createEvent(
+            new BN(Date.now()),
+            args.name,
+            args.description,
+            args.banner,
+            args.location,
+            new BN(new Date(args.startDate).getTime()),
+            new BN(new Date(args.endDate).getTime()),
+            new BN(args.ticketPrice),
+            args.ticketQuantity
+          )
+          .accounts({
+            authority: writer.provider.wallet.publicKey,
+            acceptedMint: new PublicKey(args.acceptedMint),
+            certifier: certifierKeypair.publicKey,
+          })
+          .preInstructions([
+            SystemProgram.transfer({
+              fromPubkey: writer.provider.wallet.publicKey,
+              toPubkey: certifierKeypair.publicKey,
+              lamports: args.certifierFunds * LAMPORTS_PER_SOL,
+            }),
+          ])
+          .signers([certifierKeypair])
+          .rpc()
+      ).pipe(
+        map((signature) => ({
+          signature,
+          certifier: certifierKeypair,
+        }))
+      );
+    });
+  }
+
+  buyTickets(args: BuyTicketsArguments): Observable<TransactionSignature> {
+    return defer(() => {
+      const writer = this.writer;
+
+      if (writer === null) {
+        return throwError(() => new Error('ProgramWriterMissing'));
+      }
+
+      return from(
+        getAssociatedTokenAddress(
+          args.acceptedMint,
+          writer.provider.wallet.publicKey
+        ).then((payer) =>
+          writer.methods
+            .buyTickets(args.ticketQuantity)
+            .accounts({
+              payer,
+              event: args.event,
+              authority: writer.provider.wallet.publicKey,
+            })
+            .rpc()
+        )
+      );
+    });
+  }
+}

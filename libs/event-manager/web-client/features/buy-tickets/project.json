@@ -1,0 +1,28 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/features/buy-tickets",
+  "sourceRoot": "libs/event-manager/web-client/features/buy-tickets/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/event-manager/web-client/features/buy-tickets"
+      ],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/features/buy-tickets/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/features/buy-tickets/src/**/*.ts",
+          "libs/event-manager/web-client/features/buy-tickets/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

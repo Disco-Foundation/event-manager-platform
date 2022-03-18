@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "projects": {
+    "event-manager-api": "apps/event-manager-api",
+    "event-manager-generator": "libs/event-manager-generator",
+    "event-manager-program": "apps/event-manager-program",
+    "event-manager-web-client": "apps/event-manager-web-client",
+    "event-manager-web-client-data-access": "libs/event-manager/web-client/data-access",
+    "event-manager-web-client-e2e": "apps/event-manager-web-client-e2e",
+    "event-manager-web-client-features-buy-tickets": "libs/event-manager/web-client/features/buy-tickets",
+    "event-manager-web-client-features-create-event": "libs/event-manager/web-client/features/create-event",
+    "event-manager-web-client-features-list-events": "libs/event-manager/web-client/features/list-events",
+    "event-manager-web-client-features-profile": "libs/event-manager/web-client/features/profile",
+    "event-manager-web-client-features-view-event": "libs/event-manager/web-client/features/view-event",
+    "event-manager-web-client-shell": "libs/event-manager/web-client/shell"
+  }
+}

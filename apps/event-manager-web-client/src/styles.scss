@@ -1,0 +1,36 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* You can add global styles to this file, and also import other style files */
+@import './styles/material.scss';
+@import './styles/base.scss';
+
+html {
+  --scrollbarBG: #030e4c;
+  --thumbBG: #00f0ff;
+}
+body::-webkit-scrollbar {
+  width: 13px;
+}
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+}
+body::-webkit-scrollbar-track {
+  background: var(--scrollbarBG);
+}
+body::-webkit-scrollbar-thumb {
+  background-color: var(--thumbBG);
+  border-radius: 6px;
+  border: 3px solid var(--scrollbarBG);
+}
+
+.advanced-pie-legend-wrapper {
+  display: none !important;
+}
+
+ngx-charts-advanced-pie-chart > div {
+  display: inline-block;
+  width: auto !important;
+}

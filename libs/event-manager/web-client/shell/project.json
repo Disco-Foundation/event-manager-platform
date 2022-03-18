@@ -1,0 +1,26 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/shell",
+  "sourceRoot": "libs/event-manager/web-client/shell/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/event-manager/web-client/shell"],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/shell/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/shell/src/**/*.ts",
+          "libs/event-manager/web-client/shell/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
