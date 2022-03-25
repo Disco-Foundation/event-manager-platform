@@ -115,6 +115,10 @@ export class AppService {
     return { currentBalance: balance };
   }
 
+  async doAirdropTo(amount: number, publicKey: string) {
+    await EventManagerActions.doAirdropTo(amount, publicKey);
+  }
+
   getMetadata() {
     return getMetadata();
   }

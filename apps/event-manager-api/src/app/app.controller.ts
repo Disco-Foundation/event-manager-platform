@@ -8,6 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { AppService } from './app.service';
+import { AirdropDTO } from './dto/airdrop.dto';
 import { BuyTicketsDTO } from './dto/buy-tickets.dto';
 import { CheckInDTO } from './dto/check-in.dto';
 import { CreateEventDTO } from './dto/create-event.dto';
@@ -85,5 +86,10 @@ export class AppController {
   @Get('/get-event-metadata')
   getTestData() {
     return this.appService.getMetadata();
+  }
+
+  @Post('/airdrop')
+  doAirdropTo(@Body() body: AirdropDTO) {
+    return this.appService.doAirdropTo(body.amount, body.publicKey);
   }
 }
