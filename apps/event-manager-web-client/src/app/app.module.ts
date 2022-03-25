@@ -2,7 +2,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
+import { ShellModule } from '@event-manager-web-client/shell';
 import { HdWalletAdapterModule } from '@heavy-duty/wallet-adapter';
+import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 
 @NgModule({
@@ -18,6 +20,13 @@ import { AppComponent } from './app.component';
       },
     ]),
     HdWalletAdapterModule.forRoot({ autoConnect: true }),
+    ShellModule.forRoot({
+      acceptedMint: {
+        publicKey: environment.acceptedMint,
+        decimals: environment.acceptedMintDecimals,
+      },
+      network: environment.network,
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 import { BuyTicketsModule } from '@event-manager-web-client/buy-tickets';
+import { GenerateEventQrModule } from '@event-manager/event-manager/web-client/features/generate-event-qr';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { DurationTimePipe } from './duration-time.pipe';
 import { RelativeTimePipe } from './relative-time.pipe';
@@ -30,6 +31,7 @@ import { ViewEventComponent } from './view-event.component';
     MatSnackBarModule,
     NgxChartsModule,
     BuyTicketsModule,
+    GenerateEventQrModule,
   ],
   declarations: [
     TicketStatusMessagePipe,

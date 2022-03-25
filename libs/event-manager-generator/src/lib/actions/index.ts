@@ -1,3 +1,4 @@
+export * from './airdrop';
 export * from './buy-tickets';
 export * from './check-in';
 export * from './create-event';

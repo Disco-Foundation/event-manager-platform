@@ -1,9 +1,8 @@
-import { ProgramError } from '@project-serum/anchor';
+import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType, CreateWearableError } from '../core/errors';
 import { getConnection, getEventProgram } from '../utils';
 import { hashAndStorePin } from '../utils/internal';
-import BN = require('bn.js');
 
 export const checkInEvent = async (
   wearablePin: string,

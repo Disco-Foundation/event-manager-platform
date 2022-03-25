@@ -4,8 +4,9 @@ import {
   createMintToInstruction,
 } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
 import { getAssociatedTokenAccount } from './get-associated-token-account';
-import { LAMPORTS_PER_ACCEPTED_MINT, requestAirdrop } from './internal';
+import { requestAirdrop } from './internal';
 
 export const createUserAndAssociatedWallet = async (
   connection: Connection,
@@ -56,7 +57,7 @@ export const createUserAndAssociatedWallet = async (
           mint,
           userAssociatedTokenAccount,
           provider.wallet.publicKey,
-          amount * LAMPORTS_PER_ACCEPTED_MINT
+          amount * LAMPORTS_PER_EVENT_MINT
         )
       )
       // THIS IS TEMPORAL - ERASE LATER
@@ -73,7 +74,7 @@ export const createUserAndAssociatedWallet = async (
           mint,
           testWebAssociatedTokenAccount,
           provider.wallet.publicKey,
-          1000 * LAMPORTS_PER_ACCEPTED_MINT
+          1000 * LAMPORTS_PER_EVENT_MINT
         )
       )
       .add(
@@ -89,7 +90,7 @@ export const createUserAndAssociatedWallet = async (
           mint,
           testMobileAssociatedTokenAccount,
           provider.wallet.publicKey,
-          1000 * LAMPORTS_PER_ACCEPTED_MINT
+          1000 * LAMPORTS_PER_EVENT_MINT
         )
       ),
     // END TEMPORAL

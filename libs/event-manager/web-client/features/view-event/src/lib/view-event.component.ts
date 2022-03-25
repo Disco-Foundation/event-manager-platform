@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import {
+  ConfigStore,
   EventApiService,
   EventStore,
 } from '@event-manager-web-client/data-access';
@@ -21,7 +22,6 @@ import {
   startWith,
   tap,
 } from 'rxjs';
-
 @Component({
   selector: 'em-view-event',
   template: `
@@ -77,9 +77,19 @@ import {
               </div>
             </header>
 
-            <p class="m-0 text-justify">
-              {{ event.account.description }}
-            </p>
+            <div class="flex flex-col gap-3">
+              <p class="m-0 text-justify">
+                {{ event.account.description }}
+              </p>
+              <button
+                class="disco-text purple disco-text-glow text-left w-32"
+                emGenerateEventQrTrigger
+                [eventName]="event.account.name"
+                [eventId]="event.publicKey.toBase58()"
+              >
+                Pair with App
+              </button>
+            </div>
           </section>
 
           <section
@@ -134,7 +144,7 @@ import {
               <div class="flex justify-between w-full">
                 <a
                   [href]="
-                    'https://explorer.solana.com/address/' +
+                    'https://solscan.io/token/' +
                     event.ticketMint.address.toBase58()
                   "
                   class="disco-text purple disco-text-glow"
@@ -154,8 +164,8 @@ import {
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
-                      class="w-5 h-5"
-                      src="assets/usdc-logo.png"
+                      class="disco-accepted-mint-logo"
+                      src="{{ acceptedMintLogo$ | async }}"
                       alt="usdc logo"
                     />
                   </figure>
@@ -282,12 +292,17 @@ import {
               <div class="flex flex-col gap-2">
                 <div>Accepted Mint</div>
                 <figure class="flex items-center gap-2">
-                  <img class="w-8 h-8" src="assets/usdc-logo.png" />
-                  <figcaption class="text-2xl font-bold">USDC</figcaption>
+                  <img
+                    class="disco-accepted-mint-logo h8 w8"
+                    src="{{ acceptedMintLogo$ | async }}"
+                  />
+                  <figcaption class="text-2xl font-bold">
+                    {{ acceptedMintSymbol$ | async }}
+                  </figcaption>
                 </figure>
                 <a
                   [href]="
-                    'https://explorer.solana.com/address/' +
+                    'https://solscan.io/token/' +
                     event.account.acceptedMint.toBase58()
                   "
                   target="__blank"
@@ -303,8 +318,8 @@ import {
                   <div class="flex items-center gap-2">
                     <figure>
                       <img
-                        class="w-5 h-5"
-                        src="assets/usdc-logo.png"
+                        class="disco-accepted-mint-logo"
+                        src="{{ acceptedMintLogo$ | async }}"
                         alt="usdc logo"
                       />
                     </figure>
@@ -321,8 +336,8 @@ import {
                   <div class="flex items-center gap-2">
                     <figure>
                       <img
-                        class="w-5 h-5"
-                        src="assets/usdc-logo.png"
+                        class="disco-accepted-mint-logo"
+                        src="{{ acceptedMintLogo$ | async }}"
                         alt="usdc logo"
                       />
                     </figure>
@@ -373,8 +388,8 @@ import {
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
-                            class="w-4 h-4"
-                            src="assets/usdc-logo.png"
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
                             alt="usdc logo"
                           />
                         </figure>
@@ -403,8 +418,8 @@ import {
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
-                            class="w-4 h-4"
-                            src="assets/usdc-logo.png"
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
                             alt="usdc logo"
                           />
                         </figure>
@@ -427,8 +442,8 @@ import {
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
-                      class="w-6 h-6"
-                      src="assets/usdc-logo.png"
+                      class="disco-accepted-mint-logo"
+                      src="{{ acceptedMintLogo$ | async }}"
                       alt="usdc logo"
                     />
                   </figure>
@@ -484,8 +499,8 @@ import {
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
-                            class="w-4 h-4"
-                            src="assets/usdc-logo.png"
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
                             alt="usdc logo"
                           />
                         </figure>
@@ -512,8 +527,8 @@ import {
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
-                            class="w-4 h-4"
-                            src="assets/usdc-logo.png"
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
                             alt="usdc logo"
                           />
                         </figure>
@@ -540,10 +555,12 @@ import {
       }
     `,
   ],
-  providers: [EventStore],
+  providers: [EventStore, ConfigStore],
 })
 export class ViewEventComponent implements OnInit {
   readonly event$ = this._eventStore.event$;
+  readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
+  readonly acceptedMintSymbol$ = this._configStore.acceptedMintSymbol$;
   readonly loading$ = this._eventStore.loading$;
   readonly error$ = this._eventStore.error$;
   readonly now$ = interval(1000).pipe(
@@ -569,6 +586,7 @@ export class ViewEventComponent implements OnInit {
   constructor(
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _eventStore: EventStore,
+    private readonly _configStore: ConfigStore,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore

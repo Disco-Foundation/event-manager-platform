@@ -309,34 +309,6 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                     >The ticket quantity is mandatory.</mat-error
                   >
                 </mat-form-field>
-
-                <mat-form-field
-                  class="w-full"
-                  appearance="fill"
-                  hintLabel="Enter the accepted mint."
-                >
-                  <mat-label>Accepted Mint</mat-label>
-                  <input
-                    matInput
-                    formControlName="acceptedMint"
-                    required
-                    autocomplete="off"
-                  />
-                  <mat-error
-                    *ngIf="
-                      submitted &&
-                      ticketsForm.get('acceptedMint')?.hasError('required')
-                    "
-                    >The accepted mint is mandatory.</mat-error
-                  >
-                  <mat-error
-                    *ngIf="
-                      submitted &&
-                      ticketsForm.get('acceptedMint')?.hasError('publicKey')
-                    "
-                    >The accepted mint format is wrong.</mat-error
-                  >
-                </mat-form-field>
               </form>
 
               <div class="flex gap-2">
@@ -468,9 +440,6 @@ export class CreateEventComponent {
     ticketQuantity: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
-    acceptedMint: this._formBuilder.control(null, {
-      validators: [Validators.required, publicKeyValidator()],
-    }),
     ticketPrice: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
@@ -516,7 +485,7 @@ export class CreateEventComponent {
                   return EMPTY;
                 }
 
-                downloadCertifier(certifier.secretKey);
+                //downloadCertifier(certifier.secretKey);
 
                 return defer(() =>
                   from(connection.confirmTransaction(signature))

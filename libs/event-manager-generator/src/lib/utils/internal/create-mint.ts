@@ -4,9 +4,7 @@ import {
   MintLayout,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-
-export const LAMPORTS_PER_ACCEPTED_MINT = 1000000000;
-export const ACCEPTED_MINT_DECIMALS = 9;
+import { ACCEPTED_MINT_DECIMALS } from '../../core/constants';
 
 export const createMint = async (
   provider: Provider

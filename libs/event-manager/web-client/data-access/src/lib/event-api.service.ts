@@ -1,4 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import {
+  Certifier,
+  getCertifier,
+} from '@event-manager/event-manager-certifiers';
 import { BN, Program, Provider } from '@heavy-duty/anchor';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
@@ -16,6 +20,7 @@ import {
 } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
+import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
   acceptedMint: PublicKey;
@@ -62,7 +67,6 @@ export interface CreateEventArguments {
   endDate: string;
   ticketPrice: number;
   ticketQuantity: number;
-  acceptedMint: string;
   certifierFunds: number;
 }
 
@@ -73,7 +77,7 @@ export interface BuyTicketsArguments {
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  'FYMHu78S37EpfuBFcQ6XyCqaQLhtTqkVxZbuKm8CY6A6'
+  '915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
 );
 
 @Injectable({ providedIn: 'root' })
@@ -83,7 +87,8 @@ export class EventApiService {
 
   constructor(
     private readonly _connectionStore: ConnectionStore,
-    private readonly _walletStore: WalletStore
+    private readonly _walletStore: WalletStore,
+    @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
     combineLatest([
       this._connectionStore.connection$,
@@ -227,7 +232,7 @@ export class EventApiService {
   ): Observable<{ signature: TransactionSignature; certifier: Keypair }> {
     return defer(() => {
       const writer = this.writer;
-      const certifierKeypair = Keypair.generate();
+      const certifierKeypair = getCertifier(Certifier.productPayer);
 
       if (writer === null) {
         return throwError(() => new Error('ProgramWriterMissing'));
@@ -248,7 +253,10 @@ export class EventApiService {
           )
           .accounts({
             authority: writer.provider.wallet.publicKey,
-            acceptedMint: new PublicKey(args.acceptedMint),
+            //acceptedMint: new PublicKey(args.acceptedMint),
+            acceptedMint: new PublicKey(
+              this.environment.acceptedMint.publicKey
+            ), // fixed for now
             certifier: certifierKeypair.publicKey,
           })
           .preInstructions([

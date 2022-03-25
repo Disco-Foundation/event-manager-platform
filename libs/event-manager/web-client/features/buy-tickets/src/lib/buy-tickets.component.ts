@@ -4,6 +4,7 @@ import {
   MatBottomSheetRef,
   MAT_BOTTOM_SHEET_DATA,
 } from '@angular/material/bottom-sheet';
+import { ConfigStore } from '@event-manager-web-client/data-access';
 
 @Component({
   selector: 'em-buy-tickets',
@@ -23,7 +24,11 @@ import {
 
           <span class="inline-flex items-baseline gap-1 ml-1">
             <figure>
-              <img class="w-4 h-4" src="assets/usdc-logo.png" alt="usdc logo" />
+              <img
+                class="disco-accepted-mint-logo"
+                src="{{ acceptedMintLogo$ | async }}"
+                alt="usdc logo"
+              />
             </figure>
 
             <span class="text-lg font-bold leading-none disco-text green"
@@ -139,7 +144,11 @@ import {
 
           <div class="flex items-center gap-1">
             <figure>
-              <img class="w-5 h-5" src="assets/usdc-logo.png" alt="usdc logo" />
+              <img
+                class="disco-accepted-mint-logo"
+                src="{{ acceptedMintLogo$ | async }}"
+                alt="usdc logo"
+              />
             </figure>
 
             <span class="text-3xl font-bold disco-text green">
@@ -171,10 +180,13 @@ import {
       </form>
     </div>
   `,
+  providers: [ConfigStore],
 })
 export class BuyTicketsComponent {
   readonly eventName: string;
   readonly ticketPrice: number;
+  readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
+
   form = this._formBuilder.group({
     ticketQuantity: this._formBuilder.control(1, {
       validators: [Validators.required],
@@ -183,6 +195,7 @@ export class BuyTicketsComponent {
 
   constructor(
     private readonly _formBuilder: FormBuilder,
+    private readonly _configStore: ConfigStore,
     private readonly _bottomSheetRef: MatBottomSheetRef<BuyTicketsComponent>,
     @Inject(MAT_BOTTOM_SHEET_DATA)
     data: { eventName: string; ticketPrice: number }

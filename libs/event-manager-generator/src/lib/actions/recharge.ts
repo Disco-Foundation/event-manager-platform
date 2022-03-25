@@ -1,10 +1,9 @@
-import { ProgramError } from '@project-serum/anchor';
+import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType } from '../core';
+import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
 import { Event } from '../types';
 import { getAssociatedTokenAccount, getEventProgram } from '../utils';
-import { LAMPORTS_PER_ACCEPTED_MINT } from '../utils/internal/create-mint';
-import BN = require('bn.js');
 
 export const recharge = async (
   amountToTransfer: number,
@@ -27,10 +26,7 @@ export const recharge = async (
     );
 
     const tx = await program.methods
-      .recharge(
-        WEARABLE_ID,
-        new BN(amountToTransfer * LAMPORTS_PER_ACCEPTED_MINT)
-      )
+      .recharge(WEARABLE_ID, new BN(amountToTransfer * LAMPORTS_PER_EVENT_MINT))
       .accounts({
         payer: payerAssociatedTokenAccount,
         event: EVENT_ID,

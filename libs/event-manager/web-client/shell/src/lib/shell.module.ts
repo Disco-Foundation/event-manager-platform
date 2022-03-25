@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { ModuleWithProviders, NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import {
+  EnvironmentConfig,
+  environmentConfigProviderFactory,
+} from '@event-manager-web-client/data-access';
 import { HdWalletAdapterCdkModule } from '@heavy-duty/wallet-adapter-cdk';
 import { HdWalletAdapterMaterialModule } from '@heavy-duty/wallet-adapter-material';
 import { ShellComponent } from './shell.component';
@@ -50,4 +54,13 @@ import { ShellComponent } from './shell.component';
     HdWalletAdapterMaterialModule,
   ],
 })
-export class ShellModule {}
+export class ShellModule {
+  static forRoot(
+    environment: EnvironmentConfig
+  ): ModuleWithProviders<ShellModule> {
+    return {
+      ngModule: ShellModule,
+      providers: [environmentConfigProviderFactory(environment)],
+    };
+  }
+}

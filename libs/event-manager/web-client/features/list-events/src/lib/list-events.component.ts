@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
+  ConfigStore,
   EventApiService,
   EventsStore,
 } from '@event-manager-web-client/data-access';
@@ -148,8 +149,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     <div class="flex items-center gap-1">
                       <figure>
                         <img
-                          class="w-4 h-4"
-                          src="assets/usdc-logo.png"
+                          class="disco-accepted-mint-logo"
+                          src="{{ acceptedMintLogo$ | async }}"
                           alt="usdc logo"
                         />
                       </figure>
@@ -211,8 +212,10 @@ export class ListEventsComponent {
   readonly events$ = this._eventsStore.events$;
   readonly loading$ = this._eventsStore.loading$;
   readonly error$ = this._eventsStore.error$;
+  readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
 
   constructor(
+    private readonly _configStore: ConfigStore,
     private readonly _eventsStore: EventsStore,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,

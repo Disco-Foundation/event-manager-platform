@@ -1,10 +1,13 @@
-import { ProgramError } from '@project-serum/anchor';
+import {
+  Certifier,
+  getCertifier,
+} from '@event-manager/event-manager-certifiers';
+import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { ApiError, ApiErrorType, CreateEventError } from '../core/errors';
 import { Event } from '../types';
-import { getCertifier, getConnection, getEventProgram } from '../utils';
+import { getConnection, getEventProgram } from '../utils';
 import { getUserWallet } from '../utils/internal';
-import BN = require('bn.js');
 
 export const createEvent = async (
   name: string,
@@ -21,7 +24,7 @@ export const createEvent = async (
   try {
     const program = await getEventProgram();
     const connection = getConnection();
-    const certifier = getCertifier();
+    const certifier = getCertifier(Certifier.productPayer);
     const userWallet = getUserWallet();
 
     console.log('DATA', {

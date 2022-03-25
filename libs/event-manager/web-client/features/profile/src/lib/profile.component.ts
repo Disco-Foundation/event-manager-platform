@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
+  ConfigStore,
   EventApiService,
   EventsByOwnerStore,
 } from '@event-manager-web-client/data-access';
@@ -108,8 +109,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 <div class="m-0 flex justify-center items-baseline gap-1">
                   <figure>
                     <img
-                      class="w-5 h-5"
-                      src="assets/usdc-logo.png"
+                      class="disco-accepted-mint-logo"
+                      src="{{ acceptedMintLogo$ | async }}"
                       alt="usdc logo"
                     />
                   </figure>
@@ -164,15 +165,17 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
       </ng-template>
     </div>
   `,
-  providers: [EventsByOwnerStore],
+  providers: [EventsByOwnerStore, ConfigStore],
 })
 export class ProfileComponent implements OnInit {
   readonly events$ = this._eventsByOwnerStore.events$;
+  readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
   readonly error$ = this._eventsByOwnerStore.error$;
 
   constructor(
     private readonly _connectionStore: ConnectionStore,
     private readonly _walletStore: WalletStore,
+    private readonly _configStore: ConfigStore,
     private readonly _eventsByOwnerStore: EventsByOwnerStore,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar

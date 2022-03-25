@@ -1,11 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
+import {
+  ConfigStore,
+  EnvironmentConfig,
+  ENVIRONMENT_CONFIG,
+} from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
-  SolletWalletAdapter,
   SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 
@@ -77,18 +80,20 @@ import {
       <router-outlet></router-outlet>
     </main>
   `,
+  providers: [ConfigStore],
 })
 export class ShellComponent implements OnInit {
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
-    private readonly _hdWalletStore: WalletStore
+    private readonly _hdWalletStore: WalletStore,
+    @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {}
 
   ngOnInit() {
-    this._hdConnectionStore.setEndpoint('https://api.google.devnet.solana.com');
+    console.log(this.environment);
+    this._hdConnectionStore.setEndpoint(this.environment.network);
     this._hdWalletStore.setAdapters([
       new PhantomWalletAdapter(),
-      new SolletWalletAdapter({ network: WalletAdapterNetwork.Devnet }),
       new SlopeWalletAdapter(),
       new SolflareWalletAdapter(),
       new SolongWalletAdapter(),

@@ -1,10 +1,13 @@
-import { ProgramError } from '@project-serum/anchor';
+import {
+  Certifier,
+  getCertifier,
+} from '@event-manager/event-manager-certifiers';
+import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { ApiError, ApiErrorType } from '../core';
-import { getCertifier, getEventProgram } from '../utils';
-import { LAMPORTS_PER_ACCEPTED_MINT } from '../utils/internal';
-import { checkWearablePin } from '../utils/internal/check-wearable-pin';
-import BN = require('bn.js');
+import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
+import { getEventProgram } from '../utils';
+import { checkWearablePin } from '../utils/internal';
 
 export const purchase = async (
   userPin: string,
@@ -14,7 +17,7 @@ export const purchase = async (
 ): Promise<boolean> => {
   try {
     const program = await getEventProgram();
-    const certifier = getCertifier();
+    const certifier = getCertifier(Certifier.productPayer);
     const EVENT_ID = new PublicKey(eventId);
     const WEARABLE_ID = new BN(wearableId);
 
@@ -24,10 +27,7 @@ export const purchase = async (
     if (!isValidPin) throw new Error('Invalid PIN');
 
     await program.methods
-      .purchase(
-        WEARABLE_ID,
-        new BN(amountToCharge * LAMPORTS_PER_ACCEPTED_MINT)
-      )
+      .purchase(WEARABLE_ID, new BN(amountToCharge * LAMPORTS_PER_EVENT_MINT))
       .accounts({
         event: EVENT_ID,
         certifier: certifier.publicKey,

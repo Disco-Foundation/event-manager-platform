@@ -1,19 +1,11 @@
+import { BN } from '@project-serum/anchor';
 import { getAccount } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
 import { WearableData } from '../types';
 import { getConnection, getEventProgram } from '../utils';
-import { LAMPORTS_PER_ACCEPTED_MINT } from '../utils/internal';
-
-import BN = require('bn.js');
-
-// TESTING JSON Certifier
-const test = async (data: any) => {
-  console.log(data);
-};
-// END TESTING
 
 export const getWearableData = async (id: number, eventId: number) => {
-  await test(id);
   const program = await getEventProgram();
   const connection = await getConnection();
 
@@ -44,7 +36,7 @@ export const getWearableData = async (id: number, eventId: number) => {
       wearableVaultPubKey: wearableAccount.wearableVault.toBase58(),
       balance:
         Number(wearableVaultAccount.amount.toString()) /
-        LAMPORTS_PER_ACCEPTED_MINT,
+        LAMPORTS_PER_EVENT_MINT,
     };
 
     return wearableData;
