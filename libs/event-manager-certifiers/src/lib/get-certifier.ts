@@ -52,6 +52,6 @@ export const getCertifier = (type: Certifier) => {
   }
 
   return Keypair.fromSecretKey(
-    new Uint8Array(keyPairData.secret as unknown as ArrayBufferLike)
+    new Uint8Array(keyPairData['secret'] as unknown as ArrayBufferLike)
   );
 };
