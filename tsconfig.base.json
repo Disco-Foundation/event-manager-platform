@@ -36,8 +36,17 @@
       "@event-manager-web-client/view-event": [
         "libs/event-manager/web-client/features/view-event/src/index.ts"
       ],
+      "@event-manager/event-manager-certifiers": [
+        "libs/event-manager-certifiers/src/index.ts"
+      ],
       "@event-manager/event-manager-generator": [
         "libs/event-manager-generator/src/index.ts"
+      ],
+      "@event-manager/event-manager/web-client/features/generate-event-qr": [
+        "libs/event-manager/web-client/features/generate-event-qr/src/index.ts"
+      ],
+      "@event-manager/event-manager/web-client/features/get-token-image": [
+        "libs/event-manager/web-client/features/get-token-image/src/index.ts"
       ]
     }
   },

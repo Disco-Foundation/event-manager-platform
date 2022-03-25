@@ -1,0 +1,27 @@
+{
+  "root": "libs/event-manager/web-client/features/get-token-image",
+  "sourceRoot": "libs/event-manager/web-client/features/get-token-image/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/features/get-token-image/**/*.ts"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/event-manager/web-client/features/get-token-image"
+      ],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/features/get-token-image/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}
