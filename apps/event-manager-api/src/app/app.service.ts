@@ -116,7 +116,13 @@ export class AppService {
   }
 
   async doAirdropTo(amount: number, publicKey: string) {
-    await EventManagerActions.doAirdropTo(amount, publicKey);
+    try {
+      await EventManagerActions.doAirdropTo(amount, publicKey);
+      return { status: true };
+    } catch (e) {
+      console.log('ERROR DEL API', e);
+      return { status: false, error: e.message };
+    }
   }
 
   getMetadata() {

@@ -1,0 +1,23 @@
+{
+  "root": "libs/event-manager-utils",
+  "sourceRoot": "libs/event-manager-utils/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/event-manager-utils/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/event-manager-utils"],
+      "options": {
+        "jestConfig": "libs/event-manager-utils/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

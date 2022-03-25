@@ -5,6 +5,7 @@
     "event-manager-certifiers": "libs/event-manager-certifiers",
     "event-manager-generator": "libs/event-manager-generator",
     "event-manager-program": "apps/event-manager-program",
+    "event-manager-utils": "libs/event-manager-utils",
     "event-manager-web-client": "apps/event-manager-web-client",
     "event-manager-web-client-data-access": "libs/event-manager/web-client/data-access",
     "event-manager-web-client-e2e": "apps/event-manager-web-client-e2e",

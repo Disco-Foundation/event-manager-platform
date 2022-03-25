@@ -31,6 +31,7 @@ export const doAirdropTo = async (
     );
     return { status: true };
   } catch (e: any) {
+    console.log('ERROR', e);
     return { status: false, error: e.message };
   }
 };

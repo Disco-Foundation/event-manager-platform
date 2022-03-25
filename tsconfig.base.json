@@ -42,6 +42,9 @@
       "@event-manager/event-manager-generator": [
         "libs/event-manager-generator/src/index.ts"
       ],
+      "@event-manager/event-manager-utils": [
+        "libs/event-manager-utils/src/index.ts"
+      ],
       "@event-manager/event-manager/web-client/features/generate-event-qr": [
         "libs/event-manager/web-client/features/generate-event-qr/src/index.ts"
       ],

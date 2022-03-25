@@ -1,3 +1,4 @@
+import { readJsonData } from '@event-manager/event-manager-utils';
 import { Keypair } from '@solana/web3.js';
 
 // Refact: read from file
@@ -23,6 +24,8 @@ const testerSecretKey = new Uint8Array([
 ]); // 3cq7a3wFecykY9C9Qt5E23HEwHfGVZTzhczgg11XEdoa
 // end refact
 
+const CERTIFIERS_DATA_PATH = 'libs/event-manager-certifiers/src/lib/keyfiles';
+
 export enum Certifier {
   airdroper = 'airdroper',
   productPayer = 'productPayer',
@@ -30,14 +33,25 @@ export enum Certifier {
 }
 
 export const getCertifier = (type: Certifier) => {
+  let keyPairData;
+
   switch (type) {
     case Certifier.airdroper:
-      return Keypair.fromSecretKey(airdroperSecretKey);
+      keyPairData = readJsonData(
+        CERTIFIERS_DATA_PATH + '/airdroper.keypair.json'
+      );
+      break;
     case Certifier.productPayer:
-      return Keypair.fromSecretKey(productPayerSecretKey);
+      keyPairData = readJsonData(
+        CERTIFIERS_DATA_PATH + '/productPayer.keypair.json'
+      );
+      break;
     case Certifier.testerUser:
-      return Keypair.fromSecretKey(testerSecretKey);
-    default:
-      return Keypair.generate();
+      keyPairData = readJsonData(CERTIFIERS_DATA_PATH + '/tester.keypair.json');
+      break;
   }
+
+  return Keypair.fromSecretKey(
+    new Uint8Array(keyPairData.secret as unknown as ArrayBufferLike)
+  );
 };
