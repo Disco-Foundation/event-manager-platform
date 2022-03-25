@@ -1,0 +1,28 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/features/generate-event-qr",
+  "sourceRoot": "libs/event-manager/web-client/features/generate-event-qr/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/event-manager/web-client/features/generate-event-qr"
+      ],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/features/generate-event-qr/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/features/generate-event-qr/src/**/*.ts",
+          "libs/event-manager/web-client/features/generate-event-qr/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
