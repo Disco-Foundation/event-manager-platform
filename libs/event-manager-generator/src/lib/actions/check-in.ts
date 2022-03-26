@@ -1,3 +1,7 @@
+import {
+  Certifier,
+  getCertifier,
+} from '@event-manager/event-manager-certifiers';
 import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType, CreateWearableError } from '../core/errors';
@@ -33,13 +37,17 @@ export const checkInEvent = async (
     // if transaction is not completed, wearable is not created, so it will replace the json data with the new pin
     await hashAndStorePin(wearableId, wearablePin);
 
+    // Checkin Test
+    const payer = getCertifier(Certifier.checkInTesting);
+
     const tx = await program.methods
       .checkIn(WEARABLE_ID)
       .accounts({
         event: EVENT_ID,
-        authority: payerAddress,
+        authority: payer.publicKey,
       })
-      .transaction();
+      .signers([payer])
+      .rpc();
 
     return tx;
   } catch (e) {

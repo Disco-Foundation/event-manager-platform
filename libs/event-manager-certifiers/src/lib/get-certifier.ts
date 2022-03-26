@@ -7,6 +7,7 @@ export enum Certifier {
   airdroper = 'airdroper',
   productPayer = 'productPayer',
   testerUser = 'testerUser',
+  checkInTesting = 'checkInTesting',
 }
 
 export const getCertifier = (type: Certifier) => {
@@ -28,6 +29,18 @@ export const getCertifier = (type: Certifier) => {
       break;
     case Certifier.testerUser:
       keyPairData = readJsonData(CERTIFIERS_DATA_PATH + '/t.json');
+      break;
+    case Certifier.checkInTesting:
+      keyPairData = {
+        s: [
+          76, -29, -92, 26, 53, -99, 63, -90, 38, 104, -86, -67, 81, -115, -88,
+          -117, 28, -80, -28, -26, 25, -55, 79, 86, 61, 0, 121, 3, 24, -124, 4,
+          -67, -74, -83, -102, 83, 31, -75, 77, -71, -20, 32, -55, -58, 99, 61,
+          -22, 49, 111, -17, -55, -3, -65, -77, -79, 118, -120, -128, -33, 27,
+          74, 62, -101, -119,
+        ],
+      };
+
       break;
   }
 
