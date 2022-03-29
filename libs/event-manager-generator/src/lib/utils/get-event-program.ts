@@ -1,10 +1,11 @@
 import { Program, setProvider } from '@project-serum/anchor';
-import { getConnection } from '.';
+import { Connection } from '@solana/web3.js';
 import { EventManager, IDL, PROGRAM_PUBKEY } from '../core';
 import { getAuthorityWallet } from './internal';
 
-export const getEventProgram = async (): Promise<Program<EventManager>> => {
-  const connection = getConnection();
+export const getEventProgram = async (
+  connection: Connection
+): Promise<Program<EventManager>> => {
   const provider = await getAuthorityWallet(connection);
   setProvider(provider);
 

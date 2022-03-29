@@ -1,8 +1,7 @@
 import { Connection } from '@solana/web3.js';
-import { SELECTED_NETWORK } from '../core';
 
-const connection = new Connection(SELECTED_NETWORK);
+// const connection = new Connection(SELECTED_NETWORK);
 
-export const getConnection = () => {
-  return connection;
+export const getConnection = (network: string) => {
+  return new Connection(network);
 };

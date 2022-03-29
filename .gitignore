@@ -41,3 +41,4 @@ Thumbs.db
 .angular
 
 /libs/event-manager-certifiers/src/lib/keyfiles/*
+/apps/event-manager-api/src/assets/.keyfiles/*

@@ -11,8 +11,20 @@ export interface Wearable {
   publicKey?: PublicKey;
 }
 
+export interface CheckInWearableData {
+  wearablePin: string;
+  wearableId: number;
+  eventId: string;
+  payer: string;
+}
+
 export interface WearableData {
   pubKey: string;
   wearableVaultPubKey: string;
   balance: number;
+}
+
+export interface GetWearableData {
+  id: number;
+  eventId: number;
 }

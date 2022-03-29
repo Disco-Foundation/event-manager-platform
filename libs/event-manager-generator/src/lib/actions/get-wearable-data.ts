@@ -2,15 +2,18 @@ import { BN } from '@project-serum/anchor';
 import { getAccount } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
 import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
-import { WearableData } from '../types';
+import { GetWearableData, WearableData } from '../types';
 import { getConnection, getEventProgram } from '../utils';
 
-export const getWearableData = async (id: number, eventId: number) => {
-  const program = await getEventProgram();
-  const connection = await getConnection();
+export const getWearableData = async (
+  getWearableData: GetWearableData,
+  network: string
+) => {
+  const connection = getConnection(network);
+  const program = await getEventProgram(connection);
 
-  const EVENT_ID = new PublicKey(eventId);
-  const WEARABLE_ID = new BN(id);
+  const EVENT_ID = new PublicKey(getWearableData.eventId);
+  const WEARABLE_ID = new BN(getWearableData.id);
   const [wearableAddress] = await PublicKey.findProgramAddress(
     [
       Buffer.from('wearable', 'utf-8'),

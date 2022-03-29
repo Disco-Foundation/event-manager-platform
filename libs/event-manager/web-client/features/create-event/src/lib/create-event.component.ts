@@ -327,54 +327,6 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
               </div>
             </div>
           </mat-step>
-          <mat-step [stepControl]="miscellaneousForm">
-            <div class="flex flex-col gap-3">
-              <ng-template matStepLabel
-                >Fill out miscellaneous information</ng-template
-              >
-
-              <form [formGroup]="miscellaneousForm" class="flex flex-col gap-2">
-                <mat-form-field
-                  class="w-full"
-                  appearance="fill"
-                  hintLabel="Certifier funds"
-                >
-                  <mat-label>Certifier funds</mat-label>
-                  <input
-                    matInput
-                    formControlName="certifierFunds"
-                    required
-                    type="number"
-                    autocomplete="off"
-                  />
-                  <mat-error
-                    *ngIf="
-                      submitted &&
-                      miscellaneousForm
-                        .get('certifierFunds')
-                        ?.hasError('required')
-                    "
-                    >The certifier funds are mandatory.</mat-error
-                  >
-                </mat-form-field>
-              </form>
-
-              <div class="flex gap-2">
-                <button
-                  class="disco-btn blue ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-                  matStepperPrevious
-                >
-                  Back
-                </button>
-                <button
-                  class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-                  matStepperNext
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </mat-step>
           <mat-step>
             <div class="flex flex-col gap-3">
               <ng-template matStepLabel>Done</ng-template>
@@ -444,12 +396,6 @@ export class CreateEventComponent {
       validators: [Validators.required],
     }),
   });
-  readonly miscellaneousForm = this._formBuilder.group({
-    // Misc
-    certifierFunds: this._formBuilder.control(null, {
-      validators: [Validators.required],
-    }),
-  });
 
   constructor(
     private readonly _formBuilder: FormBuilder,
@@ -462,16 +408,11 @@ export class CreateEventComponent {
   onSubmit() {
     this.submitted = true;
 
-    if (
-      this.informationForm.valid &&
-      this.ticketsForm.valid &&
-      this.miscellaneousForm.valid
-    ) {
+    if (this.informationForm.valid && this.ticketsForm.valid) {
       this._eventApiService
         .create({
           ...this.informationForm.value,
           ...this.ticketsForm.value,
-          ...this.miscellaneousForm.value,
         })
         .pipe(
           concatMap(({ signature, certifier }) => {

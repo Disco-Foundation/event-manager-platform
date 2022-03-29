@@ -1,25 +1,20 @@
-import {
-  Certifier,
-  getCertifier,
-} from '@event-manager/event-manager-certifiers';
 import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType, CreateWearableError } from '../core/errors';
+import { CheckInWearableData } from '../types';
 import { getConnection, getEventProgram } from '../utils';
 import { hashAndStorePin } from '../utils/internal';
 
 export const checkInEvent = async (
-  wearablePin: string,
-  wearableId: number,
-  eventId: string,
-  payerAddress: PublicKey
+  checkInData: CheckInWearableData,
+  network: string
 ): Promise<Transaction> => {
   try {
-    const program = await getEventProgram();
-    const connection = getConnection();
+    const connection = getConnection(network);
+    const program = await getEventProgram(connection);
 
-    const EVENT_ID = new PublicKey(eventId);
-    const WEARABLE_ID = new BN(wearableId);
+    const EVENT_ID = new PublicKey(checkInData.eventId);
+    const WEARABLE_ID = new BN(checkInData.wearableId);
     const [wearableAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('wearable', 'utf-8'),
@@ -28,6 +23,7 @@ export const checkInEvent = async (
       ],
       program.programId
     );
+    const payerAddress = new PublicKey(checkInData.payer);
 
     // Check if the wearable already exist
     const wearableAccount = await connection.getAccountInfo(wearableAddress);
@@ -35,19 +31,15 @@ export const checkInEvent = async (
       throw new CreateWearableError('Wearable already exist');
 
     // if transaction is not completed, wearable is not created, so it will replace the json data with the new pin
-    await hashAndStorePin(wearableId, wearablePin);
-
-    // Checkin Test
-    const payer = getCertifier(Certifier.checkInTesting);
+    await hashAndStorePin(checkInData.wearableId, checkInData.wearablePin);
 
     const tx = await program.methods
       .checkIn(WEARABLE_ID)
       .accounts({
         event: EVENT_ID,
-        authority: payer.publicKey,
+        authority: payerAddress,
       })
-      .signers([payer])
-      .rpc();
+      .transaction();
 
     return tx;
   } catch (e) {

@@ -1,13 +1,9 @@
-import { readJsonData } from '@event-manager/event-manager-utils';
 import { Keypair } from '@solana/web3.js';
-
-const CERTIFIERS_DATA_PATH = 'libs/event-manager-certifiers/src/lib/keyfiles';
 
 export enum Certifier {
   airdroper = 'airdroper',
   productPayer = 'productPayer',
   testerUser = 'testerUser',
-  checkInTesting = 'checkInTesting',
 }
 
 export const getCertifier = (type: Certifier) => {
@@ -15,7 +11,15 @@ export const getCertifier = (type: Certifier) => {
 
   switch (type) {
     case Certifier.airdroper:
-      keyPairData = readJsonData(CERTIFIERS_DATA_PATH + '/a.json');
+      keyPairData = {
+        s: [
+          46, 96, 124, 77, 80, 245, 203, 163, 77, 211, 40, 138, 104, 148, 187,
+          60, 81, 12, 241, 117, 115, 232, 153, 63, 42, 195, 188, 42, 205, 48,
+          132, 90, 221, 146, 167, 218, 84, 99, 254, 102, 40, 80, 234, 106, 187,
+          140, 152, 155, 241, 111, 221, 28, 63, 250, 155, 114, 213, 181, 68, 20,
+          13, 207, 114, 235,
+        ],
+      };
       break;
     case Certifier.productPayer:
       keyPairData = {
@@ -28,16 +32,13 @@ export const getCertifier = (type: Certifier) => {
       };
       break;
     case Certifier.testerUser:
-      keyPairData = readJsonData(CERTIFIERS_DATA_PATH + '/t.json');
-      break;
-    case Certifier.checkInTesting:
       keyPairData = {
         s: [
-          76, -29, -92, 26, 53, -99, 63, -90, 38, 104, -86, -67, 81, -115, -88,
-          -117, 28, -80, -28, -26, 25, -55, 79, 86, 61, 0, 121, 3, 24, -124, 4,
-          -67, -74, -83, -102, 83, 31, -75, 77, -71, -20, 32, -55, -58, 99, 61,
-          -22, 49, 111, -17, -55, -3, -65, -77, -79, 118, -120, -128, -33, 27,
-          74, 62, -101, -119,
+          20, 11, 198, 199, 185, 171, 184, 92, 31, 189, 160, 13, 131, 14, 83,
+          158, 218, 176, 161, 41, 208, 67, 79, 175, 135, 71, 77, 254, 228, 99,
+          12, 14, 38, 229, 26, 161, 41, 83, 131, 163, 105, 55, 109, 251, 57,
+          223, 240, 251, 117, 98, 212, 235, 4, 138, 232, 143, 77, 47, 17, 39,
+          225, 116, 6, 5,
         ],
       };
 

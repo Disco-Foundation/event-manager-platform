@@ -1,37 +1,31 @@
 import {
   actions as EventManagerActions,
+  BuyTicketsData,
+  CheckInWearableData,
+  CreateEventData,
   Event,
   getMetadata,
+  GetWearableData,
+  PurchaseWearableData,
+  RechargeWearableData,
 } from '@event-manager/event-manager-generator';
-import { Injectable } from '@nestjs/common';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { Transaction } from '@solana/web3.js';
+import { EnvironmentProvider } from './app.module';
 
 @Injectable()
 export class AppService {
+  constructor(
+    @Inject('ENVIRONMENT') private readonly environment: EnvironmentProvider
+  ) {}
+
   async createEvent(
-    name: string,
-    id: number,
-    description: string,
-    banner: string,
-    location: string,
-    startDate: string,
-    endDate: string,
-    ticketPrice: number,
-    ticketQuantity: number,
-    acceptedMint: string
+    createEventData: CreateEventData
   ): Promise<{ event: Event }> {
     try {
       const event = await EventManagerActions.createEvent(
-        name,
-        id,
-        description,
-        banner,
-        location,
-        startDate,
-        endDate,
-        ticketPrice,
-        ticketQuantity,
-        acceptedMint
+        createEventData,
+        this.environment.network
       );
       return { event: event };
     } catch (e) {
@@ -41,18 +35,12 @@ export class AppService {
   }
 
   async checkIn(
-    wearablePin: string,
-    wearableId: number,
-    eventId: string,
-    payer: string
+    checkInData: CheckInWearableData
   ): Promise<{ transaction: Transaction }> {
     try {
-      const payerAddress = new PublicKey(payer);
       const tx = await EventManagerActions.checkInEvent(
-        wearablePin,
-        wearableId,
-        eventId,
-        payerAddress
+        checkInData,
+        this.environment.network
       );
       return { transaction: tx };
     } catch (e) {
@@ -61,17 +49,12 @@ export class AppService {
   }
 
   async recharge(
-    amount: number,
-    wearableId: number,
-    eventId: string,
-    payer: string
+    rechargeWearableData: RechargeWearableData
   ): Promise<{ transaction: Transaction }> {
     try {
       const transaction = await EventManagerActions.recharge(
-        amount,
-        wearableId,
-        eventId,
-        payer
+        rechargeWearableData,
+        this.environment.network
       );
 
       return { transaction: transaction };
@@ -81,17 +64,12 @@ export class AppService {
   }
 
   async purchase(
-    userPin: string,
-    amount: number,
-    wearableId: number,
-    eventId: string
+    purchaseWearableData: PurchaseWearableData
   ): Promise<{ status: boolean } | { status: boolean; error: string }> {
     try {
       const status = await EventManagerActions.purchase(
-        userPin,
-        amount,
-        wearableId,
-        eventId
+        purchaseWearableData,
+        this.environment.network
       );
 
       return { status: status };
@@ -101,15 +79,18 @@ export class AppService {
     }
   }
 
-  async getWearableData(id: number, eventId: number) {
-    const wearable = await EventManagerActions.getWearableData(id, eventId);
+  async getWearableData(getWearableData: GetWearableData) {
+    const wearable = await EventManagerActions.getWearableData(
+      getWearableData,
+      this.environment.network
+    );
     return { wearable };
   }
 
-  async buyTickets(ticketsAmount: number, eventId: string) {
+  async buyTickets(buyTicketsData: BuyTicketsData) {
     const balance = await EventManagerActions.buyTickets(
-      ticketsAmount,
-      eventId
+      buyTicketsData,
+      this.environment.network
     );
 
     return { currentBalance: balance };
@@ -117,7 +98,11 @@ export class AppService {
 
   async doAirdropTo(amount: number, publicKey: string) {
     try {
-      await EventManagerActions.doAirdropTo(amount, publicKey);
+      await EventManagerActions.doAirdropTo(
+        amount,
+        publicKey,
+        this.environment.network
+      );
       return { status: true };
     } catch (e) {
       console.log('ERROR DEL API', e);

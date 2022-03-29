@@ -4,19 +4,19 @@ import {
   getAssociatedTokenAddress,
 } from '@solana/spl-token';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { Event } from '../types';
+import { BuyTicketsData, Event } from '../types';
 import { getConnection, getEventProgram } from '../utils';
 import { getUserWallet } from '../utils/internal';
 
 export const buyTickets = async (
-  ticketsAmount: number,
-  eventId: string
+  buyTicketsData: BuyTicketsData,
+  network: string
 ): Promise<number> => {
   try {
-    const program = await getEventProgram();
-    const connection = await getConnection();
+    const connection = getConnection(network);
+    const program = await getEventProgram(connection);
     const userWallet = getUserWallet();
-    const eventAddress = new PublicKey(eventId);
+    const eventAddress = new PublicKey(buyTicketsData.eventId);
 
     const event: Event = await program.account['event'].fetch(eventAddress);
     const userAssociatedTokenAccount = await getAssociatedTokenAddress(
@@ -66,7 +66,7 @@ export const buyTickets = async (
     );
 
     await program.methods
-      .buyTickets(ticketsAmount)
+      .buyTickets(buyTicketsData.ticketsAmount)
       .accounts({
         event: eventAddress,
         payer: userAssociatedTokenAccount,
