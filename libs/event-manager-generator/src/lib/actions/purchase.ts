@@ -21,14 +21,14 @@ export const purchase = async (
     const EVENT_ID = new PublicKey(purchaseData.eventId);
     const WEARABLE_ID = new BN(purchaseData.wearableId);
 
-    // if transaction is not completed, wearable is not created, so it will replace the json data with the new pin
     const isValidPin = await checkWearablePin(
       purchaseData.wearableId,
       purchaseData.userPin
     );
 
     if (!isValidPin) throw new Error('Invalid PIN');
-
+    console.log('wearable', purchaseData.wearableId);
+    console.log('certifier', certifier.publicKey.toBase58());
     await program.methods
       .purchase(
         WEARABLE_ID,

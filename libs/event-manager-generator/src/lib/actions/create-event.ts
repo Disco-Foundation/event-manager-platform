@@ -50,11 +50,11 @@ export const createEvent = async (
         new BN(eventData.ticketPrice),
         eventData.ticketQuantity
       )
-      .accounts({
-        authority: userWallet.publicKey,
-        acceptedMint: new PublicKey(eventData.acceptedMint),
-        certifier: certifier.publicKey,
-      })
+      // .accounts({
+      //   authority: userWallet.publicKey,
+      //   acceptedMint: new PublicKey(eventData.acceptedMint),
+      //   certifier: certifier.publicKey,
+      // })
       .signers([userWallet, certifier])
       .rpc();
 

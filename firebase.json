@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": "dist/apps/event-manager-web-client",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
