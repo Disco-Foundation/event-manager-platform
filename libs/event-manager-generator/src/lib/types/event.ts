@@ -25,3 +25,16 @@ export interface Event {
   gainVaultBump: number;
   publicKey?: PublicKey;
 }
+
+export interface CreateEventData {
+  name: string;
+  id: number;
+  description: string;
+  banner: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  ticketPrice: number;
+  ticketQuantity: number;
+  acceptedMint: string;
+}

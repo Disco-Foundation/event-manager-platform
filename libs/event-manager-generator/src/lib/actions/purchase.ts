@@ -6,28 +6,34 @@ import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { ApiError, ApiErrorType } from '../core';
 import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
-import { getEventProgram } from '../utils';
+import { PurchaseWearableData } from '../types';
+import { getConnection, getEventProgram } from '../utils';
 import { checkWearablePin } from '../utils/internal';
 
 export const purchase = async (
-  userPin: string,
-  amountToCharge: number,
-  wearableId: number,
-  eventId: string
+  purchaseData: PurchaseWearableData,
+  network: string
 ): Promise<boolean> => {
   try {
-    const program = await getEventProgram();
+    const connection = getConnection(network);
+    const program = await getEventProgram(connection);
     const certifier = getCertifier(Certifier.productPayer);
-    const EVENT_ID = new PublicKey(eventId);
-    const WEARABLE_ID = new BN(wearableId);
+    const EVENT_ID = new PublicKey(purchaseData.eventId);
+    const WEARABLE_ID = new BN(purchaseData.wearableId);
 
     // if transaction is not completed, wearable is not created, so it will replace the json data with the new pin
-    const isValidPin = await checkWearablePin(wearableId, userPin);
+    const isValidPin = await checkWearablePin(
+      purchaseData.wearableId,
+      purchaseData.userPin
+    );
 
     if (!isValidPin) throw new Error('Invalid PIN');
 
     await program.methods
-      .purchase(WEARABLE_ID, new BN(amountToCharge * LAMPORTS_PER_EVENT_MINT))
+      .purchase(
+        WEARABLE_ID,
+        new BN(purchaseData.amount * LAMPORTS_PER_EVENT_MINT)
+      )
       .accounts({
         event: EVENT_ID,
         certifier: certifier.publicKey,

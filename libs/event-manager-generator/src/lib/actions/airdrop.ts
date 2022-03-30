@@ -9,11 +9,12 @@ import { getConnection } from '../utils';
 
 export const doAirdropTo = async (
   amount: number,
-  toWallet: string
+  toWallet: string,
+  network: string
 ): Promise<{ status: boolean; error?: string }> => {
   try {
     const airdroperCertifier = getCertifier(Certifier.airdroper);
-    const connection = getConnection();
+    const connection = getConnection(network);
 
     const toWalletDiscoAccount = await getOrCreateAssociatedTokenAccount(
       connection,

@@ -1,9 +1,18 @@
 import {
+  BuyTicketsData,
+  CheckInWearableData,
+  CreateEventData,
+  GetWearableData,
+  PurchaseWearableData,
+  RechargeWearableData,
+} from '@event-manager/event-manager-generator';
+import {
   Body,
   Controller,
   Get,
   HttpException,
   HttpStatus,
+  Injectable,
   Param,
   Post,
 } from '@nestjs/common';
@@ -15,9 +24,11 @@ import { CreateEventDTO } from './dto/create-event.dto';
 import { PurchaseDTO } from './dto/purchase.dto';
 import { RechargeDTO } from './dto/recharge.dto';
 
+@Injectable()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
   @Get('/test')
   test() {
     return { message: 'Hello Solana' };
@@ -25,24 +36,19 @@ export class AppController {
 
   @Get('/wearable/:id/:eventId')
   getWearable(@Param() params) {
-    return this.appService.getWearableData(params.id, params.eventId);
+    const getWearableData: GetWearableData = {
+      ...params,
+    };
+    return this.appService.getWearableData(getWearableData);
   }
 
   @Post('/create-event')
   createEvent(@Body() body: CreateEventDTO) {
     try {
-      return this.appService.createEvent(
-        body.name,
-        body.id,
-        body.description,
-        body.banner,
-        body.location,
-        body.startDate,
-        body.endDate,
-        body.ticketPrice,
-        body.ticketQuantity,
-        body.acceptedMint
-      );
+      const eventData: CreateEventData = {
+        ...body,
+      };
+      return this.appService.createEvent(eventData);
     } catch (error) {
       throw new HttpException(error, HttpStatus.NOT_ACCEPTABLE);
     }
@@ -50,37 +56,41 @@ export class AppController {
 
   @Post('/check-in')
   checkIn(@Body() body: CheckInDTO) {
-    return this.appService.checkIn(
-      body.PIN,
-      body.wearableId,
-      body.eventId,
-      body.payer
-    );
+    try {
+      const createWearableData: CheckInWearableData = {
+        ...body,
+        wearablePin: body.PIN,
+      };
+
+      return this.appService.checkIn(createWearableData);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.NOT_ACCEPTABLE);
+    }
   }
 
   @Post('/recharge')
   recharge(@Body() body: RechargeDTO) {
-    return this.appService.recharge(
-      body.amount,
-      body.wearableId,
-      body.eventId,
-      body.payer
-    );
+    const rechargeData: RechargeWearableData = {
+      ...body,
+    };
+    return this.appService.recharge(rechargeData);
   }
 
   @Post('/purchase')
   purchase(@Body() body: PurchaseDTO) {
-    return this.appService.purchase(
-      body.PIN,
-      body.amount,
-      body.wearableId,
-      body.eventId
-    );
+    const purchaseWearableData: PurchaseWearableData = {
+      ...body,
+      userPin: body.PIN,
+    };
+    return this.appService.purchase(purchaseWearableData);
   }
 
   @Post('/buy-tickets')
   buyTickets(@Body() body: BuyTicketsDTO) {
-    return this.appService.buyTickets(body.ticketsAmount, body.eventId);
+    const buyTicketsData: BuyTicketsData = {
+      ...body,
+    };
+    return this.appService.buyTickets(buyTicketsData);
   }
 
   @Get('/get-event-metadata')
