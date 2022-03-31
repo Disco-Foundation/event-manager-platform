@@ -7,6 +7,7 @@ export const DISCO_MINT = new PublicKey(
   'GpkezdzsMoerjxCviax6rSPN6suTpSTg9eFzaRBGwLtf'
 );
 
+// Create event-manager-environment module to abstract this.
 export const LAMPORTS_PER_DISCO_MINT = 1_000_000;
 export const LAMPORTS_PER_EVENT_MINT = LAMPORTS_PER_DISCO_MINT;
 export const ACCEPTED_MINT_DECIMALS = 6;

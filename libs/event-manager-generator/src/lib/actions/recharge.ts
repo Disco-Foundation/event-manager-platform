@@ -17,10 +17,10 @@ export const recharge = async (
     const connection = getConnection(network);
     const program = await getEventProgram(connection);
 
-    const EVENT_ID = new PublicKey(rechargeData.eventId);
-    const WEARABLE_ID = new BN(rechargeData.wearableId);
+    const eventAddress = new PublicKey(rechargeData.eventId);
+    const wearableId = new BN(rechargeData.wearableId);
 
-    const event: Event = await program.account['event'].fetch(EVENT_ID);
+    const event: Event = await program.account['event'].fetch(eventAddress);
 
     const payerAddress = new PublicKey(rechargeData.payer);
     const payerAssociatedTokenAccount = await getAssociatedTokenAccount(
@@ -30,12 +30,12 @@ export const recharge = async (
 
     const tx = await program.methods
       .recharge(
-        WEARABLE_ID,
+        wearableId,
         new BN(rechargeData.amount * LAMPORTS_PER_EVENT_MINT)
       )
       .accounts({
         payer: payerAssociatedTokenAccount,
-        event: EVENT_ID,
+        event: eventAddress,
         authority: payerAddress,
       })
       .transaction();

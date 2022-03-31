@@ -18,8 +18,8 @@ export const purchase = async (
     const connection = getConnection(network);
     const program = await getEventProgram(connection);
     const certifier = getCertifier(Certifier.productPayer);
-    const EVENT_ID = new PublicKey(purchaseData.eventId);
-    const WEARABLE_ID = new BN(purchaseData.wearableId);
+    const eventAddress = new PublicKey(purchaseData.eventId);
+    const wearableId = new BN(purchaseData.wearableId);
 
     const isValidPin = await checkWearablePin(
       purchaseData.wearableId,
@@ -31,11 +31,11 @@ export const purchase = async (
     console.log('certifier', certifier.publicKey.toBase58());
     await program.methods
       .purchase(
-        WEARABLE_ID,
+        wearableId,
         new BN(purchaseData.amount * LAMPORTS_PER_EVENT_MINT)
       )
       .accounts({
-        event: EVENT_ID,
+        event: eventAddress,
         certifier: certifier.publicKey,
       })
       .signers([certifier])

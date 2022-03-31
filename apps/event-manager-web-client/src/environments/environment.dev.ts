@@ -1,8 +1,6 @@
 export const environment = {
-  production: false,
+  production: true,
   acceptedMint: 'GpkezdzsMoerjxCviax6rSPN6suTpSTg9eFzaRBGwLtf',
   acceptedMintDecimals: 6,
-  network: 'http://localhost:8899',
+  network: 'https://api.devnet.solana.com',
 };
-
-// 8Sa7BjogSJnkHyhtRTKNDDTDtASnWMcAsD4ySVNSFu27

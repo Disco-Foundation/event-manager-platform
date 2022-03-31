@@ -46,6 +46,27 @@
           ],
           "outputHashing": "all"
         },
+        "devnet": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/event-manager-web-client/src/environments/environment.ts",
+              "with": "apps/event-manager-web-client/src/environments/environment.dev.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
         "development": {
           "buildOptimizer": false,
           "optimization": false,

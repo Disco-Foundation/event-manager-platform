@@ -4,9 +4,13 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "**",
+        "source": "/**",
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "source": "dist/apps/event-manager-api",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }
 }

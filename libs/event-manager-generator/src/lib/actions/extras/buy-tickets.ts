@@ -4,9 +4,9 @@ import {
   getAssociatedTokenAddress,
 } from '@solana/spl-token';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { BuyTicketsData, Event } from '../types';
-import { getConnection, getEventProgram } from '../utils';
-import { getUserWallet } from '../utils/internal';
+import { BuyTicketsData, Event } from '../../types';
+import { getConnection, getEventProgram } from '../../utils';
+import { getUserWallet } from '../../utils/internal';
 
 export const buyTickets = async (
   buyTicketsData: BuyTicketsData,

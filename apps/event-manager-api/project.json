@@ -10,7 +10,10 @@
         "outputPath": "dist/apps/event-manager-api",
         "main": "apps/event-manager-api/src/main.ts",
         "tsConfig": "apps/event-manager-api/tsconfig.app.json",
-        "assets": ["apps/event-manager-api/src/assets"]
+        "assets": [
+          "apps/event-manager-api/src/assets",
+          "apps/event-manager-api/src/package.json"
+        ]
       },
       "configurations": {
         "production": {
@@ -23,9 +26,21 @@
               "with": "apps/event-manager-api/src/environments/environment.prod.ts"
             }
           ]
+        },
+        "devnet": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/event-manager-api/src/environments/environment.ts",
+              "with": "apps/event-manager-api/src/environments/environment.dev.ts"
+            }
+          ]
         }
       }
     },
+
     "serve": {
       "executor": "@nrwl/node:node",
       "options": {

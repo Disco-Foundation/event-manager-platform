@@ -12,13 +12,13 @@ export const getWearableData = async (
   const connection = getConnection(network);
   const program = await getEventProgram(connection);
 
-  const EVENT_ID = new PublicKey(getWearableData.eventId);
-  const WEARABLE_ID = new BN(getWearableData.id);
+  const eventAddress = new PublicKey(getWearableData.eventId);
+  const wearableId = new BN(getWearableData.id);
   const [wearableAddress] = await PublicKey.findProgramAddress(
     [
       Buffer.from('wearable', 'utf-8'),
-      WEARABLE_ID.toBuffer('le', 8),
-      EVENT_ID.toBuffer(),
+      wearableId.toBuffer('le', 8),
+      eventAddress.toBuffer(),
     ],
     program.programId
   );

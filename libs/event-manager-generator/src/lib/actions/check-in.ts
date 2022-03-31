@@ -13,13 +13,13 @@ export const checkInEvent = async (
     const connection = getConnection(network);
     const program = await getEventProgram(connection);
 
-    const EVENT_ID = new PublicKey(checkInData.eventId);
-    const WEARABLE_ID = new BN(checkInData.wearableId);
+    const eventAddress = new PublicKey(checkInData.eventId);
+    const wearableId = new BN(checkInData.wearableId);
     const [wearableAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('wearable', 'utf-8'),
-        WEARABLE_ID.toBuffer('le', 8),
-        EVENT_ID.toBuffer(),
+        wearableId.toBuffer('le', 8),
+        eventAddress.toBuffer(),
       ],
       program.programId
     );
@@ -34,9 +34,9 @@ export const checkInEvent = async (
     await hashAndStorePin(checkInData.wearableId, checkInData.wearablePin);
 
     const tx = await program.methods
-      .checkIn(WEARABLE_ID)
+      .checkIn(wearableId)
       .accounts({
-        event: EVENT_ID,
+        event: eventAddress,
         authority: payerAddress,
       })
       .transaction();

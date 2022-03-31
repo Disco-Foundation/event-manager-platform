@@ -4,10 +4,10 @@ import {
 } from '@event-manager/event-manager-certifiers';
 import { BN, ProgramError } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
-import { ApiError, ApiErrorType, CreateEventError } from '../core/errors';
-import { CreateEventData, Event } from '../types';
-import { getConnection, getEventProgram } from '../utils';
-import { getUserWallet } from '../utils/internal';
+import { ApiError, ApiErrorType, CreateEventError } from '../../core/errors';
+import { CreateEventData, Event } from '../../types';
+import { getConnection, getEventProgram } from '../../utils';
+import { getUserWallet } from '../../utils/internal';
 
 export const createEvent = async (
   eventData: CreateEventData,
