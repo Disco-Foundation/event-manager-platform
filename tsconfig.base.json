@@ -45,6 +45,9 @@
       "@event-manager/event-manager-utils": [
         "libs/event-manager-utils/src/index.ts"
       ],
+      "@event-manager-web-client/airdrop": [
+        "libs/event-manager/web-client/features/airdrop/src/index.ts"
+      ],
       "@event-manager/event-manager/web-client/features/generate-event-qr": [
         "libs/event-manager/web-client/features/generate-event-qr/src/index.ts"
       ],

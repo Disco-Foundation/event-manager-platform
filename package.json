@@ -5,6 +5,9 @@
   "scripts": {
     "start": "nx serve",
     "build": "nx build",
+    "deploy:firebase": "firebase deploy",
+    "deploy:firebase:hosting": "firebase deploy --only hosting",
+    "deploy:firebase:functions": "firebase deploy --only functions",
     "test": "nx test",
     "postinstall": "ngcc --properties es2015 browser module main"
   },

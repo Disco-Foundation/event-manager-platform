@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import {
   Certifier,
@@ -20,6 +21,7 @@ import {
 } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
+import { AirdropRequest, AirdropResponse } from './types/airdrop';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
@@ -88,6 +90,7 @@ export class EventApiService {
   constructor(
     private readonly _connectionStore: ConnectionStore,
     private readonly _walletStore: WalletStore,
+    private readonly http: HttpClient,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
     combineLatest([
@@ -301,5 +304,17 @@ export class EventApiService {
         )
       );
     });
+  }
+
+  airdrop(pubkey: string, amount: number) {
+    const body: AirdropRequest = {
+      amount: amount,
+      publicKey: pubkey,
+    };
+
+    return this.http.post<AirdropResponse>(
+      'https://us-central1-disco-protocol-cf9d5.cloudfunctions.net/api/airdrop',
+      body
+    );
   }
 }

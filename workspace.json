@@ -9,6 +9,7 @@
     "event-manager-web-client": "apps/event-manager-web-client",
     "event-manager-web-client-data-access": "libs/event-manager/web-client/data-access",
     "event-manager-web-client-e2e": "apps/event-manager-web-client-e2e",
+    "event-manager-web-client-features-airdrop": "libs/event-manager/web-client/features/airdrop",
     "event-manager-web-client-features-buy-tickets": "libs/event-manager/web-client/features/buy-tickets",
     "event-manager-web-client-features-create-event": "libs/event-manager/web-client/features/create-event",
     "event-manager-web-client-features-generate-event-qr": "libs/event-manager/web-client/features/generate-event-qr",

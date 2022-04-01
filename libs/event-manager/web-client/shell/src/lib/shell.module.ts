@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
@@ -13,6 +14,7 @@ import { ShellComponent } from './shell.component';
   declarations: [ShellComponent],
   imports: [
     CommonModule,
+    HttpClientModule,
     RouterModule.forChild([
       {
         path: '',
@@ -46,7 +48,14 @@ import { ShellComponent } from './shell.component';
                 (m) => m.ProfileModule
               ),
           },
-          { path: '', redirectTo: '/list-events', pathMatch: 'full' },
+          {
+            path: 'airdrop',
+            loadChildren: () =>
+              import('@event-manager-web-client/airdrop').then(
+                (m) => m.AirdropModule
+              ),
+          },
+          { path: '**', redirectTo: '/list-events' },
         ],
       },
     ]),

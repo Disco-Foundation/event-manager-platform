@@ -1,0 +1,26 @@
+{
+  "projectType": "library",
+  "root": "libs/event-manager/web-client/features/airdrop",
+  "sourceRoot": "libs/event-manager/web-client/features/airdrop/src",
+  "prefix": "em",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/event-manager/web-client/features/airdrop"],
+      "options": {
+        "jestConfig": "libs/event-manager/web-client/features/airdrop/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/event-manager/web-client/features/airdrop/src/**/*.ts",
+          "libs/event-manager/web-client/features/airdrop/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
