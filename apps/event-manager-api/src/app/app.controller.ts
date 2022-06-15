@@ -15,6 +15,7 @@ import {
   Injectable,
   Param,
   Post,
+  Query
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AirdropDTO } from './dto/airdrop.dto';
@@ -28,6 +29,26 @@ import { RechargeDTO } from './dto/recharge.dto';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
+
+  @Get('/')
+  get(){
+    console.log("entro GET 1")
+    return {
+      label: "Disco Protocol",
+      icon: "https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
+    }
+  }
+
+  @Get('/check-in')
+  get2(){
+    console.log("entro GET 2")
+    return {
+      label: "Disco Protocol",
+      icon: "https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
+    }
+  }
+
 
   @Get('/test')
   test() {
@@ -55,14 +76,21 @@ export class AppController {
   }
 
   @Post('/check-in')
-  checkIn(@Body() body: CheckInDTO) {
+  checkIn(@Query() query: Record<string, any>,@Body() body: Record<string, any>) { // 
     try {
+      console.log(query)
       const createWearableData: CheckInWearableData = {
-        ...body,
-        wearablePin: body.PIN,
+        //...body,
+        wearableId: query.wearableId,
+        eventId: query.eventId,
+        payer: query.payer,
+        wearablePin: query.PIN,
       };
 
-      return this.appService.checkIn(createWearableData);
+      const result = this.appService.checkIn(createWearableData);
+      
+      //const base64Transaction = result.toString('base64');
+      return result;
     } catch (error) {
       throw new HttpException(error, HttpStatus.NOT_ACCEPTABLE);
     }

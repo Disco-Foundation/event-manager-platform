@@ -4,13 +4,14 @@ import {
   CheckInWearableData,
   CreateEventData,
   Event,
+  getConnection,
   getMetadata,
   GetWearableData,
   PurchaseWearableData,
   RechargeWearableData,
 } from '@event-manager/event-manager-generator';
 import { Inject, Injectable } from '@nestjs/common';
-import { Transaction } from '@solana/web3.js';
+import { PublicKey, Transaction } from '@solana/web3.js';
 import { EnvironmentProvider } from './app.module';
 
 @Injectable()
@@ -36,13 +37,25 @@ export class AppService {
 
   async checkIn(
     checkInData: CheckInWearableData
-  ): Promise<{ transaction: Transaction }> {
+  ): Promise<{ transaction: String }> {
     try {
       const tx = await EventManagerActions.checkInEvent(
         checkInData,
         this.environment.network
       );
-      return { transaction: tx };
+
+      let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = new PublicKey(checkInData.payer)
+
+      const serializedTransaction = tx.serialize({
+        verifySignatures: false,
+        requireAllSignatures: false,
+      });
+
+      
+
+      return { transaction: serializedTransaction.toString('base64') };
     } catch (e) {
       console.log('ERROR DEL API', e);
     }
