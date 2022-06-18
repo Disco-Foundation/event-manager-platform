@@ -27,6 +27,7 @@ export const checkInEvent = async (
 
     // Check if the wearable already exist
     const wearableAccount = await connection.getAccountInfo(wearableAddress);
+    console.log("WEARABLE ACCOUNT: ", wearableAccount);
     if (wearableAccount)
       throw new CreateWearableError('Wearable already exist');
 

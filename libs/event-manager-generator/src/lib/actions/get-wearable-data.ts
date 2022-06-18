@@ -23,6 +23,8 @@ export const getWearableData = async (
     program.programId
   );
 
+  console.log("WEARABLE ADDRESS",wearableAddress.toBase58());
+
   // Check if the wearable already exist
   try {
     const wearableAccount = await program.account.wearable.fetch(
@@ -44,6 +46,7 @@ export const getWearableData = async (
 
     return wearableData;
   } catch (error) {
+    console.log(error);
     return false;
   }
 };

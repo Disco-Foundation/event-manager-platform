@@ -52,3 +52,33 @@ export class GenerateEventQrComponent implements OnInit {
     if (container) this.QR.append(container);
   }
 }
+
+
+export class GenerateBuyTicketQrComponent implements OnInit {
+  readonly amount: number;
+  readonly eventId: string;
+
+  QR: QRCodeStyling | null = null;
+
+  constructor(
+    @Inject(MAT_BOTTOM_SHEET_DATA)
+    data: {
+      amount: number;
+      eventId: string;
+    }
+  ) {
+    this.amount = data.amount;
+    this.eventId = data.eventId;
+  }
+
+  ngOnInit(): void {
+    const data = "https://146d-83-57-94-222.eu.ngrok.io/api/buy-tickets-qr?amount=" + this.amount.toString() + "&eventId=" + this.eventId.toString();
+    const encoded = encodeURI(data);
+    const qrInfo = "solana:" + encoded;
+
+    this.QR = createQR(qrInfo, 340);
+    const container = document.getElementById('qr-container');
+    console.log(this.QR, container);
+    if (container) this.QR.append(container);
+  }
+}

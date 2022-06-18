@@ -38,6 +38,21 @@ export class AppService {
 
   async checkIn(
     checkInData: CheckInWearableData
+  ): Promise<{ transaction: Transaction }> {
+    try {
+      const tx = await EventManagerActions.checkInEvent(
+        checkInData,
+        this.environment.network
+      );
+
+      return { transaction: tx };
+    } catch (e) {
+      console.log('API ERROR', e);
+    }
+  }
+
+  async checkInNew(
+    checkInData: CheckInWearableData
   ): Promise<{ transaction: String, message: String, label: String }> {
     try {
       const tx = await EventManagerActions.checkInEvent(

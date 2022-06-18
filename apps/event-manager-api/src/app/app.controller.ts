@@ -93,18 +93,34 @@ export class AppController {
   }
 
   @Post('/check-in')
-  checkIn(@Query() query: Record<string, any>,@Body() body: Record<string, any>) { // 
+  checkIn(@Body() body: CheckInDTO) { 
+    try {
+      const createWearableData: CheckInWearableData = {
+        ...body,
+        wearablePin: body.PIN,
+      };
+
+      const result = this.appService.checkIn(createWearableData);
+      
+      return result;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.NOT_ACCEPTABLE);
+    }
+  }
+
+  @Post('/check-in-new')
+  checkInNew(@Query() query: Record<string, any>,@Body() body: Record<string, any>) { // 
     try {
       console.log(query)
       const createWearableData: CheckInWearableData = {
         //...body,
         wearableId: query.wearableId,
         eventId: query.eventId,
-        payer: query.payer,
+        payer: body.account,
         wearablePin: query.PIN,
       };
 
-      const result = this.appService.checkIn(createWearableData);
+      const result = this.appService.checkInNew(createWearableData);
       
       //const base64Transaction = result.toString('base64');
       return result;
@@ -119,7 +135,7 @@ export class AppController {
       amount: query.amount,
       wearableId: query.wearableId,
       eventId: query.eventId,
-      payer: body.acoount,
+      payer: body.account,
     };
     return this.appService.recharge(rechargeData);
   }

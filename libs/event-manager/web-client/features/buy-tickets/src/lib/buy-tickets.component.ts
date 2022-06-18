@@ -165,18 +165,31 @@ import { ConfigStore } from '@event-manager-web-client/data-access';
             </span>
           </div>
         </div>
-
-        <button
+        <div class="flex justify-between items-center">
+          <button
           *hdWalletAdapter="let wallet = wallet"
           (click)="onPay()"
           class="block mx-auto disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-          type="submit"
-        >
-          <div class="flex justify-between items-center gap-2">
-            Pay with
-            <hd-wallet-icon *ngIf="wallet" [wallet]="wallet"></hd-wallet-icon>
-          </div>
-        </button>
+          type="submit">
+            <div class="flex justify-between items-center gap-2">
+              Pay with
+              <hd-wallet-icon *ngIf="wallet" [wallet]="wallet"></hd-wallet-icon>
+            </div>
+          </button>
+
+          <button
+          (click)="onScanQR()"
+          class="block mx-auto disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold">
+          emGenerateBuyTicketQrTrigger
+                [amount]=ticketQuantity
+                [eventId]="event.publicKey.toBase58()"
+            <div class="flex justify-between items-center gap-2">
+              Scan QR code
+            </div>
+          </button>
+        </div>
+
+        
       </form>
     </div>
   `,
