@@ -58,6 +58,14 @@ export class AppController {
     }
   }
 
+  @Get('/recharge')
+  getRecharge(){
+    console.log("entro GET Recharge")
+    return {
+      label: "Disco Protocol",
+      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
+    }
+  }
 
   @Get('/test')
   test() {
@@ -106,9 +114,12 @@ export class AppController {
   }
 
   @Post('/recharge')
-  recharge(@Body() body: RechargeDTO) {
+  recharge(@Query() query: Record<string, any>,@Body() body: Record<string, any>) {
     const rechargeData: RechargeWearableData = {
-      ...body,
+      amount: query.amount,
+      wearableId: query.wearableId,
+      eventId: query.eventId,
+      payer: body.acoount,
     };
     return this.appService.recharge(rechargeData);
   }

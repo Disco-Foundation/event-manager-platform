@@ -31,7 +31,7 @@ export class AppService {
       );
       return { event: event };
     } catch (e) {
-      console.log('ERROR DEL API', e);
+      console.log('API ERROR', e);
       throw e;
     }
   }
@@ -59,22 +59,37 @@ export class AppService {
         message: "Check In",
         label: "Action" };
     } catch (e) {
-      console.log('ERROR DEL API', e);
+      console.log('API ERROR', e);
     }
   }
 
   async recharge(
     rechargeWearableData: RechargeWearableData
-  ): Promise<{ transaction: Transaction }> {
+  ): Promise<{ transaction: String, message: String, label: String  }> {
     try {
-      const transaction = await EventManagerActions.recharge(
+      const tx = await EventManagerActions.recharge(
         rechargeWearableData,
         this.environment.network
       );
 
-      return { transaction: transaction };
+      let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+      tx.recentBlockhash = blockhash;
+      tx.feePayer = new PublicKey(rechargeWearableData.payer)
+
+      const serializedTransaction = tx.serialize({
+        verifySignatures: false,
+        requireAllSignatures: false,
+      });
+
+      const tokensTxt = (rechargeWearableData.amount > 1 ? " Tokens" : " Token");
+
+      return { 
+        transaction: serializedTransaction.toString('base64'),
+        message: "Recharge " + rechargeWearableData.amount.toString() + tokensTxt,
+        label: "Action" };
+
     } catch (e) {
-      console.log('ERROR DEL API', e);
+      console.log('API ERROR', e);
     }
   }
 
@@ -127,9 +142,11 @@ export class AppService {
       requireAllSignatures: false,
     });
 
+    const ticketsTxt = (buyTicketsData.ticketsAmount > 1 ? " Tickets" : " Ticket");
+
     return { 
       transaction: serializedTransaction.toString('base64'),
-      message: "Buy Ticket",
+      message: "Purchase " + buyTicketsData.ticketsAmount.toString() + ticketsTxt,
       label: "Action" };
   }
 
