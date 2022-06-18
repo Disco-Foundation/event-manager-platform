@@ -1,5 +1,6 @@
 import {
   BuyTicketsData,
+  BuyTicketsQRData,
   CheckInWearableData,
   CreateEventData,
   GetWearableData,
@@ -33,7 +34,6 @@ export class AppController {
 
   @Get('/')
   get(){
-    console.log("entro GET 1")
     return {
       label: "Disco Protocol",
       icon: "https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
@@ -41,11 +41,20 @@ export class AppController {
   }
 
   @Get('/check-in')
-  get2(){
-    console.log("entro GET 2")
+  getCheckIn(){
+    console.log("entro GET CheckIn")
     return {
       label: "Disco Protocol",
-      icon: "https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
+      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
+    }
+  }
+
+  @Get('/buy-tickets-qr')
+  getBuyTickets(){
+    console.log("entro GET Buy Tickets QR")
+    return {
+      label: "Disco Protocol",
+      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
     }
   }
 
@@ -119,6 +128,20 @@ export class AppController {
       ...body,
     };
     return this.appService.buyTickets(buyTicketsData);
+  }
+
+  @Post('/buy-tickets-qr')
+  buyTicketsQR(@Query() query: Record<string, any>,@Body() body: Record<string, any>) {
+    
+    console.log(body);
+    const buyTicketsData: BuyTicketsQRData = {
+      ticketsAmount: query.ticketsAmount,
+      eventId: query.eventId,
+      account: body.account
+    };
+
+    console.log(buyTicketsData);
+    return this.appService.buyTicketsQR(buyTicketsData);
   }
 
   @Get('/get-event-metadata')

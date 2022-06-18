@@ -9,3 +9,9 @@ export interface BuyTicketsData {
   ticketsAmount: number;
   eventId: string;
 }
+
+export interface BuyTicketsQRData {
+  ticketsAmount: number;
+  eventId: string;
+  account: string;
+}

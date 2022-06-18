@@ -1,6 +1,7 @@
 import {
   actions as EventManagerActions,
   BuyTicketsData,
+  BuyTicketsQRData,
   CheckInWearableData,
   CreateEventData,
   Event,
@@ -37,7 +38,7 @@ export class AppService {
 
   async checkIn(
     checkInData: CheckInWearableData
-  ): Promise<{ transaction: String }> {
+  ): Promise<{ transaction: String, message: String, label: String }> {
     try {
       const tx = await EventManagerActions.checkInEvent(
         checkInData,
@@ -53,9 +54,10 @@ export class AppService {
         requireAllSignatures: false,
       });
 
-      
-
-      return { transaction: serializedTransaction.toString('base64') };
+      return { 
+        transaction: serializedTransaction.toString('base64'),
+        message: "Check In",
+        label: "Action" };
     } catch (e) {
       console.log('ERROR DEL API', e);
     }
@@ -107,6 +109,28 @@ export class AppService {
     );
 
     return { currentBalance: balance };
+  }
+
+  async buyTicketsQR(buyTicketsData: BuyTicketsQRData): 
+  Promise<{ transaction: String, message: String, label: String }>  {
+    const tx = await EventManagerActions.buyTicketsQR(
+      buyTicketsData,
+      this.environment.network
+    );
+
+    let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = new PublicKey(buyTicketsData.account)
+
+    const serializedTransaction = tx.serialize({
+      verifySignatures: false,
+      requireAllSignatures: false,
+    });
+
+    return { 
+      transaction: serializedTransaction.toString('base64'),
+      message: "Buy Ticket",
+      label: "Action" };
   }
 
   async doAirdropTo(amount: number, publicKey: string) {
