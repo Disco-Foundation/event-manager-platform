@@ -40,7 +40,7 @@ export class AppController {
     }
   }
 
-  @Get('/check-in')
+  @Get('/check-in-new')
   getCheckIn(){
     console.log("entro GET CheckIn")
     return {
@@ -111,14 +111,16 @@ export class AppController {
   @Post('/check-in-new')
   checkInNew(@Query() query: Record<string, any>,@Body() body: Record<string, any>) { // 
     try {
-      console.log(query)
+      console.log("QUERY: ", query);
+
       const createWearableData: CheckInWearableData = {
-        //...body,
-        wearableId: query.wearableId,
+        wearableId: Number(query.wearableId),
         eventId: query.eventId,
         payer: body.account,
         wearablePin: query.PIN,
-      };
+      }; 
+
+      console.log("CHECKIN DATA: ", createWearableData);
 
       const result = this.appService.checkInNew(createWearableData);
       
@@ -160,14 +162,12 @@ export class AppController {
   @Post('/buy-tickets-qr')
   buyTicketsQR(@Query() query: Record<string, any>,@Body() body: Record<string, any>) {
     
-    console.log(body);
     const buyTicketsData: BuyTicketsQRData = {
-      ticketsAmount: query.ticketsAmount,
+      ticketsAmount: Number(query.ticketsAmount),
       eventId: query.eventId,
       account: body.account
     };
 
-    console.log(buyTicketsData);
     return this.appService.buyTicketsQR(buyTicketsData);
   }
 

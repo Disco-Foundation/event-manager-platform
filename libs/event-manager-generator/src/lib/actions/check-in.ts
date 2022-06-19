@@ -15,6 +15,7 @@ export const checkInEvent = async (
 
     const EVENT_ID = new PublicKey(checkInData.eventId);
     const WEARABLE_ID = new BN(checkInData.wearableId);
+    console.log(WEARABLE_ID);
     const [wearableAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('wearable', 'utf-8'),

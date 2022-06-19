@@ -13,6 +13,7 @@ import {
 } from '@event-manager/event-manager-generator';
 import { Inject, Injectable } from '@nestjs/common';
 import { PublicKey, Transaction } from '@solana/web3.js';
+import { deserialize } from 'v8';
 import { EnvironmentProvider } from './app.module';
 
 @Injectable()
@@ -60,17 +61,19 @@ export class AppService {
         this.environment.network
       );
 
-      let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+      let blockhash = (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
       tx.recentBlockhash = blockhash;
       tx.feePayer = new PublicKey(checkInData.payer)
 
       const serializedTransaction = tx.serialize({
-        verifySignatures: false,
-        requireAllSignatures: false,
-      });
+          verifySignatures: false,
+          requireAllSignatures: false,
+        });
+
+      let encoded = serializedTransaction.toString('base64');
 
       return { 
-        transaction: serializedTransaction.toString('base64'),
+        transaction: encoded,
         message: "Check In",
         label: "Action" };
     } catch (e) {
