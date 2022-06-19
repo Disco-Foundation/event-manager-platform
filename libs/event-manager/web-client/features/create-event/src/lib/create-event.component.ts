@@ -8,7 +8,7 @@ import {
 } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { EventApiService } from '@event-manager-web-client/data-access';
+import { EventApiService, ConfigStore } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
@@ -330,7 +330,93 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
           <mat-step>
             <div class="flex flex-col gap-3">
               <ng-template matStepLabel>Done</ng-template>
-              <p>You are now done.</p>
+              <p>You are now done. Check your event preview before submitting.</p>
+              <article class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
+                style="width: 30rem; margin-bottom:12px;">
+                <header class="relative flex flex-col gap-2">
+                  <figure class="h-52 overflow-hidden disco-layer blue">
+                    <img [src]="informationForm.get('banner')?.value" alt="" />
+                  </figure>
+
+                  <div>
+                    <h3
+                      class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
+                    >
+                      {{ informationForm.get('name')?.value }}
+                    </h3>
+
+                    <p
+                      class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
+                    >
+                      <mat-icon inline>place</mat-icon>
+                      {{ informationForm.get('location')?.value }}
+                    </p>
+                  </div>
+                </header>
+                <div class="flex flex-col gap-2">
+                  <p class="line-clamp-3 text-justify m-0 h-14">
+                    {{ informationForm.get('description')?.value }}
+                  </p>
+
+                  <div class="flex justify-between items-center">
+                    <p class="text-left m-0">
+                      Starts at: <br />
+
+                      <span class="font-bold">{{
+                        informationForm.get('startDate')?.value | date: 'short'
+                      }}</span>
+                    </p>
+
+                    <p class="text-right m-0">
+                      Ends at: <br />
+
+                      <span class="font-bold">{{
+                        informationForm.get('endDate')?.value | date: 'short'
+                      }}</span>
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-center gap-3">
+                    <div class=" px-4 py-2 disco-layer disco-border border-2 blue">
+                      <p class="m-0 text-justify disco-text gold">
+                          Out of the total of
+                          <b class="text-lg">{{
+                            ticketsForm.get('ticketQuantity')?.value | number
+                          }}</b>
+                          tickets, none have been sold.
+                      </p>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full">
+                      <div class="flex justify-between items-baseline">
+                        <div class="flex gap-2 items-center">
+                          <p class="text-center m-0">Price:</p>
+
+                          <div class="flex items-center gap-1">
+                            <figure>
+                              <img
+                                class="disco-accepted-mint-logo"
+                                src="{{ acceptedMintLogo$ | async }}"
+                                alt="usdc logo"
+                              />
+                            </figure>
+                            <span
+                              class="text-2xl font-bold leading-none disco-text green"
+                              >{{ ticketsForm.get('ticketPrice')?.value | number: '1.2-2' }}</span
+                            >
+                          </div>
+                        </div>
+
+                        <p class="m-0">
+                          0/{{
+                            ticketsForm.get('ticketQuantity')?.value | number
+                          }}
+                        </p>
+                      </div>
+                    </div>
+
+                    
+                  </div>
+                </div>
+              </article>
               <div class="flex gap-2">
                 <button
                   class="disco-btn blue ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
@@ -367,6 +453,7 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
 })
 export class CreateEventComponent {
   submitted = false;
+  readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
   readonly informationForm = this._formBuilder.group({
     // Event data
     name: this._formBuilder.control(null, {
@@ -402,7 +489,8 @@ export class CreateEventComponent {
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore,
-    private readonly _router: Router
+    private readonly _router: Router,
+    private readonly _configStore: ConfigStore,
   ) {}
 
   onSubmit() {
