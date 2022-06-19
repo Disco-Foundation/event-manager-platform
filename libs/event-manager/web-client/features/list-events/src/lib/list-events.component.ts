@@ -174,6 +174,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 emBuyTicketsTrigger
                 [eventName]="event.account.name"
                 [ticketPrice]="event.ticketPrice"
+                [eventId]="event.publicKey.toBase58()"
                 (buyTickets)="
                   onBuyTickets(
                     event.publicKey,

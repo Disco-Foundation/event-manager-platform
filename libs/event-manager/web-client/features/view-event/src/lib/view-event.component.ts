@@ -181,6 +181,7 @@ import {
                 emBuyTicketsTrigger
                 [eventName]="event.account.name"
                 [ticketPrice]="event.ticketPrice"
+                [eventId]="event.publicKey.toBase58()"
                 (buyTickets)="
                   onBuyTickets(
                     event.publicKey,
