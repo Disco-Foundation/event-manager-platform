@@ -65,6 +65,8 @@ export class AppService {
       tx.recentBlockhash = blockhash;
       tx.feePayer = new PublicKey(checkInData.payer)
 
+      console.log("TRANSACTION: ", tx.instructions[0].keys)
+
       const serializedTransaction = tx.serialize({
           verifySignatures: false,
           requireAllSignatures: false,

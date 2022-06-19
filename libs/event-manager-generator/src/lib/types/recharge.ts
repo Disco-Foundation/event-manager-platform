@@ -3,4 +3,5 @@ export interface RechargeWearableData {
   wearableId: number;
   eventId: string;
   payer: string;
+  reference: string;
 }

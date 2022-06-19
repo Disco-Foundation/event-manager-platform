@@ -97,6 +97,7 @@ export class AppController {
     try {
       const createWearableData: CheckInWearableData = {
         ...body,
+        reference: "",
         wearablePin: body.PIN,
       };
 
@@ -118,6 +119,7 @@ export class AppController {
         eventId: query.eventId,
         payer: body.account,
         wearablePin: query.PIN,
+        reference: query.reference
       }; 
 
       console.log("CHECKIN DATA: ", createWearableData);
@@ -137,6 +139,7 @@ export class AppController {
       amount: query.amount,
       wearableId: query.wearableId,
       eventId: query.eventId,
+      reference: query.reference,
       payer: body.account,
     };
     return this.appService.recharge(rechargeData);

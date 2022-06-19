@@ -15,6 +15,8 @@ export const checkInEvent = async (
 
     const EVENT_ID = new PublicKey(checkInData.eventId);
     const WEARABLE_ID = new BN(checkInData.wearableId);
+    const REFERENCE = new PublicKey(checkInData.reference);
+
     console.log(WEARABLE_ID);
     const [wearableAddress] = await PublicKey.findProgramAddress(
       [
@@ -43,6 +45,8 @@ export const checkInEvent = async (
       })
       .transaction();
 
+      tx.instructions[0].keys.push({ pubkey: REFERENCE, isWritable: false, isSigner: false });
+      
     return tx;
   } catch (e) {
     const error = new ApiError(e as ProgramError, e as ApiErrorType);
