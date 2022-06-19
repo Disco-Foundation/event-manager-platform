@@ -53,7 +53,26 @@ export class GenerateEventQrComponent implements OnInit {
   }
 }
 
+@Component({
+  selector: 'em-generate-buy-ticket-qr',
+  template: `
+    <div
+      class="py-8 disco-border border-4 border-b-0 blue backdrop-blur-sm bg-opacity-5"
+    >
+      <header class="flex flex-col items-center gap-2">
+        <h2
+          class="m-0 text-3xl text-center font-bold disco-text blue disco-font"
+        >
+          Scan the QR to pair
+        </h2>
+      </header>
 
+      <div class="flex justify-center mt-10 mb-5">
+        <div id="qr-container"></div>
+      </div>
+    </div>
+  `,
+})
 export class GenerateBuyTicketQrComponent implements OnInit {
   readonly amount: number;
   readonly eventId: string;

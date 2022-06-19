@@ -32,35 +32,3 @@ export class GenerateEventQrTriggerDirective {
 
   constructor(private readonly _matBottomSheet: MatBottomSheet) {}
 }
-
-
-@Directive({ selector: '[emGenerateBuyTicketQrTrigger]' })
-export class GenerateBuyTicketQrTriggerDirective {
-  @Input() amount: number | null = null;
-  @Input() eventId: string | null = null;
-  @HostListener('click') onClick() {
-    if (this.amount === null) {
-      throw new Error('tickets amount is missing');
-    }
-
-    if (this.eventId === null) {
-      throw new Error('Event id is missing');
-    }
-
-    this._matBottomSheet
-      .open<GenerateBuyTicketQrComponent, { amount: number; eventId: string }>(
-        GenerateBuyTicketQrComponent,
-        {
-          data: {
-            amount: this.amount,
-            eventId: this.eventId,
-          },
-          panelClass: ['disco-bottom-sheet', 'blue', 'bg-opacity-5'],
-        }
-      )
-      .afterDismissed()
-      .subscribe((resp) => console.log(resp));
-  }
-
-  constructor(private readonly _matBottomSheet: MatBottomSheet) {}
-}
