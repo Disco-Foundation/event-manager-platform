@@ -16,6 +16,7 @@ export interface CheckInWearableData {
   wearableId: number;
   eventId: string;
   payer: string;
+  reference: string;
 }
 
 export interface WearableData {

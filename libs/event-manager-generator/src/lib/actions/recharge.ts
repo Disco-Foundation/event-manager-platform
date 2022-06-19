@@ -19,6 +19,7 @@ export const recharge = async (
 
     const EVENT_ID = new PublicKey(rechargeData.eventId);
     const WEARABLE_ID = new BN(rechargeData.wearableId);
+    const REFERENCE = new PublicKey(rechargeData.reference);
 
     const event: Event = await program.account['event'].fetch(EVENT_ID);
 
@@ -39,6 +40,8 @@ export const recharge = async (
         authority: payerAddress,
       })
       .transaction();
+
+      tx.instructions[0].keys.push({ pubkey: REFERENCE, isWritable: false, isSigner: false });
 
     return tx;
   } catch (e) {
