@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { HdWalletAdapterCdkModule } from '@heavy-duty/wallet-adapter-cdk';
 import { BuyTicketsComponent } from './buy-tickets.component';
 import { BuyTicketsTriggerDirective } from './buy-tickets.directive';
+import { GenerateBuyTicketQrComponent } from './generate-buy-ticket-qr.component';
 
 @NgModule({
   imports: [
@@ -19,7 +20,7 @@ import { BuyTicketsTriggerDirective } from './buy-tickets.directive';
     MatFormFieldModule,
     HdWalletAdapterCdkModule,
   ],
-  declarations: [BuyTicketsComponent, BuyTicketsTriggerDirective],
+  declarations: [BuyTicketsComponent, BuyTicketsTriggerDirective, GenerateBuyTicketQrComponent],
   exports: [BuyTicketsTriggerDirective],
 })
 export class BuyTicketsModule {}

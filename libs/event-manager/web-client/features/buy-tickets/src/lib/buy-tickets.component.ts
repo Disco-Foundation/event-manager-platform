@@ -165,7 +165,6 @@ import { ConfigStore } from '@event-manager-web-client/data-access';
             </span>
           </div>
         </div>
-        <div class="flex justify-between items-center">
           <button
           *hdWalletAdapter="let wallet = wallet"
           (click)="onPay()"
@@ -176,19 +175,12 @@ import { ConfigStore } from '@event-manager-web-client/data-access';
               <hd-wallet-icon *ngIf="wallet" [wallet]="wallet"></hd-wallet-icon>
             </div>
           </button>
-
-          <button
-          (click)="onScanQR()"
-          class="block mx-auto disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold">
-          emGenerateBuyTicketQrTrigger
-                [amount]=ticketQuantity
-                [eventId]="event.publicKey.toBase58()"
-            <div class="flex justify-between items-center gap-2">
-              Scan QR code
-            </div>
-          </button>
-        </div>
-
+          <em-generate-buy-ticket-qr
+          [qrdata]="{
+            ticketsAmount: form.get('ticketQuantity')?.value,
+            eventId: eventId
+          }"
+          > </em-generate-buy-ticket-qr>
         
       </form>
     </div>
@@ -198,6 +190,7 @@ import { ConfigStore } from '@event-manager-web-client/data-access';
 export class BuyTicketsComponent {
   readonly eventName: string;
   readonly ticketPrice: number;
+  readonly eventId: string;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
 
   form = this._formBuilder.group({
@@ -211,13 +204,21 @@ export class BuyTicketsComponent {
     private readonly _configStore: ConfigStore,
     private readonly _bottomSheetRef: MatBottomSheetRef<BuyTicketsComponent>,
     @Inject(MAT_BOTTOM_SHEET_DATA)
-    data: { eventName: string; ticketPrice: number }
+    data: { eventId: string, eventName: string; ticketPrice: number }
   ) {
     this.eventName = data.eventName;
     this.ticketPrice = data.ticketPrice;
+    this.eventId = data.eventId;
   }
 
   onPay() {
+    if (this.form.valid) {
+      const { ticketQuantity } = this.form.value;
+      this._bottomSheetRef.dismiss(ticketQuantity);
+    }
+  }
+
+  onScanQR() {
     if (this.form.valid) {
       const { ticketQuantity } = this.form.value;
       this._bottomSheetRef.dismiss(ticketQuantity);

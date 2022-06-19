@@ -12,6 +12,7 @@ import { BuyTicketsComponent } from './buy-tickets.component';
 export class BuyTicketsTriggerDirective {
   @Input() eventName: string | null = null;
   @Input() ticketPrice: number | null = null;
+  @Input() eventId: string | null = null;
   @Output() buyTickets = new EventEmitter<number>();
   @HostListener('click') onClick() {
     if (this.eventName === null) {
@@ -22,13 +23,18 @@ export class BuyTicketsTriggerDirective {
       throw new Error('Ticket price is missing');
     }
 
+    if (this.eventId === null) {
+      throw new Error('Event ID is missing');
+    }
+
     this._matBottomSheet
-      .open<BuyTicketsComponent, { eventName: string; ticketPrice: number }>(
+      .open<BuyTicketsComponent, { eventId: string, eventName: string; ticketPrice: number }>(
         BuyTicketsComponent,
         {
           data: {
             eventName: this.eventName,
             ticketPrice: this.ticketPrice,
+            eventId: this.eventId
           },
           panelClass: ['disco-bottom-sheet', 'blue', 'bg-opacity-5'],
         }
