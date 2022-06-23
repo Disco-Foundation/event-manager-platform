@@ -1,4 +1,4 @@
-import { Provider } from '@project-serum/anchor';
+import { AnchorProvider } from '@project-serum/anchor';
 import {
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
@@ -7,7 +7,7 @@ import {
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
 
 export const createUserAndAssociatedWallet = async (
-  provider: Provider,
+  provider: AnchorProvider,
   mint: PublicKey,
   amount: number | bigint,
   user: Keypair
@@ -18,7 +18,7 @@ export const createUserAndAssociatedWallet = async (
   );
 
   // Create a token account for the user and mint some tokens
-  await provider.send(
+  await provider.sendAndConfirm(
     new Transaction()
       .add(
         createAssociatedTokenAccountInstruction(

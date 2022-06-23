@@ -1,23 +1,24 @@
-import { BN, Program, ProgramError, Provider } from '@project-serum/anchor';
+import * as anchor from '@project-serum/anchor';
+import {
+  AnchorProvider,
+  BN,
+  Program,
+  ProgramError,
+} from '@project-serum/anchor';
 import { getAccount, getMint } from '@solana/spl-token';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { assert } from 'chai';
-import { EventManager, IDL } from '../target/types/event_manager';
+import { EventManager } from '../target/types/event_manager';
 import {
   createFundedWallet,
   createMint,
   createUserAndAssociatedWallet,
-  EVENT_MANAGER_PROGRAM_ID,
 } from './utils';
 
 describe('New Solana X Party Reloaded', () => {
-  const provider = Provider.env();
-  const eventProgram = new Program<EventManager>(
-    IDL,
-    EVENT_MANAGER_PROGRAM_ID,
-    provider
-  );
-
+  const provider = AnchorProvider.env();
+  anchor.setProvider(provider);
+  const eventProgram = anchor.workspace.EventManager as Program<EventManager>;
   const acceptedMintDecimals = 8;
   const wearableId = new BN(1);
   const eventId = new BN(5);
@@ -62,7 +63,7 @@ describe('New Solana X Party Reloaded', () => {
       [
         Buffer.from('event', 'utf-8'),
         eventId.toBuffer('le', 8),
-        eventProgram.provider.wallet.publicKey.toBuffer(),
+        provider.wallet.publicKey.toBuffer(),
       ],
       eventProgram.programId
     );
@@ -135,7 +136,7 @@ describe('New Solana X Party Reloaded', () => {
         ticketQuantity
       )
       .accounts({
-        authority: eventProgram.provider.wallet.publicKey,
+        authority: provider.wallet.publicKey,
         acceptedMint: acceptedMintAddress,
         certifier: certifier.publicKey,
       })
