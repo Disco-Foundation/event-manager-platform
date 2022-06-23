@@ -1,10 +1,5 @@
-import * as anchor from '@project-serum/anchor';
-import {
-  AnchorError,
-  AnchorProvider,
-  BN,
-  Program,
-} from '@project-serum/anchor';
+import * as anchor from '@heavy-duty/anchor';
+import { AnchorError, AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { getAccount, getMint } from '@solana/spl-token';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { assert } from 'chai';
@@ -181,6 +176,7 @@ describe('New Solana X Party Reloaded', () => {
     assert.isTrue(eventAccount.eventStartDate.eq(eventStartDate));
     assert.isTrue(eventAccount.eventEndDate.eq(eventEndDate));
     assert.equal(eventAccount.eventId.toString(), eventId.toString());
+    assert.equal(eventAccount.ticketsSold, 0);
     assert.isTrue(eventAccount.totalValueLocked.eq(new BN(0)));
     assert.isTrue(eventAccount.totalValueLockedInTickets.eq(new BN(0)));
     assert.isTrue(eventAccount.totalValueLockedInRecharges.eq(new BN(0)));
@@ -232,6 +228,7 @@ describe('New Solana X Party Reloaded', () => {
       temporalVaultAccount.amount,
       BigInt(`0x${ticketTotal.toString('hex')}`)
     );
+    assert.equal(eventAccount.ticketsSold, aliceTickets);
     assert.isTrue(eventAccount.totalValueLocked.eq(ticketTotal));
     assert.isTrue(eventAccount.totalDeposited.eq(ticketTotal));
     assert.isTrue(eventAccount.totalValueLockedInTickets.eq(ticketTotal));
@@ -239,7 +236,6 @@ describe('New Solana X Party Reloaded', () => {
 
   it('should create PDA using wearable id', async () => {
     // arrange
-    // .mul(BN(1)) for demo purposes, in the future it might be possible to check in multiple wearables at once
     const ticketTotal = ticketPrice.mul(new BN(1));
     // act
     await eventProgram.methods

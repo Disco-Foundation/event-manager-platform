@@ -13,7 +13,6 @@ import {
 } from '@event-manager/event-manager-generator';
 import { Inject, Injectable } from '@nestjs/common';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { deserialize } from 'v8';
 import { EnvironmentProvider } from './app.module';
 
 @Injectable()
@@ -54,30 +53,35 @@ export class AppService {
 
   async checkInNew(
     checkInData: CheckInWearableData
-  ): Promise<{ transaction: String, message: String, label: String }> {
+  ): Promise<{ transaction: String; message: String; label: String }> {
     try {
       const tx = await EventManagerActions.checkInEvent(
         checkInData,
         this.environment.network
       );
 
-      let blockhash = (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+      let blockhash = (
+        await getConnection(this.environment.network).getLatestBlockhash(
+          'finalized'
+        )
+      ).blockhash;
       tx.recentBlockhash = blockhash;
-      tx.feePayer = new PublicKey(checkInData.payer)
+      tx.feePayer = new PublicKey(checkInData.payer);
 
-      console.log("TRANSACTION: ", tx.instructions[0].keys)
+      console.log('TRANSACTION: ', tx.instructions[0].keys);
 
       const serializedTransaction = tx.serialize({
-          verifySignatures: false,
-          requireAllSignatures: false,
-        });
+        verifySignatures: false,
+        requireAllSignatures: false,
+      });
 
       let encoded = serializedTransaction.toString('base64');
 
-      return { 
+      return {
         transaction: encoded,
-        message: "Check In",
-        label: "Action" };
+        message: 'Check In',
+        label: 'Action',
+      };
     } catch (e) {
       console.log('API ERROR', e);
     }
@@ -85,29 +89,34 @@ export class AppService {
 
   async recharge(
     rechargeWearableData: RechargeWearableData
-  ): Promise<{ transaction: String, message: String, label: String  }> {
+  ): Promise<{ transaction: String; message: String; label: String }> {
     try {
       const tx = await EventManagerActions.recharge(
         rechargeWearableData,
         this.environment.network
       );
 
-      let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+      let blockhash = await (
+        await getConnection(this.environment.network).getLatestBlockhash(
+          'finalized'
+        )
+      ).blockhash;
       tx.recentBlockhash = blockhash;
-      tx.feePayer = new PublicKey(rechargeWearableData.payer)
+      tx.feePayer = new PublicKey(rechargeWearableData.payer);
 
       const serializedTransaction = tx.serialize({
         verifySignatures: false,
         requireAllSignatures: false,
       });
 
-      const tokensTxt = (rechargeWearableData.amount > 1 ? " Tokens" : " Token");
+      const tokensTxt = rechargeWearableData.amount > 1 ? ' Tokens' : ' Token';
 
-      return { 
+      return {
         transaction: serializedTransaction.toString('base64'),
-        message: "Recharge " + rechargeWearableData.amount.toString() + tokensTxt,
-        label: "Action" };
-
+        message:
+          'Recharge ' + rechargeWearableData.amount.toString() + tokensTxt,
+        label: 'Action',
+      };
     } catch (e) {
       console.log('API ERROR', e);
     }
@@ -146,28 +155,36 @@ export class AppService {
     return { currentBalance: balance };
   }
 
-  async buyTicketsQR(buyTicketsData: BuyTicketsQRData): 
-  Promise<{ transaction: String, message: String, label: String }>  {
+  async buyTicketsQR(
+    buyTicketsData: BuyTicketsQRData
+  ): Promise<{ transaction: String; message: String; label: String }> {
     const tx = await EventManagerActions.buyTicketsQR(
       buyTicketsData,
       this.environment.network
     );
 
-    let blockhash = await (await getConnection(this.environment.network).getLatestBlockhash('finalized')).blockhash;
+    let blockhash = await (
+      await getConnection(this.environment.network).getLatestBlockhash(
+        'finalized'
+      )
+    ).blockhash;
     tx.recentBlockhash = blockhash;
-    tx.feePayer = new PublicKey(buyTicketsData.account)
+    tx.feePayer = new PublicKey(buyTicketsData.account);
 
     const serializedTransaction = tx.serialize({
       verifySignatures: false,
       requireAllSignatures: false,
     });
 
-    const ticketsTxt = (buyTicketsData.ticketsAmount > 1 ? " Tickets" : " Ticket");
+    const ticketsTxt =
+      buyTicketsData.ticketsAmount > 1 ? ' Tickets' : ' Ticket';
 
-    return { 
+    return {
       transaction: serializedTransaction.toString('base64'),
-      message: "Purchase " + buyTicketsData.ticketsAmount.toString() + ticketsTxt,
-      label: "Action" };
+      message:
+        'Purchase ' + buyTicketsData.ticketsAmount.toString() + ticketsTxt,
+      label: 'Action',
+    };
   }
 
   async doAirdropTo(amount: number, publicKey: string) {

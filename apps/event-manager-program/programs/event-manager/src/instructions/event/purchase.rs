@@ -114,28 +114,28 @@ pub fn handle(ctx: Context<Purchase>, amount: u64) -> Result<()> {
     .total_value_locked
     .checked_sub(amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_value_locked = total_value_locked;
+  (*ctx.accounts.event).total_value_locked = total_value_locked;
   let total_value_locked_in_recharges = ctx
     .accounts
     .event
     .total_value_locked_in_recharges
     .checked_sub(amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_value_locked_in_recharges = total_value_locked_in_recharges;
+  (*ctx.accounts.event).total_value_locked_in_recharges = total_value_locked_in_recharges;
   let total_profit = ctx
     .accounts
     .event
     .total_profit
     .checked_add(amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_profit = total_profit;
+  (*ctx.accounts.event).total_profit = total_profit;
   let total_profit_in_purchases = ctx
     .accounts
     .event
     .total_profit_in_purchases
     .checked_add(amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_profit_in_purchases = total_profit_in_purchases;
+  (*ctx.accounts.event).total_profit_in_purchases = total_profit_in_purchases;
 
   Ok(())
 }

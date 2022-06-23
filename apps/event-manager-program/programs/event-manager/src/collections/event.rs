@@ -11,6 +11,7 @@ pub struct Event {
   pub event_start_date: i64,                // 16
   pub event_end_date: i64,                  // 16
   pub ticket_quantity: u32,                 // 4
+  pub tickets_sold: u32,                    // 4
   pub ticket_price: u64,                    // 8
   pub total_value_locked: u64,              // 8
   pub total_value_locked_in_tickets: u64,   // 8
@@ -44,6 +45,7 @@ impl Event {
     + (40 + 4)
     + (500 + 4)
     + 16
+    + 4
     + 4
     + 8
     + 32

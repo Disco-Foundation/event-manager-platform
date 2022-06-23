@@ -103,20 +103,27 @@ pub fn handle(ctx: Context<BuyTickets>, quantity: u32) -> Result<()> {
         .total_value_locked
         .checked_add(accepted_token_amount_to_transfer)
         .unwrap();
-    ctx.accounts.event.total_value_locked = total_value_locked;
+    (*ctx.accounts.event).total_value_locked = total_value_locked;
     let total_value_locked_in_tickets = ctx
         .accounts
         .event
         .total_value_locked_in_tickets
         .checked_add(accepted_token_amount_to_transfer)
         .unwrap();
-    ctx.accounts.event.total_value_locked_in_tickets = total_value_locked_in_tickets;
+    (*ctx.accounts.event).total_value_locked_in_tickets = total_value_locked_in_tickets;
     let total_deposited = ctx
         .accounts
         .event
         .total_deposited
         .checked_add(accepted_token_amount_to_transfer)
         .unwrap();
-    ctx.accounts.event.total_deposited = total_deposited;
+    (*ctx.accounts.event).total_deposited = total_deposited;
+    let tickets_sold = ctx
+        .accounts
+        .event
+        .tickets_sold
+        .checked_add(quantity)
+        .unwrap();
+    (*ctx.accounts.event).tickets_sold = tickets_sold;
     Ok(())
 }

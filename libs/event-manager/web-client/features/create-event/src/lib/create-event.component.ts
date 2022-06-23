@@ -1,17 +1,20 @@
 import { Component } from '@angular/core';
 import {
   AbstractControl,
-  FormBuilder,
+  UntypedFormBuilder,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { EventApiService, ConfigStore } from '@event-manager-web-client/data-access';
+import {
+  ConfigStore,
+  EventApiService,
+} from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
-import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
+import { catchError, concatMap, EMPTY, tap } from 'rxjs';
 
 export function publicKeyValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -211,6 +214,27 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                 <mat-form-field
                   class="w-full"
                   appearance="fill"
+                  hintLabel="Enter the certifier funds."
+                >
+                  <mat-label>Certifier Funds</mat-label>
+                  <input
+                    matInput
+                    formControlName="certifierFunds"
+                    required
+                    type="number"
+                  />
+                  <mat-error
+                    *ngIf="
+                      submitted &&
+                      informationForm.get('certifier')?.hasError('required')
+                    "
+                    >The certifier is mandatory.</mat-error
+                  >
+                </mat-form-field>
+
+                <mat-form-field
+                  class="w-full"
+                  appearance="fill"
                   hintLabel="Enter the start date."
                 >
                   <mat-label>Start date</mat-label>
@@ -330,9 +354,13 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
           <mat-step>
             <div class="flex flex-col gap-3">
               <ng-template matStepLabel>Done</ng-template>
-              <p>You are now done. Check your event preview before submitting.</p>
-              <article class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
-                style="width: 30rem; margin-bottom:12px;">
+              <p>
+                You are now done. Check your event preview before submitting.
+              </p>
+              <article
+                class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
+                style="width: 30rem; margin-bottom:12px;"
+              >
                 <header class="relative flex flex-col gap-2">
                   <figure class="h-52 overflow-hidden disco-layer blue">
                     <img [src]="informationForm.get('banner')?.value" alt="" />
@@ -376,13 +404,15 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                     </p>
                   </div>
                   <div class="flex flex-col items-center gap-3">
-                    <div class=" px-4 py-2 disco-layer disco-border border-2 blue">
+                    <div
+                      class=" px-4 py-2 disco-layer disco-border border-2 blue"
+                    >
                       <p class="m-0 text-justify disco-text gold">
-                          Out of the total of
-                          <b class="text-lg">{{
-                            ticketsForm.get('ticketQuantity')?.value | number
-                          }}</b>
-                          tickets, none have been sold.
+                        Out of the total of
+                        <b class="text-lg">{{
+                          ticketsForm.get('ticketQuantity')?.value | number
+                        }}</b>
+                        tickets, none have been sold.
                       </p>
                     </div>
                     <div class="flex flex-col gap-2 w-full">
@@ -400,7 +430,10 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                             </figure>
                             <span
                               class="text-2xl font-bold leading-none disco-text green"
-                              >{{ ticketsForm.get('ticketPrice')?.value | number: '1.2-2' }}</span
+                              >{{
+                                ticketsForm.get('ticketPrice')?.value
+                                  | number: '1.2-2'
+                              }}</span
                             >
                           </div>
                         </div>
@@ -412,8 +445,6 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                         </p>
                       </div>
                     </div>
-
-                    
                   </div>
                 </div>
               </article>
@@ -468,6 +499,9 @@ export class CreateEventComponent {
     banner: this._formBuilder.control(null, {
       validators: [Validators.required, Validators.maxLength(40)],
     }),
+    certifierFunds: this._formBuilder.control(null, {
+      validators: [Validators.required],
+    }),
     startDate: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
@@ -485,12 +519,12 @@ export class CreateEventComponent {
   });
 
   constructor(
-    private readonly _formBuilder: FormBuilder,
+    private readonly _formBuilder: UntypedFormBuilder,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore,
     private readonly _router: Router,
-    private readonly _configStore: ConfigStore,
+    private readonly _configStore: ConfigStore
   ) {}
 
   onSubmit() {
@@ -499,47 +533,23 @@ export class CreateEventComponent {
     if (this.informationForm.valid && this.ticketsForm.valid) {
       this._eventApiService
         .create({
-          ...this.informationForm.value,
           ...this.ticketsForm.value,
+          ...this.informationForm.value,
         })
         .pipe(
-          concatMap(({ signature, certifier }) => {
-            this._matSnackBar.open('Confirming...');
-
-            return this._connectionStore.connection$.pipe(
-              first(),
-              concatMap((connection) => {
-                if (connection === null) {
-                  this._matSnackBar.open('Connection missing');
-                  return EMPTY;
-                }
-
-                //downloadCertifier(certifier.secretKey);
-
-                return defer(() =>
-                  from(connection.confirmTransaction(signature))
-                ).pipe(
-                  catchError((error) => {
-                    this._matSnackBar.open(error.msg);
-                    return EMPTY;
-                  })
-                );
-              }),
-              concatMap(() =>
-                this._matSnackBar
-                  .open('Event created!', 'View events list', {
-                    duration: 5000,
-                  })
-                  .afterDismissed()
-                  .pipe(
-                    tap(({ dismissedByAction }) => {
-                      if (dismissedByAction) {
-                        this._router.navigate(['/list-events']);
-                      }
-                    })
-                  )
-              )
-            );
+          concatMap(() => {
+            return this._matSnackBar
+              .open('Event created!', 'View events list', {
+                duration: 5000,
+              })
+              .afterDismissed()
+              .pipe(
+                tap(({ dismissedByAction }) => {
+                  if (dismissedByAction) {
+                    this._router.navigate(['/list-events']);
+                  }
+                })
+              );
           }),
           catchError((error) => {
             this._matSnackBar.open(error.message);

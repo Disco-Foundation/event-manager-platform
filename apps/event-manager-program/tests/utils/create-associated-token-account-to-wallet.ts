@@ -1,4 +1,4 @@
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@heavy-duty/anchor';
 import {
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,

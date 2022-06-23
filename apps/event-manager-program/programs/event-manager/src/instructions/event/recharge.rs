@@ -103,21 +103,21 @@ pub fn handle(ctx: Context<Recharge>, _wearable_id: u64, amount: u64) -> Result<
     .total_value_locked
     .checked_add(accepted_token_amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_value_locked = total_value_locked;
+  (*ctx.accounts.event).total_value_locked = total_value_locked;
   let total_value_locked_in_recharges = ctx
     .accounts
     .event
     .total_value_locked_in_recharges
     .checked_add(accepted_token_amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_value_locked_in_recharges = total_value_locked_in_recharges;
+  (*ctx.accounts.event).total_value_locked_in_recharges = total_value_locked_in_recharges;
   let total_deposited = ctx
     .accounts
     .event
     .total_deposited
     .checked_add(accepted_token_amount_to_transfer)
     .unwrap();
-  ctx.accounts.event.total_deposited = total_deposited;
+  (*ctx.accounts.event).total_deposited = total_deposited;
 
   Ok(())
 }

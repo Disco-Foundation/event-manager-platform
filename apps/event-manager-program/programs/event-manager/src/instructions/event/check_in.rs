@@ -158,28 +158,28 @@ pub fn handle(ctx: Context<CheckIn>, wearable_id: u64) -> Result<()> {
     .total_profit
     .checked_add(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_profit = total_profit;
+  (*ctx.accounts.event).total_profit = total_profit;
   let total_profit_in_tickets = ctx
     .accounts
     .event
     .total_profit_in_tickets
     .checked_add(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_profit_in_tickets = total_profit_in_tickets;
+  (*ctx.accounts.event).total_profit_in_tickets = total_profit_in_tickets;
   let total_value_locked = ctx
     .accounts
     .event
     .total_value_locked
     .checked_sub(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_value_locked = total_value_locked;
+  (*ctx.accounts.event).total_value_locked = total_value_locked;
   let total_value_locked_in_tickets = ctx
     .accounts
     .event
     .total_value_locked_in_tickets
     .checked_sub(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_value_locked_in_tickets = total_value_locked_in_tickets;
+  (*ctx.accounts.event).total_value_locked_in_tickets = total_value_locked_in_tickets;
 
   Ok(())
 }
