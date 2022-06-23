@@ -86,7 +86,7 @@ pub fn handle(ctx: Context<Purchase>, amount: u64) -> Result<()> {
       ctx.accounts.token_program.to_account_info(),
       Burn {
         mint: ctx.accounts.event_mint.to_account_info(), // should be ctx.accounts.wearable.wearable_vault and avoid pass the vault
-        to: ctx.accounts.wearable_vault.to_account_info(),
+        from: ctx.accounts.wearable_vault.to_account_info(),
         authority: ctx.accounts.event.to_account_info(),
       },
       signer,

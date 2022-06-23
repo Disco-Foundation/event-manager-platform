@@ -46,6 +46,15 @@ pub struct CreateEvent<'info> {
   pub ticket_mint: Box<Account<'info, Mint>>,
   #[account(
     init,
+    seeds = [b"attendance_mint".as_ref(), event.key().as_ref()],
+    bump,
+    payer = authority,
+    mint::decimals = 0,
+    mint::authority = event,
+  )]
+  pub attendance_mint: Box<Account<'info, Mint>>,
+  #[account(
+    init,
     payer = authority,
     seeds = [b"temporal_vault".as_ref(), event.key().as_ref()],
     bump,
@@ -102,7 +111,6 @@ pub fn handle(
   ctx.accounts.event.total_profit = 0;
   ctx.accounts.event.total_profit_in_tickets = 0;
   ctx.accounts.event.total_profit_in_purchases = 0;
-
   ctx.accounts.event.event_mint = ctx.accounts.event_mint.key();
   ctx.accounts.event.ticket_mint = ctx.accounts.ticket_mint.key();
   ctx.accounts.event.accepted_mint = ctx.accounts.accepted_mint.key();
@@ -111,6 +119,7 @@ pub fn handle(
   ctx.accounts.event.event_bump = *ctx.bumps.get(Event::BUMP_NAME).unwrap();
   ctx.accounts.event.event_mint_bump = *ctx.bumps.get(Event::BUMP_EVENT_MINT_NAME).unwrap();
   ctx.accounts.event.ticket_mint_bump = *ctx.bumps.get(Event::BUMP_TICKET_MINT_NAME).unwrap();
+  ctx.accounts.event.attendance_mint_bump = *ctx.bumps.get(Event::BUMP_ATTENDANCE_MINT_NAME).unwrap();
   ctx.accounts.event.temporal_vault_bump = *ctx.bumps.get(Event::BUMP_TEMPORAL_VAULT_NAME).unwrap();
   ctx.accounts.event.gain_vault_bump = *ctx.bumps.get(Event::BUMP_GAIN_VAULT_NAME).unwrap();
 
