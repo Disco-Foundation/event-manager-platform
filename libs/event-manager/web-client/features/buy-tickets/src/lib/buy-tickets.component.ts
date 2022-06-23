@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import {
   MatBottomSheetRef,
   MAT_BOTTOM_SHEET_DATA,
@@ -165,23 +165,25 @@ import { ConfigStore } from '@event-manager-web-client/data-access';
             </span>
           </div>
         </div>
-          <button
+        <button
           *hdWalletAdapter="let wallet = wallet"
           (click)="onPay()"
           class="block mx-auto disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-          type="submit">
-            <div class="flex justify-between items-center gap-2">
-              Pay with
-              <hd-wallet-icon *ngIf="wallet" [wallet]="wallet"></hd-wallet-icon>
-            </div>
-          </button>
-          <em-generate-buy-ticket-qr
+          type="submit"
+        >
+          <div class="flex justify-between items-center gap-2">
+            Pay with
+            <hd-wallet-icon *ngIf="wallet" [wallet]="wallet"></hd-wallet-icon>
+          </div>
+        </button>
+        <em-generate-buy-ticket-qr
+          *ngIf="form.get('ticketQuantity')?.value as ticketQuantity"
           [qrdata]="{
-            ticketsAmount: form.get('ticketQuantity')?.value,
+            ticketsAmount: ticketQuantity,
             eventId: eventId
           }"
-          > </em-generate-buy-ticket-qr>
-        
+        >
+        </em-generate-buy-ticket-qr>
       </form>
     </div>
   `,
@@ -200,11 +202,11 @@ export class BuyTicketsComponent {
   });
 
   constructor(
-    private readonly _formBuilder: FormBuilder,
+    private readonly _formBuilder: UntypedFormBuilder,
     private readonly _configStore: ConfigStore,
     private readonly _bottomSheetRef: MatBottomSheetRef<BuyTicketsComponent>,
     @Inject(MAT_BOTTOM_SHEET_DATA)
-    data: { eventId: string, eventName: string; ticketPrice: number }
+    data: { eventId: string; eventName: string; ticketPrice: number }
   ) {
     this.eventName = data.eventName;
     this.ticketPrice = data.ticketPrice;
