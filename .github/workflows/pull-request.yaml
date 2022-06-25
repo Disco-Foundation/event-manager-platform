@@ -26,7 +26,7 @@ jobs:
       - id: install-npm-packages
         name: 📦 Git fetch for affected commands and installing npm packages
         run: |
-          git fetch --no-tags --prune --depth=2 origin master
+          git fetch --no-tags --prune --depth=2 origin main
           npm ci
       - id: get-affected-projects
         name: 🛠️ Getting affected projects
@@ -35,7 +35,7 @@ jobs:
         # then using grep, we count (using the -c flag) the occurrences of '*-programs' string in the above result
         # if we get 0, it means the no program changed, otherwise at least one changed and we will install Anchor
         run: |
-          echo "::set-output name=occurrences::$(echo $(npx nx print-affected --select=projects --base=origin/master) | grep -c programs)"
+          echo "::set-output name=occurrences::$(echo $(npx nx print-affected --select=projects --base=origin/main) | grep -c programs)"
       - id: install-anchor
         name: 🛠️ Setting up Anchor, Rust, Solana and others related dependencies
         if: steps.get-affected-projects.outputs.occurrences != 0
@@ -60,14 +60,14 @@ jobs:
         name: 🔦 Linting Disco Platform projects
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          npx nx affected --target=lint --base=origin/master
+          npx nx affected --target=lint --base=origin/main
       - id: testing-projects
         name: 🧪 Testing Disco Platform projects
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          npx nx affected --target=test --base=origin/master
+          npx nx affected --target=test --base=origin/main
       - id: building-projects
         name: 🏗️ Building Disco Platform projects
         run: |
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          npx nx affected --target=build --base=origin/master
+          npx nx affected --target=build --base=origin/main
