@@ -1,4 +1,4 @@
-import { BN } from '@project-serum/anchor';
+import { BN } from '@heavy-duty/anchor';
 import { getAccount } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
 import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
@@ -23,7 +23,7 @@ export const getWearableData = async (
     program.programId
   );
 
-  console.log("WEARABLE ADDRESS",wearableAddress.toBase58());
+  console.log('WEARABLE ADDRESS', wearableAddress.toBase58());
 
   // Check if the wearable already exist
   try {

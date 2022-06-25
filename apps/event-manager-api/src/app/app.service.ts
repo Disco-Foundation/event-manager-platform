@@ -53,14 +53,14 @@ export class AppService {
 
   async checkInNew(
     checkInData: CheckInWearableData
-  ): Promise<{ transaction: String; message: String; label: String }> {
+  ): Promise<{ transaction: string; message: string; label: string }> {
     try {
       const tx = await EventManagerActions.checkInEvent(
         checkInData,
         this.environment.network
       );
 
-      let blockhash = (
+      const blockhash = (
         await getConnection(this.environment.network).getLatestBlockhash(
           'finalized'
         )
@@ -75,7 +75,7 @@ export class AppService {
         requireAllSignatures: false,
       });
 
-      let encoded = serializedTransaction.toString('base64');
+      const encoded = serializedTransaction.toString('base64');
 
       return {
         transaction: encoded,
@@ -89,14 +89,14 @@ export class AppService {
 
   async recharge(
     rechargeWearableData: RechargeWearableData
-  ): Promise<{ transaction: String; message: String; label: String }> {
+  ): Promise<{ transaction: string; message: string; label: string }> {
     try {
       const tx = await EventManagerActions.recharge(
         rechargeWearableData,
         this.environment.network
       );
 
-      let blockhash = await (
+      const blockhash = (
         await getConnection(this.environment.network).getLatestBlockhash(
           'finalized'
         )
@@ -157,13 +157,13 @@ export class AppService {
 
   async buyTicketsQR(
     buyTicketsData: BuyTicketsQRData
-  ): Promise<{ transaction: String; message: String; label: String }> {
+  ): Promise<{ transaction: string; message: string; label: string }> {
     const tx = await EventManagerActions.buyTicketsQR(
       buyTicketsData,
       this.environment.network
     );
 
-    let blockhash = await (
+    const blockhash = (
       await getConnection(this.environment.network).getLatestBlockhash(
         'finalized'
       )

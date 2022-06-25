@@ -1,4 +1,4 @@
-import { BN, ProgramError } from '@project-serum/anchor';
+import { BN, ProgramError } from '@heavy-duty/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType } from '../core';
 import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
@@ -41,7 +41,11 @@ export const recharge = async (
       })
       .transaction();
 
-      tx.instructions[0].keys.push({ pubkey: REFERENCE, isWritable: false, isSigner: false });
+    tx.instructions[0].keys.push({
+      pubkey: REFERENCE,
+      isWritable: false,
+      isSigner: false,
+    });
 
     return tx;
   } catch (e) {

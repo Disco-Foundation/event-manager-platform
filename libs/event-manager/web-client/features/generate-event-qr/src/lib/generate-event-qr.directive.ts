@@ -1,6 +1,6 @@
 import { Directive, HostListener, Input } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { GenerateEventQrComponent, GenerateBuyTicketQrComponent } from './generate-event-qr.component';
+import { GenerateEventQrComponent } from './generate-event-qr.component';
 
 @Directive({ selector: '[emGenerateEventQrTrigger]' })
 export class GenerateEventQrTriggerDirective {

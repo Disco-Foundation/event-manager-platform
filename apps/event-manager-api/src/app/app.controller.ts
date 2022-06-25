@@ -16,7 +16,7 @@ import {
   Injectable,
   Param,
   Post,
-  Query
+  Query,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AirdropDTO } from './dto/airdrop.dto';
@@ -24,47 +24,45 @@ import { BuyTicketsDTO } from './dto/buy-tickets.dto';
 import { CheckInDTO } from './dto/check-in.dto';
 import { CreateEventDTO } from './dto/create-event.dto';
 import { PurchaseDTO } from './dto/purchase.dto';
-import { RechargeDTO } from './dto/recharge.dto';
 
 @Injectable()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-
   @Get('/')
-  get(){
+  get() {
     return {
-      label: "Disco Protocol",
-      icon: "https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
-    }
+      label: 'Disco Protocol',
+      icon: 'https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4',
+    };
   }
 
   @Get('/check-in-new')
-  getCheckIn(){
-    console.log("entro GET CheckIn")
+  getCheckIn() {
+    console.log('entro GET CheckIn');
     return {
-      label: "Disco Protocol",
-      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
-    }
+      label: 'Disco Protocol',
+      icon: 'https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png',
+    };
   }
 
   @Get('/buy-tickets-qr')
-  getBuyTickets(){
-    console.log("entro GET Buy Tickets QR")
+  getBuyTickets() {
+    console.log('entro GET Buy Tickets QR');
     return {
-      label: "Disco Protocol",
-      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
-    }
+      label: 'Disco Protocol',
+      icon: 'https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png',
+    };
   }
 
   @Get('/recharge')
-  getRecharge(){
-    console.log("entro GET Recharge")
+  getRecharge() {
+    console.log('entro GET Recharge');
     return {
-      label: "Disco Protocol",
-      icon: "https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png"
-    }
+      label: 'Disco Protocol',
+      icon: 'https://cdn.discordapp.com/attachments/756601921166639165/986724936431317072/round_logo_2.png',
+    };
   }
 
   @Get('/test')
@@ -93,16 +91,16 @@ export class AppController {
   }
 
   @Post('/check-in')
-  checkIn(@Body() body: CheckInDTO) { 
+  checkIn(@Body() body: CheckInDTO) {
     try {
       const createWearableData: CheckInWearableData = {
         ...body,
-        reference: "",
+        reference: '',
         wearablePin: body.PIN,
       };
 
       const result = this.appService.checkIn(createWearableData);
-      
+
       return result;
     } catch (error) {
       throw new HttpException(error, HttpStatus.NOT_ACCEPTABLE);
@@ -110,22 +108,26 @@ export class AppController {
   }
 
   @Post('/check-in-new')
-  checkInNew(@Query() query: Record<string, any>,@Body() body: Record<string, any>) { // 
+  checkInNew(
+    @Query() query: Record<string, any>,
+    @Body() body: Record<string, any>
+  ) {
+    //
     try {
-      console.log("QUERY: ", query);
+      console.log('QUERY: ', query);
 
       const createWearableData: CheckInWearableData = {
         wearableId: Number(query.wearableId),
         eventId: query.eventId,
         payer: body.account,
         wearablePin: query.PIN,
-        reference: query.reference
-      }; 
+        reference: query.reference,
+      };
 
-      console.log("CHECKIN DATA: ", createWearableData);
+      console.log('CHECKIN DATA: ', createWearableData);
 
       const result = this.appService.checkInNew(createWearableData);
-      
+
       //const base64Transaction = result.toString('base64');
       return result;
     } catch (error) {
@@ -134,7 +136,10 @@ export class AppController {
   }
 
   @Post('/recharge')
-  recharge(@Query() query: Record<string, any>,@Body() body: Record<string, any>) {
+  recharge(
+    @Query() query: Record<string, any>,
+    @Body() body: Record<string, any>
+  ) {
     const rechargeData: RechargeWearableData = {
       amount: query.amount,
       wearableId: query.wearableId,
@@ -163,12 +168,14 @@ export class AppController {
   }
 
   @Post('/buy-tickets-qr')
-  buyTicketsQR(@Query() query: Record<string, any>,@Body() body: Record<string, any>) {
-    
+  buyTicketsQR(
+    @Query() query: Record<string, any>,
+    @Body() body: Record<string, any>
+  ) {
     const buyTicketsData: BuyTicketsQRData = {
       ticketsAmount: Number(query.ticketsAmount),
       eventId: query.eventId,
-      account: body.account
+      account: body.account,
     };
 
     return this.appService.buyTicketsQR(buyTicketsData);

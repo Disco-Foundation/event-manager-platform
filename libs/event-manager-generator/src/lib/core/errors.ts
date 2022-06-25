@@ -1,4 +1,4 @@
-import { ProgramError } from '@project-serum/anchor';
+import { ProgramError } from '@heavy-duty/anchor';
 
 export class CreateEventError extends Error {
   name = 'CreateEventError';

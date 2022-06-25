@@ -2,7 +2,7 @@ import {
   Certifier,
   getCertifier,
 } from '@event-manager/event-manager-certifiers';
-import { BN, ProgramError } from '@project-serum/anchor';
+import { BN, ProgramError } from '@heavy-duty/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { ApiError, ApiErrorType } from '../core';
 import { LAMPORTS_PER_EVENT_MINT } from '../core/constants';
