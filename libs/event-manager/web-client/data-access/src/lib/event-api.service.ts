@@ -182,10 +182,12 @@ export class EventApiService {
       }
 
       return from(
+        // get all token accounts from current wallet
         reader.provider.connection
           .getTokenAccountsByOwner(owner, {
             programId: TOKEN_PROGRAM_ID,
           })
+          // get the decoded token accounts
           .then((tokenAccounts) =>
             Promise.all(
               tokenAccounts.value.map((tokenAccount) =>
@@ -193,6 +195,7 @@ export class EventApiService {
               )
             )
           )
+          // Get all the mints from the current wallet
           .then((accounts) =>
             Promise.all(
               [
@@ -202,6 +205,7 @@ export class EventApiService {
               )
             )
           )
+          // Get each of the mint authorities
           .then((mints) =>
             Promise.all(
               [
@@ -220,6 +224,9 @@ export class EventApiService {
               )
             )
           )
+          // Filter the mint authorities by the ones owned by
+          // the event manager program. These are supposed to be
+          // events.
           .then(async (mintAuthorityOwners) => {
             const eventPublicKeys = [
               ...new Set(
