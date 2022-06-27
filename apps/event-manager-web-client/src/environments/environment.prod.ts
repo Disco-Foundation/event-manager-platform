@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  acceptedMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  acceptedMint: 'GpkezdzsMoerjxCviax6rSPN6suTpSTg9eFzaRBGwLtf',
   acceptedMintDecimals: 6,
-  network: 'https://api.mainnet-beta.solana.com',
+  network:
+    'https://dry-billowing-wildflower.solana-devnet.quiknode.pro/2d0d5fcf8659bc75959b095ba1b4204cf6f6deda',
 };
