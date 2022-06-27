@@ -11,13 +11,7 @@ import {
   getMint,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  TransactionSignature,
-} from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
@@ -290,13 +284,13 @@ export class EventApiService {
             ), // fixed for now
             certifier: certifierKeypair.publicKey,
           })
-          .preInstructions([
+          /* .preInstructions([
             SystemProgram.transfer({
               fromPubkey: provider.wallet.publicKey,
               toPubkey: certifierKeypair.publicKey,
               lamports: args.certifierFunds * LAMPORTS_PER_SOL,
             }),
-          ])
+          ]) */
           .signers([certifierKeypair])
           .rpc()
       ).pipe(

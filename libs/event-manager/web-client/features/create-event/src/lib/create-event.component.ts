@@ -27,7 +27,7 @@ export function publicKeyValidator(): ValidatorFn {
   };
 }
 
-const downloadCertifier = (certifierSecret: Uint8Array) => {
+/* const downloadCertifier = (certifierSecret: Uint8Array) => {
   const a = document.createElement('a');
 
   a.href = URL.createObjectURL(
@@ -36,7 +36,7 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
   a.download = 'certifier.json';
   a.click();
   a.remove();
-};
+}; */
 
 @Component({
   selector: 'em-create-event',
@@ -211,7 +211,7 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                   >
                 </mat-form-field>
 
-                <mat-form-field
+                <!-- <mat-form-field
                   class="w-full"
                   appearance="fill"
                   hintLabel="Enter the certifier funds."
@@ -230,7 +230,7 @@ const downloadCertifier = (certifierSecret: Uint8Array) => {
                     "
                     >The certifier is mandatory.</mat-error
                   >
-                </mat-form-field>
+                </mat-form-field> -->
 
                 <mat-form-field
                   class="w-full"
@@ -499,9 +499,9 @@ export class CreateEventComponent {
     banner: this._formBuilder.control(null, {
       validators: [Validators.required, Validators.maxLength(40)],
     }),
-    certifierFunds: this._formBuilder.control(null, {
+    /* certifierFunds: this._formBuilder.control(null, {
       validators: [Validators.required],
-    }),
+    }), */
     startDate: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
