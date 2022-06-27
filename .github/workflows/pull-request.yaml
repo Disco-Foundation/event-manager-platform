@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         node: [17.6.0]
-        solana: [1.9.28, 1.10.24]
+        solana: [1.10.27, 1.11.1]
         anchor: [0.24.2]
         os: [ubuntu-22.04]
     steps:
@@ -33,10 +33,10 @@ jobs:
         name: 🛠️ Getting affected projects
         shell: bash
         # Here we use the `npx nx print-affected` command to get all the affected projects in a single string
-        # then using grep, we count (using the -c flag) the occurrences of '*-programs' string in the above result
+        # then using grep, we count (using the -c flag) the occurrences of '*-program' string in the above result
         # if we get 0, it means the no program changed, otherwise at least one changed and we will install Anchor
         run: |
-          echo "::set-output name=occurrences::$(echo $(npx nx print-affected --select=projects --base=origin/main) | grep -c programs)"
+          echo "::set-output name=occurrences::$(echo $(npx nx print-affected --select=projects --base=origin/main) | grep -c program)"
       - id: install-anchor
         name: 🛠️ Setting up Anchor, Rust, Solana and others related dependencies
         if: steps.get-affected-projects.outputs.occurrences != 0
@@ -51,8 +51,8 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           RUST_BACKTRACE=1 solana-keygen new --no-bip39-passphrase -o $HOME/.config/solana/id.json
           echo "Installing Serum >> "
-          npm i -g @project-serum/anchor@${{ matrix.anchor }}
-          npm i -g @project-serum/anchor-cli@${{ matrix.anchor }}
+          npm i -g @coral-xyz/anchor@${{ matrix.anchor }}
+          npm i -g @coral-xyz/anchor-cli@${{ matrix.anchor }}
           echo "Installing others dependencies >>"
           npm i -g typescript
           npm install -g mocha
