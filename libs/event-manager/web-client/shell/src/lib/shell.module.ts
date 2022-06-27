@@ -1,12 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { ModuleWithProviders, NgModule } from '@angular/core';
+import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import {
   EnvironmentConfig,
   environmentConfigProviderFactory,
 } from '@event-manager-web-client/data-access';
-import { HdWalletAdapterCdkModule } from '@heavy-duty/wallet-adapter-cdk';
-import { HdWalletAdapterMaterialModule } from '@heavy-duty/wallet-adapter-material';
+import {
+  HdWalletAdapterDirective,
+  HdWalletConnectButtonDirective,
+  HdWalletDisconnectButtonDirective,
+  HdWalletIconComponent,
+} from '@heavy-duty/wallet-adapter-cdk';
+import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
 import { ShellComponent } from './shell.component';
 
 @NgModule({
@@ -50,8 +56,12 @@ import { ShellComponent } from './shell.component';
         ],
       },
     ]),
-    HdWalletAdapterCdkModule,
-    HdWalletAdapterMaterialModule,
+    MatDialogModule,
+    HdWalletAdapterDirective,
+    HdWalletIconComponent,
+    HdWalletConnectButtonDirective,
+    HdWalletDisconnectButtonDirective,
+    HdWalletModalButtonDirective,
   ],
 })
 export class ShellModule {

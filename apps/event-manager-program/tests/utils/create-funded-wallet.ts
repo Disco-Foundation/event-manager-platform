@@ -1,12 +1,12 @@
-import { Provider, web3 } from '@project-serum/anchor';
+import { AnchorProvider, web3 } from '@heavy-duty/anchor';
 
 export const createFundedWallet = async (
-  provider: Provider,
+  provider: AnchorProvider,
   amount = 5
 ): Promise<web3.Keypair> => {
   const user = new web3.Keypair();
 
-  await provider.send(
+  await provider.sendAndConfirm(
     new web3.Transaction().add(
       web3.SystemProgram.transfer({
         fromPubkey: provider.wallet.publicKey,

@@ -1,23 +1,19 @@
-import { BN, Program, ProgramError, Provider } from '@project-serum/anchor';
+import * as anchor from '@heavy-duty/anchor';
+import { AnchorError, AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { getAccount, getMint } from '@solana/spl-token';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { assert } from 'chai';
-import { EventManager, IDL } from '../target/types/event_manager';
+import { EventManager } from '../target/types/event_manager';
 import {
   createFundedWallet,
   createMint,
   createUserAndAssociatedWallet,
-  EVENT_MANAGER_PROGRAM_ID,
 } from './utils';
 
 describe('New Solana X Party Reloaded', () => {
-  const provider = Provider.env();
-  const eventProgram = new Program<EventManager>(
-    IDL,
-    EVENT_MANAGER_PROGRAM_ID,
-    provider
-  );
-
+  const provider = AnchorProvider.env();
+  anchor.setProvider(provider);
+  const eventProgram = anchor.workspace.EventManager as Program<EventManager>;
   const acceptedMintDecimals = 8;
   const wearableId = new BN(1);
   const eventId = new BN(5);
@@ -48,11 +44,13 @@ describe('New Solana X Party Reloaded', () => {
   let eventAddress: PublicKey;
   let eventMintAddress: PublicKey;
   let ticketMintAddress: PublicKey;
+  let attendanceMintAddress: PublicKey;
   let gainVaultAddress: PublicKey;
   let temporalVaultAddress: PublicKey;
   let wearableAddress: PublicKey;
   let wearableVaultAddress: PublicKey;
   let aliceTicketVaultAddress: PublicKey;
+  let aliceAttendanceVaultAddress: PublicKey;
   let acceptedMintAddress: PublicKey;
   let alice: Keypair, aliceWallet: PublicKey;
   let certifier: Keypair;
@@ -62,7 +60,7 @@ describe('New Solana X Party Reloaded', () => {
       [
         Buffer.from('event', 'utf-8'),
         eventId.toBuffer('le', 8),
-        eventProgram.provider.wallet.publicKey.toBuffer(),
+        provider.wallet.publicKey.toBuffer(),
       ],
       eventProgram.programId
     );
@@ -80,6 +78,10 @@ describe('New Solana X Party Reloaded', () => {
     );
     [ticketMintAddress] = await PublicKey.findProgramAddress(
       [Buffer.from('ticket_mint', 'utf-8'), eventAddress.toBuffer()],
+      eventProgram.programId
+    );
+    [attendanceMintAddress] = await PublicKey.findProgramAddress(
+      [Buffer.from('attendance_mint', 'utf-8'), eventAddress.toBuffer()],
       eventProgram.programId
     );
     [wearableAddress] = await PublicKey.findProgramAddress(
@@ -115,6 +117,14 @@ describe('New Solana X Party Reloaded', () => {
       ],
       eventProgram.programId
     );
+    [aliceAttendanceVaultAddress] = await PublicKey.findProgramAddress(
+      [
+        Buffer.from('attendance_vault', 'utf-8'),
+        attendanceMintAddress.toBuffer(),
+        alice.publicKey.toBuffer(),
+      ],
+      eventProgram.programId
+    );
     certifier = await createFundedWallet(provider);
   });
 
@@ -135,7 +145,7 @@ describe('New Solana X Party Reloaded', () => {
         ticketQuantity
       )
       .accounts({
-        authority: eventProgram.provider.wallet.publicKey,
+        authority: provider.wallet.publicKey,
         acceptedMint: acceptedMintAddress,
         certifier: certifier.publicKey,
       })
@@ -155,26 +165,34 @@ describe('New Solana X Party Reloaded', () => {
       provider.connection,
       ticketMintAddress
     );
+    const attendanceMintAccount = await getMint(
+      provider.connection,
+      attendanceMintAddress
+    );
     assert.equal(eventAccount.name, eventName);
     assert.equal(eventAccount.description, eventDescription);
     assert.equal(eventAccount.banner, eventBanner);
     assert.equal(eventAccount.location, eventLocation);
-    assert.ok(eventAccount.eventStartDate.eq(eventStartDate));
-    assert.ok(eventAccount.eventEndDate.eq(eventEndDate));
+    assert.isTrue(eventAccount.eventStartDate.eq(eventStartDate));
+    assert.isTrue(eventAccount.eventEndDate.eq(eventEndDate));
     assert.equal(eventAccount.eventId.toString(), eventId.toString());
-    assert.ok(eventAccount.totalValueLocked.eq(new BN(0)));
-    assert.ok(eventAccount.totalValueLockedInTickets.eq(new BN(0)));
-    assert.ok(eventAccount.totalValueLockedInRecharges.eq(new BN(0)));
-    assert.ok(eventAccount.totalProfit.eq(new BN(0)));
-    assert.ok(eventAccount.totalProfitInTickets.eq(new BN(0)));
-    assert.ok(eventAccount.totalProfitInPurchases.eq(new BN(0)));
-    assert.ok(eventAccount.totalDeposited.eq(new BN(0)));
-    assert.ok(
+    assert.equal(eventAccount.ticketsSold, 0);
+    assert.isTrue(eventAccount.totalValueLocked.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalValueLockedInTickets.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalValueLockedInRecharges.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalProfit.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalProfitInTickets.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalProfitInPurchases.eq(new BN(0)));
+    assert.isTrue(eventAccount.totalDeposited.eq(new BN(0)));
+    assert.isTrue(
       new BN(Number(acceptedMintAccount.decimals)).eq(
         new BN(Number(eventMintAccount.decimals))
       )
     );
-    assert.ok(new BN(Number(ticketMintAccount.decimals)).eq(new BN(0)));
+    assert.isTrue(new BN(Number(ticketMintAccount.decimals)).eq(new BN(0)));
+    assert.isTrue(new BN(Number(ticketMintAccount.supply)).eq(new BN(0)));
+    assert.isTrue(new BN(Number(attendanceMintAccount.decimals)).eq(new BN(0)));
+    assert.isTrue(new BN(Number(attendanceMintAccount.supply)).eq(new BN(0)));
   });
 
   it('should buy (3) tickets', async () => {
@@ -210,14 +228,14 @@ describe('New Solana X Party Reloaded', () => {
       temporalVaultAccount.amount,
       BigInt(`0x${ticketTotal.toString('hex')}`)
     );
-    assert.ok(eventAccount.totalValueLocked.eq(ticketTotal));
-    assert.ok(eventAccount.totalDeposited.eq(ticketTotal));
-    assert.ok(eventAccount.totalValueLockedInTickets.eq(ticketTotal));
+    assert.equal(eventAccount.ticketsSold, aliceTickets);
+    assert.isTrue(eventAccount.totalValueLocked.eq(ticketTotal));
+    assert.isTrue(eventAccount.totalDeposited.eq(ticketTotal));
+    assert.isTrue(eventAccount.totalValueLockedInTickets.eq(ticketTotal));
   });
 
   it('should create PDA using wearable id', async () => {
     // arrange
-    // .mul(BN(1)) for demo purposes, in the future it might be possible to check in multiple wearables at once
     const ticketTotal = ticketPrice.mul(new BN(1));
     // act
     await eventProgram.methods
@@ -244,11 +262,16 @@ describe('New Solana X Party Reloaded', () => {
       provider.connection,
       aliceTicketVaultAddress
     );
+    const aliceAttendanceVaultAccount = await getAccount(
+      provider.connection,
+      aliceAttendanceVaultAddress
+    );
     const eventAccount = await eventProgram.account.event.fetch(eventAddress);
     assert.equal(wearableAccount.wearableId.toString(), wearableId.toString());
-    assert.ok(eventAccount.totalProfit.eq(ticketTotal));
-    assert.ok(eventAccount.totalProfitInTickets.eq(ticketTotal));
+    assert.isTrue(eventAccount.totalProfit.eq(ticketTotal));
+    assert.isTrue(eventAccount.totalProfitInTickets.eq(ticketTotal));
     assert.equal(aliceTicketVaultAccount.amount, BigInt(aliceTickets - 1));
+    assert.equal(aliceAttendanceVaultAccount.amount, BigInt(1));
     assert.equal(ticketMintAccount.supply, BigInt(aliceTickets - 1));
     assert.equal(
       gainVaultAccount.amount,
@@ -303,14 +326,16 @@ describe('New Solana X Party Reloaded', () => {
       temporalVaultAccount.amount,
       BigInt(`0x${amountToTransfer.add(ticketTotalLocked).toString('hex')}`)
     );
-    assert.ok(
+    assert.isTrue(
       eventAccount.totalValueLocked.eq(amountToTransfer.add(ticketTotalLocked))
     );
-    assert.ok(
+    assert.isTrue(
       eventAccount.totalDeposited.eq(amountToTransfer.add(ticketTotalSpent))
     );
-    assert.ok(eventAccount.totalValueLockedInRecharges.eq(amountToTransfer));
-    assert.ok(eventAccount.totalValueLockedInTickets.eq(ticketTotalLocked));
+    assert.isTrue(
+      eventAccount.totalValueLockedInRecharges.eq(amountToTransfer)
+    );
+    assert.isTrue(eventAccount.totalValueLockedInTickets.eq(ticketTotalLocked));
   });
 
   it('should purchase using the wearable PDA', async () => {
@@ -354,14 +379,16 @@ describe('New Solana X Party Reloaded', () => {
       temporalVaultAccount.amount,
       BigInt(`0x${totalLocked.toString('hex')}`)
     );
-    assert.ok(eventAccount.totalValueLocked.eq(totalLocked));
-    assert.ok(eventAccount.totalProfit.eq(totalProfit));
-    assert.ok(eventAccount.totalProfitInPurchases.eq(new BN(amountToCharge)));
+    assert.isTrue(eventAccount.totalValueLocked.eq(totalLocked));
+    assert.isTrue(eventAccount.totalProfit.eq(totalProfit));
+    assert.isTrue(
+      eventAccount.totalProfitInPurchases.eq(new BN(amountToCharge))
+    );
   });
 
   it('should fail when certifier didnt sign', async () => {
     // arrange
-    let error: ProgramError;
+    let error: AnchorError;
     // act
     try {
       await eventProgram.methods
@@ -372,7 +399,7 @@ describe('New Solana X Party Reloaded', () => {
         })
         .rpc();
     } catch (err) {
-      error = err as ProgramError;
+      error = err as AnchorError;
     }
     // assert
     assert.equal(error.message, 'Signature verification failed');

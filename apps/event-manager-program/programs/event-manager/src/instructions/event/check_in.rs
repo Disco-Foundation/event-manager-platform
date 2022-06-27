@@ -24,6 +24,12 @@ pub struct CheckIn<'info> {
   )]
   pub ticket_mint: Box<Account<'info, Mint>>,
   #[account(
+    mut,
+    seeds = [b"attendance_mint".as_ref(), event.key().as_ref()],
+    bump = event.attendance_mint_bump,
+  )]
+  pub attendance_mint: Box<Account<'info, Mint>>,
+  #[account(
     init,
     payer = authority,
     seeds = [
@@ -35,6 +41,19 @@ pub struct CheckIn<'info> {
     space = 8 + Wearable::SPACE_MAX_SIZE
   )]
   pub wearable: Box<Account<'info, Wearable>>,
+  #[account(
+    init_if_needed,
+    seeds = [
+      b"attendance_vault".as_ref(),
+      attendance_mint.key().as_ref(),
+      authority.key().as_ref()
+    ],
+    bump,
+    payer = authority,
+    token::mint = attendance_mint,
+    token::authority = authority,
+  )]
+  pub attendance_vault: Box<Account<'info, TokenAccount>>,
   #[account(
     init,
     payer = authority,
@@ -98,7 +117,7 @@ pub fn handle(ctx: Context<CheckIn>, wearable_id: u64) -> Result<()> {
       ctx.accounts.token_program.to_account_info(),
       Burn {
         mint: ctx.accounts.ticket_mint.to_account_info(), // should be ctx.accounts.wearable.wearable_vault and avoid pass the vault
-        to: ctx.accounts.ticket_vault.to_account_info(),
+        from: ctx.accounts.ticket_vault.to_account_info(),
         authority: ctx.accounts.authority.to_account_info(),
       },
     ),
@@ -119,34 +138,48 @@ pub fn handle(ctx: Context<CheckIn>, wearable_id: u64) -> Result<()> {
     ctx.accounts.event.ticket_price,
   )?;
 
+  // Finally, we send an attendance token to the authority
+  mint_to(
+    CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        MintTo {
+            mint: ctx.accounts.attendance_mint.to_account_info(),
+            to: ctx.accounts.attendance_vault.to_account_info(),
+            authority: ctx.accounts.event.to_account_info(),
+        },
+        signer,
+    ),
+    1,
+  )?;
+
   let total_profit = ctx
     .accounts
     .event
     .total_profit
     .checked_add(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_profit = total_profit;
+  (*ctx.accounts.event).total_profit = total_profit;
   let total_profit_in_tickets = ctx
     .accounts
     .event
     .total_profit_in_tickets
     .checked_add(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_profit_in_tickets = total_profit_in_tickets;
+  (*ctx.accounts.event).total_profit_in_tickets = total_profit_in_tickets;
   let total_value_locked = ctx
     .accounts
     .event
     .total_value_locked
     .checked_sub(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_value_locked = total_value_locked;
+  (*ctx.accounts.event).total_value_locked = total_value_locked;
   let total_value_locked_in_tickets = ctx
     .accounts
     .event
     .total_value_locked_in_tickets
     .checked_sub(ctx.accounts.event.ticket_price)
     .unwrap();
-  ctx.accounts.event.total_value_locked_in_tickets = total_value_locked_in_tickets;
+  (*ctx.accounts.event).total_value_locked_in_tickets = total_value_locked_in_tickets;
 
   Ok(())
 }

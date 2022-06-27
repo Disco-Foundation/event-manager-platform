@@ -75,6 +75,26 @@ export type EventManager = {
           };
         },
         {
+          name: 'attendanceMint';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'attendance_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Event';
+                path: 'event';
+              }
+            ];
+          };
+        },
+        {
           name: 'temporalVault';
           isMut: true;
           isSigner: false;
@@ -339,6 +359,26 @@ export type EventManager = {
           };
         },
         {
+          name: 'attendanceMint';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'attendance_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Event';
+                path: 'event';
+              }
+            ];
+          };
+        },
+        {
           name: 'wearable';
           isMut: true;
           isSigner: false;
@@ -359,6 +399,31 @@ export type EventManager = {
                 type: 'publicKey';
                 account: 'Event';
                 path: 'event';
+              }
+            ];
+          };
+        },
+        {
+          name: 'attendanceVault';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'attendance_vault';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'attendance_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                path: 'authority';
               }
             ];
           };
@@ -798,6 +863,10 @@ export type EventManager = {
             type: 'u32';
           },
           {
+            name: 'ticketsSold';
+            type: 'u32';
+          },
+          {
             name: 'ticketPrice';
             type: 'u64';
           },
@@ -842,6 +911,10 @@ export type EventManager = {
             type: 'publicKey';
           },
           {
+            name: 'attendanceMint';
+            type: 'publicKey';
+          },
+          {
             name: 'gainVault';
             type: 'publicKey';
           },
@@ -863,6 +936,10 @@ export type EventManager = {
           },
           {
             name: 'ticketMintBump';
+            type: 'u8';
+          },
+          {
+            name: 'attendanceMintBump';
             type: 'u8';
           },
           {
@@ -990,6 +1067,26 @@ export const IDL: EventManager = {
                 kind: 'const',
                 type: 'string',
                 value: 'ticket_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Event',
+                path: 'event',
+              },
+            ],
+          },
+        },
+        {
+          name: 'attendanceMint',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'attendance_mint',
               },
               {
                 kind: 'account',
@@ -1265,6 +1362,26 @@ export const IDL: EventManager = {
           },
         },
         {
+          name: 'attendanceMint',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'attendance_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Event',
+                path: 'event',
+              },
+            ],
+          },
+        },
+        {
           name: 'wearable',
           isMut: true,
           isSigner: false,
@@ -1285,6 +1402,31 @@ export const IDL: EventManager = {
                 type: 'publicKey',
                 account: 'Event',
                 path: 'event',
+              },
+            ],
+          },
+        },
+        {
+          name: 'attendanceVault',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'attendance_vault',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'attendance_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                path: 'authority',
               },
             ],
           },
@@ -1724,6 +1866,10 @@ export const IDL: EventManager = {
             type: 'u32',
           },
           {
+            name: 'ticketsSold',
+            type: 'u32',
+          },
+          {
             name: 'ticketPrice',
             type: 'u64',
           },
@@ -1768,6 +1914,10 @@ export const IDL: EventManager = {
             type: 'publicKey',
           },
           {
+            name: 'attendanceMint',
+            type: 'publicKey',
+          },
+          {
             name: 'gainVault',
             type: 'publicKey',
           },
@@ -1789,6 +1939,10 @@ export const IDL: EventManager = {
           },
           {
             name: 'ticketMintBump',
+            type: 'u8',
+          },
+          {
+            name: 'attendanceMintBump',
             type: 'u8',
           },
           {

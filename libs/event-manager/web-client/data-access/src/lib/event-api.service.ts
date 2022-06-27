@@ -3,7 +3,7 @@ import {
   Certifier,
   getCertifier,
 } from '@event-manager/event-manager-certifiers';
-import { BN, Program, Provider } from '@heavy-duty/anchor';
+import { AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
   getAccount,
@@ -11,13 +11,7 @@ import {
   getMint,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  TransactionSignature,
-} from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
@@ -43,6 +37,7 @@ export interface EventAccountInfo {
   ticketMint: PublicKey;
   ticketMintBump: number;
   ticketPrice: BN;
+  ticketsSold: number;
   ticketQuantity: number;
   totalDeposited: BN;
   totalValueLocked: BN;
@@ -84,6 +79,7 @@ export const EVENT_PROGRAM_ID = new PublicKey(
 export class EventApiService {
   reader: Program<EventManager> | null = null;
   writer: Program<EventManager> | null = null;
+  provider: AnchorProvider | null = null;
 
   constructor(
     private readonly _connectionStore: ConnectionStore,
@@ -97,19 +93,43 @@ export class EventApiService {
       if (connection === null) {
         this.reader = null;
         this.writer = null;
+        this.provider = null;
       } else {
-        this.reader = new Program<EventManager>(
-          IDL,
-          EVENT_PROGRAM_ID,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          new Provider(connection, {} as any, Provider.defaultOptions())
-        );
-
-        if (anchorWallet !== undefined) {
+        if (anchorWallet === undefined) {
+          this.provider = new AnchorProvider(
+            connection,
+            {} as never,
+            AnchorProvider.defaultOptions()
+          );
+          this.reader = new Program<EventManager>(
+            IDL,
+            EVENT_PROGRAM_ID,
+            this.provider
+          );
+          this.writer = null;
+        } else {
+          this.provider = new AnchorProvider(
+            connection,
+            anchorWallet,
+            AnchorProvider.defaultOptions()
+          );
+          this.reader = new Program<EventManager>(
+            IDL,
+            EVENT_PROGRAM_ID,
+            new AnchorProvider(
+              connection,
+              anchorWallet,
+              AnchorProvider.defaultOptions()
+            )
+          );
           this.writer = new Program<EventManager>(
             IDL,
             EVENT_PROGRAM_ID,
-            new Provider(connection, anchorWallet, Provider.defaultOptions())
+            new AnchorProvider(
+              connection,
+              anchorWallet,
+              AnchorProvider.defaultOptions()
+            )
           );
         }
       }
@@ -162,10 +182,12 @@ export class EventApiService {
       }
 
       return from(
+        // get all token accounts from current wallet
         reader.provider.connection
           .getTokenAccountsByOwner(owner, {
             programId: TOKEN_PROGRAM_ID,
           })
+          // get the decoded token accounts
           .then((tokenAccounts) =>
             Promise.all(
               tokenAccounts.value.map((tokenAccount) =>
@@ -173,6 +195,7 @@ export class EventApiService {
               )
             )
           )
+          // Get all the mints from the current wallet
           .then((accounts) =>
             Promise.all(
               [
@@ -182,6 +205,7 @@ export class EventApiService {
               )
             )
           )
+          // Get each of the mint authorities
           .then((mints) =>
             Promise.all(
               [
@@ -200,6 +224,9 @@ export class EventApiService {
               )
             )
           )
+          // Filter the mint authorities by the ones owned by
+          // the event manager program. These are supposed to be
+          // events.
           .then(async (mintAuthorityOwners) => {
             const eventPublicKeys = [
               ...new Set(
@@ -232,7 +259,12 @@ export class EventApiService {
   ): Observable<{ signature: TransactionSignature; certifier: Keypair }> {
     return defer(() => {
       const writer = this.writer;
+      const provider = this.provider;
       const certifierKeypair = getCertifier(Certifier.productPayer);
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
 
       if (writer === null) {
         return throwError(() => new Error('ProgramWriterMissing'));
@@ -252,20 +284,20 @@ export class EventApiService {
             args.ticketQuantity
           )
           .accounts({
-            authority: writer.provider.wallet.publicKey,
+            authority: provider.wallet.publicKey,
             //acceptedMint: new PublicKey(args.acceptedMint),
             acceptedMint: new PublicKey(
               this.environment.acceptedMint.publicKey
             ), // fixed for now
             certifier: certifierKeypair.publicKey,
           })
-          .preInstructions([
+          /* .preInstructions([
             SystemProgram.transfer({
-              fromPubkey: writer.provider.wallet.publicKey,
+              fromPubkey: provider.wallet.publicKey,
               toPubkey: certifierKeypair.publicKey,
               lamports: args.certifierFunds * LAMPORTS_PER_SOL,
             }),
-          ])
+          ]) */
           .signers([certifierKeypair])
           .rpc()
       ).pipe(
@@ -279,7 +311,12 @@ export class EventApiService {
 
   buyTickets(args: BuyTicketsArguments): Observable<TransactionSignature> {
     return defer(() => {
+      const provider = this.provider;
       const writer = this.writer;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
 
       if (writer === null) {
         return throwError(() => new Error('ProgramWriterMissing'));
@@ -288,14 +325,14 @@ export class EventApiService {
       return from(
         getAssociatedTokenAddress(
           args.acceptedMint,
-          writer.provider.wallet.publicKey
+          provider.wallet.publicKey
         ).then((payer) =>
           writer.methods
             .buyTickets(args.ticketQuantity)
             .accounts({
               payer,
               event: args.event,
-              authority: writer.provider.wallet.publicKey,
+              authority: provider.wallet.publicKey,
             })
             .rpc()
         )

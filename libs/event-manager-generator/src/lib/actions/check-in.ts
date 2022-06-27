@@ -1,4 +1,4 @@
-import { BN, ProgramError } from '@project-serum/anchor';
+import { BN, ProgramError } from '@heavy-duty/anchor';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { ApiError, ApiErrorType, CreateWearableError } from '../core/errors';
 import { CheckInWearableData } from '../types';
@@ -30,7 +30,7 @@ export const checkInEvent = async (
 
     // Check if the wearable already exist
     const wearableAccount = await connection.getAccountInfo(wearableAddress);
-    console.log("WEARABLE ACCOUNT: ", wearableAccount);
+    console.log('WEARABLE ACCOUNT: ', wearableAccount);
     if (wearableAccount)
       throw new CreateWearableError('Wearable already exist');
 
@@ -45,8 +45,12 @@ export const checkInEvent = async (
       })
       .transaction();
 
-      tx.instructions[0].keys.push({ pubkey: REFERENCE, isWritable: false, isSigner: false });
-      
+    tx.instructions[0].keys.push({
+      pubkey: REFERENCE,
+      isWritable: false,
+      isSigner: false,
+    });
+
     return tx;
   } catch (e) {
     const error = new ApiError(e as ProgramError, e as ApiErrorType);

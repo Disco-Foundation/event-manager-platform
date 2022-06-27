@@ -100,7 +100,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   ticketPrice: event.account.ticketPrice
                     .div(new BN(10).pow(new BN(acceptedMint.decimals)))
                     .toNumber(),
-                  ticketsSold: Number(ticketMint.supply),
+                  ticketsSold: event.account.ticketsSold,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /
                       event.account.ticketQuantity

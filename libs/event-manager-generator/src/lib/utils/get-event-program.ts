@@ -1,4 +1,4 @@
-import { Program, setProvider } from '@project-serum/anchor';
+import { Program, setProvider } from '@heavy-duty/anchor';
 import { Connection } from '@solana/web3.js';
 import { EventManager, IDL, PROGRAM_PUBKEY } from '../core';
 import { getAuthorityWallet } from './internal';

@@ -11,6 +11,7 @@ pub struct Event {
   pub event_start_date: i64,                // 16
   pub event_end_date: i64,                  // 16
   pub ticket_quantity: u32,                 // 4
+  pub tickets_sold: u32,                    // 4
   pub ticket_price: u64,                    // 8
   pub total_value_locked: u64,              // 8
   pub total_value_locked_in_tickets: u64,   // 8
@@ -22,12 +23,14 @@ pub struct Event {
   pub accepted_mint: Pubkey,                // 32
   pub event_mint: Pubkey,                   // 32
   pub ticket_mint: Pubkey,                  // 32
+  pub attendance_mint: Pubkey,              // 32
   pub gain_vault: Pubkey,                   // 32
   pub temporal_vault: Pubkey,               // 32
   pub event_id: u64,                        // 8
   pub event_bump: u8,                       // 1
   pub event_mint_bump: u8,                  // 1
   pub ticket_mint_bump: u8,                 // 1
+  pub attendance_mint_bump: u8,             // 1
   pub temporal_vault_bump: u8,              // 1
   pub gain_vault_bump: u8,                  // 1
 }
@@ -43,12 +46,14 @@ impl Event {
     + (500 + 4)
     + 16
     + 4
+    + 4
     + 8
     + 32
     + 32
     + 32
     + 32
     + 32
+    + 32
     + 8
     + 8
     + 8
@@ -57,6 +62,7 @@ impl Event {
     + 8
     + 8
     + 8
+    + 1
     + 1
     + 1
     + 1
@@ -65,6 +71,7 @@ impl Event {
   pub const BUMP_NAME: &'static str = "event";
   pub const BUMP_EVENT_MINT_NAME: &'static str = "event_mint";
   pub const BUMP_TICKET_MINT_NAME: &'static str = "ticket_mint";
+  pub const BUMP_ATTENDANCE_MINT_NAME: &'static str = "attendance_mint";
   pub const BUMP_TEMPORAL_VAULT_NAME: &'static str = "temporal_vault";
   pub const BUMP_GAIN_VAULT_NAME: &'static str = "gain_vault";
 

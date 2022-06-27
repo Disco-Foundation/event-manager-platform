@@ -90,7 +90,6 @@ export class ShellComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log(this.environment);
     this._hdConnectionStore.setEndpoint(this.environment.network);
     this._hdWalletStore.setAdapters([
       new PhantomWalletAdapter(),

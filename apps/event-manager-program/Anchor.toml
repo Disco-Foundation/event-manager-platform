@@ -2,20 +2,20 @@
 seeds = true
 
 [programs.devnet]
-event_manager_program = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 [programs.localnet]
-event_manager_program = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 # [programs.mainnet]
-# event_manager_program = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"
+# event_manager = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/disco.protocol.devnet.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "ts-mocha -p ./tsconfig.json -t 1000000 tests/*.spec.ts"

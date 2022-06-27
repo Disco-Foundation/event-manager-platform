@@ -1,4 +1,4 @@
-import { Provider, web3 } from '@project-serum/anchor';
+import { AnchorProvider, web3 } from '@heavy-duty/anchor';
 import {
   createInitializeMintInstruction,
   MintLayout,
@@ -6,7 +6,7 @@ import {
 } from '@solana/spl-token';
 
 export const createMint = async (
-  provider: Provider,
+  provider: AnchorProvider,
   decimals = 6
 ): Promise<web3.PublicKey> => {
   const tokenMint = new web3.Keypair();
@@ -16,7 +16,7 @@ export const createMint = async (
     );
 
   // Allocate mint and wallet account
-  await provider.send(
+  await provider.sendAndConfirm(
     new web3.Transaction()
       .add(
         web3.SystemProgram.createAccount({
