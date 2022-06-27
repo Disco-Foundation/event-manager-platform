@@ -51,8 +51,8 @@ jobs:
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           RUST_BACKTRACE=1 solana-keygen new --no-bip39-passphrase -o $HOME/.config/solana/id.json
           echo "Installing Serum >> "
-          npm i -g @coral-xyz/anchor@${{ matrix.anchor }}
-          npm i -g @coral-xyz/anchor-cli@${{ matrix.anchor }}
+          npm i -g @project-serum/anchor@${{ matrix.anchor }}
+          npm i -g @project-serum/anchor-cli@${{ matrix.anchor }}
           echo "Installing others dependencies >>"
           npm i -g typescript
           npm install -g mocha
