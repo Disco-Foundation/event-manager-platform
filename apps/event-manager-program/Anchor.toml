@@ -2,13 +2,13 @@
 seeds = true
 
 [programs.devnet]
-event_manager_program = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 [programs.localnet]
-event_manager_program = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 # [programs.mainnet]
-# event_manager_program = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"
+# event_manager = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"
 
 [registry]
 url = "https://anchor.projectserum.com"
