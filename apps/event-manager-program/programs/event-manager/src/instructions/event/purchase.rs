@@ -1,7 +1,6 @@
 use {
   anchor_lang::prelude::*,
   anchor_spl::token::{burn, transfer, Burn, Mint, Token, TokenAccount, Transfer},
-  
   crate::collections::{Event, Wearable},
   crate::errors::ErrorCode,
   crate::utils::get_tokens_amounts,
