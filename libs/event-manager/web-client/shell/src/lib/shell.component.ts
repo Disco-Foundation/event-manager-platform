@@ -2,14 +2,14 @@ import { Component, Inject, OnInit } from '@angular/core';
 import {
   ConfigStore,
   EnvironmentConfig,
-  ENVIRONMENT_CONFIG,
+  ENVIRONMENT_CONFIG
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
-  SolongWalletAdapter,
+  SolongWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 
 @Component({
@@ -66,7 +66,7 @@ import {
           <button
             *ngIf="wallet === null"
             class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-            hdWalletModalButton
+            LoginModalButton
             [wallets]="wallets"
             (selectWallet)="selectWallet($event)"
           >

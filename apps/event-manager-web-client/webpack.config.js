@@ -8,6 +8,8 @@ module.exports = (config) => {
     util: false,
     assert: false,
     stream: false,
+    http: false,
+    https:false
   };
 
   return config;

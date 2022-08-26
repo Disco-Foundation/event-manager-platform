@@ -4,15 +4,15 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import {
   EnvironmentConfig,
-  environmentConfigProviderFactory,
+  environmentConfigProviderFactory
 } from '@event-manager-web-client/data-access';
 import {
   HdWalletAdapterDirective,
   HdWalletConnectButtonDirective,
   HdWalletDisconnectButtonDirective,
-  HdWalletIconComponent,
+  HdWalletIconComponent
 } from '@heavy-duty/wallet-adapter-cdk';
-import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
+import { LoginModalButtonDirective } from './login-modal-button.directive';
 import { ShellComponent } from './shell.component';
 
 @NgModule({
@@ -61,7 +61,7 @@ import { ShellComponent } from './shell.component';
     HdWalletIconComponent,
     HdWalletConnectButtonDirective,
     HdWalletDisconnectButtonDirective,
-    HdWalletModalButtonDirective,
+    LoginModalButtonDirective,
   ],
 })
 export class ShellModule {
