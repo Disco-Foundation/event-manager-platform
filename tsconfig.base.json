@@ -33,6 +33,9 @@
       "@event-manager-web-client/shell": [
         "libs/event-manager/web-client/shell/src/index.ts"
       ],
+      "@event-manager-web-client/social-login": [
+        "libs/event-manager/web-client/features/social-login/src/index.ts"
+      ],
       "@event-manager-web-client/view-event": [
         "libs/event-manager/web-client/features/view-event/src/index.ts"
       ],
@@ -50,7 +53,15 @@
       ],
       "@event-manager/event-manager/web-client/features/get-token-image": [
         "libs/event-manager/web-client/features/get-token-image/src/index.ts"
-      ]
+      ], 
+      "crypto": ["./node_modules/crypto-browserify"],
+      "stream": ["./node_modules/stream-browserify"],
+      "assert": ["./node_modules/assert"],
+      "http": ["./node_modules/stream-http"],
+      "https": ["./node_modules/https-browserify"],
+      "os": ["./node_modules/os-browserify"],
+      "process": ["./node_modules/process"]
+      
     }
   },
   "exclude": ["node_modules", "tmp"]

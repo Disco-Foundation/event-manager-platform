@@ -12,7 +12,7 @@ import {
   HdWalletDisconnectButtonDirective,
   HdWalletIconComponent
 } from '@heavy-duty/wallet-adapter-cdk';
-import { LoginModalButtonDirective } from './login-modal-button.directive';
+import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
 import { ShellComponent } from './shell.component';
 
 @NgModule({
@@ -61,7 +61,7 @@ import { ShellComponent } from './shell.component';
     HdWalletIconComponent,
     HdWalletConnectButtonDirective,
     HdWalletDisconnectButtonDirective,
-    LoginModalButtonDirective,
+    HdWalletModalButtonDirective,
   ],
 })
 export class ShellModule {

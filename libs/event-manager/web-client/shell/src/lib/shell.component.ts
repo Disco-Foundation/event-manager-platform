@@ -31,7 +31,6 @@ import {
           [routerLink]="['/profile']"
           >My Profile</a
         >
-
         <div
           *hdWalletAdapter="
             let wallet = wallet;
@@ -62,11 +61,10 @@ import {
               <hd-wallet-icon [wallet]="wallet"></hd-wallet-icon>
             </button>
           </ng-container>
-
           <button
             *ngIf="wallet === null"
             class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-            LoginModalButton
+            hdWalletModalButton
             [wallets]="wallets"
             (selectWallet)="selectWallet($event)"
           >
@@ -75,7 +73,6 @@ import {
         </div>
       </div>
     </header>
-
     <main>
       <router-outlet></router-outlet>
     </main>

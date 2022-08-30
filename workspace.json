@@ -15,6 +15,7 @@
     "event-manager-web-client-features-get-token-image": "libs/event-manager/web-client/features/get-token-image",
     "event-manager-web-client-features-list-events": "libs/event-manager/web-client/features/list-events",
     "event-manager-web-client-features-profile": "libs/event-manager/web-client/features/profile",
+    "event-manager-web-client-features-social-login": "libs/event-manager/web-client/features/social-login",
     "event-manager-web-client-features-view-event": "libs/event-manager/web-client/features/view-event",
     "event-manager-web-client-shell": "libs/event-manager/web-client/shell"
   }
