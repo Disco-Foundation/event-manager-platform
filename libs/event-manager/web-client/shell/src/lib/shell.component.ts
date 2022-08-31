@@ -64,7 +64,7 @@ import {
           <button
             *ngIf="wallet === null"
             class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-            hdWalletModalButton
+            WalletModalButton
             [wallets]="wallets"
             (selectWallet)="selectWallet($event)"
           >

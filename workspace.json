@@ -17,6 +17,7 @@
     "event-manager-web-client-features-profile": "libs/event-manager/web-client/features/profile",
     "event-manager-web-client-features-social-login": "libs/event-manager/web-client/features/social-login",
     "event-manager-web-client-features-view-event": "libs/event-manager/web-client/features/view-event",
-    "event-manager-web-client-shell": "libs/event-manager/web-client/shell"
+    "event-manager-web-client-shell": "libs/event-manager/web-client/shell",
+    "event-manager-web-client-wallet-modal": "libs/event-manager/web-client/wallet-modal"
   }
 }

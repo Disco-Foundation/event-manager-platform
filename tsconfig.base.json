@@ -53,15 +53,17 @@
       ],
       "@event-manager/event-manager/web-client/features/get-token-image": [
         "libs/event-manager/web-client/features/get-token-image/src/index.ts"
-      ], 
-      "crypto": ["./node_modules/crypto-browserify"],
-      "stream": ["./node_modules/stream-browserify"],
+      ],
+      "@event-manager-web-client/wallet-modal": [
+        "libs/event-manager/web-client/wallet-modal/src/index.ts"
+      ],
       "assert": ["./node_modules/assert"],
+      "crypto": ["./node_modules/crypto-browserify"],
       "http": ["./node_modules/stream-http"],
       "https": ["./node_modules/https-browserify"],
       "os": ["./node_modules/os-browserify"],
-      "process": ["./node_modules/process"]
-      
+      "process": ["./node_modules/process"],
+      "stream": ["./node_modules/stream-browserify"]
     }
   },
   "exclude": ["node_modules", "tmp"]

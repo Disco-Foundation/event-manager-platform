@@ -6,13 +6,13 @@ import {
   EnvironmentConfig,
   environmentConfigProviderFactory
 } from '@event-manager-web-client/data-access';
+import { WalletModalButtonDirective } from '@event-manager-web-client/wallet-modal';
 import {
   HdWalletAdapterDirective,
   HdWalletConnectButtonDirective,
   HdWalletDisconnectButtonDirective,
   HdWalletIconComponent
 } from '@heavy-duty/wallet-adapter-cdk';
-import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
 import { ShellComponent } from './shell.component';
 
 @NgModule({
@@ -61,7 +61,7 @@ import { ShellComponent } from './shell.component';
     HdWalletIconComponent,
     HdWalletConnectButtonDirective,
     HdWalletDisconnectButtonDirective,
-    HdWalletModalButtonDirective,
+    WalletModalButtonDirective,
   ],
 })
 export class ShellModule {

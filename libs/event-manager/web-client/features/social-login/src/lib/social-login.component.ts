@@ -49,15 +49,15 @@ export class SocialLoginComponent {
   
     async onLogin() {
         console.log("LOGIN");
-        /*
+        
         if (!this.web3auth) {
             console.log("web3auth not initialized yet");
             return;
         }
-        this._dialogRef.close();
+        //this._dialogRef.close();
         console.log("LLEGO AQUI");
         this.provider = await this.web3auth.connect();
         console.log("logged in");
-        */
+        
     }
 }

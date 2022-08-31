@@ -15,6 +15,7 @@ import { SocialLoginComponent } from './social-login.component';
         },
     ])
     ],
+    exports: [SocialLoginComponent]
   })
 
 export class SocialLoginModule {}

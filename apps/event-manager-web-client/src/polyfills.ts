@@ -46,15 +46,9 @@
  * Zone JS is required by default for Angular itself.
  */
 
- import { Buffer } from 'buffer';
-import 'zone.js'; // Included with Angular CLI.
+ import 'zone.js'; // Included with Angular CLI.
  
- (window as any).global = window;
- (window as any).global.Buffer = Buffer;
- (window as any).process = {
-   version: '',
-   node: false,
-   env: { DEBUG: undefined },
-  nextTick: require("next-tick"),
- };
+(window as any).global = window;
+global.Buffer = global.Buffer || require('buffer').Buffer;
+global.process = global.process || require('process');
  
