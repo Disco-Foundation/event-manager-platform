@@ -26,6 +26,7 @@ import { WalletName, WalletReadyState } from '@solana/wallet-adapter-base';
 			</header>
             <div style="display: flex; flex-direction: column; align-items: center;">
                 <em-social-login style="margin-bottom: 25px;"
+				(click)="onSocialLogin()"
                 ></em-social-login>
                 <span style="margin-bottom: 10px;">
 					Or select a wallet
@@ -230,5 +231,9 @@ export class WalletModalComponent {
 
 	onToggleExpand(): void {
 		this.expanded = !this.expanded;
+	}
+
+	onSocialLogin() {
+		return this._dialogRef.close("web3auth" as WalletName);
 	}
 }
