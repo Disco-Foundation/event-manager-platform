@@ -2,7 +2,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import {
   ConfigStore,
   EnvironmentConfig,
-  ENVIRONMENT_CONFIG
+  ENVIRONMENT_CONFIG,
+  Web3AuthStore
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
@@ -83,11 +84,13 @@ export class ShellComponent implements OnInit {
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
+    private readonly _web3AuthStore: Web3AuthStore,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {}
 
   ngOnInit() {
     this._hdConnectionStore.setEndpoint(this.environment.network);
+    this._web3AuthStore.initialize();
     this._hdWalletStore.setAdapters([
       new PhantomWalletAdapter(),
       new SlopeWalletAdapter(),

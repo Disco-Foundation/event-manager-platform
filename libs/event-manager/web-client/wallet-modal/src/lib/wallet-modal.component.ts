@@ -234,6 +234,6 @@ export class WalletModalComponent {
 	}
 
 	onSocialLogin() {
-		return this._dialogRef.close("web3auth" as WalletName);
+		return this._dialogRef.close();
 	}
 }
