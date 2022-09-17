@@ -78,6 +78,7 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
     super(initialState);
   }
 
+  // set provider
   readonly _setProvider = this.updater<SafeEventEmitterProvider | null>(
     (state, provider) => ({
       ...state,
@@ -85,6 +86,7 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
     })
   );
 
+  // Set adapter
   readonly _setAdapter = this.updater<Web3Auth | null>((state, adapter) => ({
     ...state,
     adapter,
@@ -102,6 +104,28 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
       handleEvent((adapter) =>
         fromAdapterEvent(adapter, ADAPTER_EVENTS.CONNECTED).pipe(
           tap(() => this.connect())
+        )
+      )
+    );
+  });
+
+  // Handle on disconnect event
+  readonly onDisconnect = this.effect(() => {
+    return this.adapter$.pipe(
+      handleEvent((adapter) =>
+        fromAdapterEvent(adapter, ADAPTER_EVENTS.DISCONNECTED).pipe(
+          tap(() => this.disconnect())
+        )
+      )
+    );
+  });
+
+  // Handle on errored event
+  readonly onErrored = this.effect(() => {
+    return this.adapter$.pipe(
+      handleEvent((adapter) =>
+        fromAdapterEvent(adapter, ADAPTER_EVENTS.ERRORED).pipe(
+          tap(this._setError(new WalletError('Web3Auth connection error')))
         )
       )
     );
@@ -143,8 +167,7 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
     let state = this.get();
 
     if (!state.adapter) {
-      const error = new WalletError();
-      this._setError(error);
+      this._setError(new WalletError('Web3Auth not initialized'));
     }
 
     this.patchState({ connecting: true });
@@ -166,12 +189,10 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
   // logout from account
   async disconnect() {
     let state = this.get();
-
     if (!state.adapter) {
-      const error = new WalletError();
-      this._setError(error);
-      console.log('ERROR', error);
+      this._setError(new WalletError('Web3Auth not initialized'));
     }
+
     this.patchState({ disconnecting: true });
     await state.adapter!.logout();
 

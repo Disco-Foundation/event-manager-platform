@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import {
   Certifier,
-  getCertifier
+  getCertifier,
 } from '@event-manager/event-manager-certifiers';
 import { AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
@@ -9,10 +9,18 @@ import {
   getAccount,
   getAssociatedTokenAddress,
   getMint,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
-import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
+import {
+  combineLatest,
+  defer,
+  from,
+  map,
+  Observable,
+  tap,
+  throwError,
+} from 'rxjs';
 import { EventManager, IDL } from './event_manager';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 import { Web3AuthStore } from './web3auth.store';
@@ -73,7 +81,7 @@ export interface BuyTicketsArguments {
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  '5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR'//'915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  '5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR' //'915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
 );
 
 @Injectable({ providedIn: 'root' })
@@ -93,14 +101,12 @@ export class EventApiService {
       this._walletStore.anchorWallet$,
       this._web3AuthStore.anchorWallet$,
     ]).subscribe(([connection, anchorWallet, web3wallet]) => {
-      console.log(this._web3AuthStore.anchorWallet$)
       if (connection === null) {
         this.reader = null;
         this.writer = null;
         this.provider = null;
       } else {
         if (anchorWallet === undefined && web3wallet === undefined) {
-          console.log("AMBOS NULL");
           this.provider = new AnchorProvider(
             connection,
             {} as never,
@@ -113,7 +119,6 @@ export class EventApiService {
           );
           this.writer = null;
         } else if (anchorWallet != undefined && web3wallet === undefined) {
-          console.log("WALLET");
           this.provider = new AnchorProvider(
             connection,
             anchorWallet,
@@ -138,7 +143,6 @@ export class EventApiService {
             )
           );
         } else if (web3wallet != undefined) {
-          console.log("WEB3AUTH");
           this.provider = new AnchorProvider(
             connection,
             web3wallet,
@@ -301,6 +305,7 @@ export class EventApiService {
         return throwError(() => new Error('ProgramWriterMissing'));
       }
 
+      console.log('ENTRA A CREATE');
       return from(
         writer.methods
           .createEvent(
@@ -332,6 +337,11 @@ export class EventApiService {
           .signers([certifierKeypair])
           .rpc()
       ).pipe(
+        tap({
+          error: (error) => {
+            console.log(error);
+          },
+        }),
         map((signature) => ({
           signature,
           certifier: certifierKeypair,

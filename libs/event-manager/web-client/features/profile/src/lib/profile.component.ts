@@ -4,10 +4,21 @@ import {
   ConfigStore,
   EventApiService,
   EventsByOwnerStore,
+  Web3AuthStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
-import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  concatMap,
+  defer,
+  EMPTY,
+  first,
+  from,
+  map,
+  tap,
+} from 'rxjs';
 
 @Component({
   selector: 'em-profile',
@@ -176,6 +187,7 @@ export class ProfileComponent implements OnInit {
   constructor(
     private readonly _connectionStore: ConnectionStore,
     private readonly _walletStore: WalletStore,
+    private readonly _web3AuthStore: Web3AuthStore,
     private readonly _configStore: ConfigStore,
     private readonly _eventsByOwnerStore: EventsByOwnerStore,
     private readonly _eventApiService: EventApiService,
@@ -183,7 +195,17 @@ export class ProfileComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this._eventsByOwnerStore.setOwner(this._walletStore.publicKey$);
+    this._eventsByOwnerStore.setOwner(
+      combineLatest([
+        this._walletStore.publicKey$,
+        this._web3AuthStore.publicKey$,
+      ]).pipe(
+        map(
+          ([walletPublicKey, web3AuthPublicKey]) =>
+            walletPublicKey || web3AuthPublicKey
+        )
+      )
+    );
   }
 
   onReload() {
