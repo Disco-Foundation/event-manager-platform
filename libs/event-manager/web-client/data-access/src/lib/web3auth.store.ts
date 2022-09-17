@@ -2,11 +2,13 @@ import { Injectable } from "@angular/core";
 import { ComponentStore } from "@ngrx/component-store";
 import { WalletError } from "@solana/wallet-adapter-base";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { CHAIN_NAMESPACES, SafeEventEmitterProvider } from "@web3auth/base";
+import { ADAPTER_EVENTS, CHAIN_NAMESPACES, SafeEventEmitterProvider } from "@web3auth/base";
 import { SolanaWallet } from "@web3auth/solana-provider";
 import { SolanaWalletConnectorPlugin } from "@web3auth/solana-wallet-connector-plugin";
 import { Web3Auth } from "@web3auth/web3auth";
-import { firstValueFrom, Observable } from "rxjs";
+import { firstValueFrom, Observable, tap } from "rxjs";
+import { fromAdapterEvent } from "./internals/from-adapter-events";
+import { handleEvent } from "./internals/handle-events";
 import { signAllTransactions, signMessage, signTransaction } from "./internals/sign";
 
 export interface SocialAuth {
@@ -95,6 +97,25 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
 		error: state.connecting? state.error : error,
 	}));
 
+  readonly onConnect = this.effect(() => {
+		return this.adapter$.pipe(
+			handleEvent((adapter) =>
+				fromAdapterEvent(adapter, ADAPTER_EVENTS.CONNECTED).pipe(
+					tap(() =>
+						this.connect()
+					)
+				)
+			)
+		);
+	});
+
+
+async getPk(provider: SafeEventEmitterProvider): Promise<string>{
+  const wallet = new SolanaWallet(provider);
+  const accounts = await wallet.requestAccounts();
+  this.patchState({ publicKey: new PublicKey(accounts[0]) });
+  return accounts[0];
+}
 
 // Sign a transaction if the wallet supports it
 signTransaction(
@@ -133,7 +154,7 @@ signMessage(message: Uint8Array): Observable<Uint8Array> | undefined {
     : undefined;
   }
 
-  async initialize(): Promise<Web3Auth> {
+  async initialize() {
     const adapter = new Web3Auth({
       clientId,
       chainConfig: {
@@ -145,9 +166,7 @@ signMessage(message: Uint8Array): Observable<Uint8Array> | undefined {
     });
 
     const plugin = new SolanaWalletConnectorPlugin({torusWalletOpts: {},
-      walletInitOptions: {
-        enableLogging: true,
-    }})
+      walletInitOptions: {}})
     
     // add torus pluggin
     await adapter.addPlugin(plugin);
@@ -156,18 +175,14 @@ signMessage(message: Uint8Array): Observable<Uint8Array> | undefined {
     await adapter.initModal().then(
       ()=> {
         // set Web3Auth adapter instance
-        this._setAdapter(adapter);
+        this.patchState({ adapter: adapter });
         console.log("INITIALIZED", adapter);
       },
-      ()=> {
-        console.log("ERR0R init modal")
-      }
+      ()=> { console.log("ERR0R init modal") }
     );
-
-    this._setAdapter(adapter);
-    return adapter;
-    
   }
+
+  //connect to social
 
   async connect() {
     let state = this.get();
@@ -177,14 +192,21 @@ signMessage(message: Uint8Array): Observable<Uint8Array> | undefined {
       this._setError(error);
       console.log("ERROR",error);
     }
-    this.patchState({ connecting: true });
-    let provider = await state.adapter!.connect();
     
-    this.patchState({ 
-      connected: true,
-      provider: provider,
-      connecting: false
-    })
+    this.patchState({ connecting: true });
+    const provider = await state.adapter!.connect();
+    if(provider){
+      const wallet = new SolanaWallet(provider);
+      const accounts = await wallet.requestAccounts();
+
+      this.patchState({ 
+        connected: true,
+        provider: provider,
+        connecting: false,
+        wallet: wallet,
+        publicKey: new PublicKey(accounts[0])
+      })
+    }
   }
 
     async disconnect() {
@@ -196,7 +218,7 @@ signMessage(message: Uint8Array): Observable<Uint8Array> | undefined {
         console.log("ERROR",error);
       }
       this.patchState({ disconnecting: true });
-      let provider = await state.adapter!.logout();
+      await state.adapter!.logout();
       
       this.patchState({ 
         connected: false,
