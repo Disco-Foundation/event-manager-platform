@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
   EventApiService,
-  EventsStore
+  EventsStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
@@ -39,42 +39,6 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
           Reload
         </button>
       </header>
-
-      <!--<div *ngIf="this.provider != null">
-      <button
-          (click)="getUserInfo()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Get user Info
-        </button>
-        <button
-          (click)="getPrivateKey()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Show Private Key
-        </button>
-        <button
-          (click)="getAccounts()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Show Address
-        </button>
-        <button
-          (click)="getBalance()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Show Balance
-        </button>
-        <button
-          (click)="sendTransaction()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Send test Transaction
-        </button>
-      </div>
-      <div *ngIf="resultMsg != null">
-        {{ resultMsg }}
-      </div> -->
       <section
         *ngIf="events$ | async as events; else notLoaded"
         class="flex flex-wrap gap-8 justify-center"

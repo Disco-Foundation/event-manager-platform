@@ -116,7 +116,6 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
         chainId: '0x3',
         rpcTarget: this.environment.network,
       },
-      enableLogging: true,
     });
 
     const plugin = new SolanaWalletConnectorPlugin({
@@ -133,8 +132,8 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
         // set Web3Auth adapter instance
         this.patchState({ adapter: adapter });
       },
-      () => {
-        console.log('ERR0R init modal');
+      (error: Error) => {
+        this._setError(error as WalletError);
       }
     );
   }
@@ -146,7 +145,6 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
     if (!state.adapter) {
       const error = new WalletError();
       this._setError(error);
-      console.log('ERROR', error);
     }
 
     this.patchState({ connecting: true });

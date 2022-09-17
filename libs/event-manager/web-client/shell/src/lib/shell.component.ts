@@ -3,14 +3,14 @@ import {
   ConfigStore,
   EnvironmentConfig,
   ENVIRONMENT_CONFIG,
-  Web3AuthStore
+  Web3AuthStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
   PhantomWalletAdapter,
   SlopeWalletAdapter,
   SolflareWalletAdapter,
-  SolongWalletAdapter
+  SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 
 @Component({
@@ -63,13 +63,20 @@ import {
             </button>
           </ng-container>
           <button
-            *ngIf="wallet === null"
+            *ngIf="wallet === null && !socialConnected"
             class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
             WalletModalButton
             [wallets]="wallets"
             (selectWallet)="selectWallet($event)"
           >
             Select wallet
+          </button>
+          <button
+            *ngIf="wallet === null && socialConnected"
+            class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+            (click)="onLogout()"
+          >
+            Logout
           </button>
         </div>
       </div>
@@ -81,12 +88,18 @@ import {
   providers: [ConfigStore],
 })
 export class ShellComponent implements OnInit {
+  socialConnected: boolean = false;
+
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
     private readonly _web3AuthStore: Web3AuthStore,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
-  ) {}
+  ) {
+    this._web3AuthStore.connected$.subscribe(
+      (connected) => (this.socialConnected = connected)
+    );
+  }
 
   ngOnInit() {
     this._hdConnectionStore.setEndpoint(this.environment.network);
@@ -97,5 +110,9 @@ export class ShellComponent implements OnInit {
       new SolflareWalletAdapter(),
       new SolongWalletAdapter(),
     ]);
+  }
+
+  async onLogout() {
+    await this._web3AuthStore.disconnect();
   }
 }
