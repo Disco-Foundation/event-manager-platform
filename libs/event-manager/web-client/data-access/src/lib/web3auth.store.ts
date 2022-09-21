@@ -140,6 +140,18 @@ export class Web3AuthStore extends ComponentStore<SocialAuth> {
         chainId: '0x3',
         rpcTarget: this.environment.network,
       },
+      authMode: 'WALLET',
+      uiConfig: {
+        appLogo: '/assets/images/logo.png',
+        theme: 'dark',
+        loginMethodsOrder: [
+          'google',
+          'twitter',
+          'facebook',
+          'github',
+          'discord',
+        ],
+      },
     });
 
     const plugin = new SolanaWalletConnectorPlugin({
