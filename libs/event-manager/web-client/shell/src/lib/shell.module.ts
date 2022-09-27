@@ -1,5 +1,8 @@
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { ModuleWithProviders, NgModule } from '@angular/core';
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
 import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import {
@@ -13,11 +16,15 @@ import {
   HdWalletIconComponent,
 } from '@heavy-duty/wallet-adapter-cdk';
 import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
+import { environment } from './config/config';
 import { ShellComponent } from './shell.component';
 
 @NgModule({
   declarations: [ShellComponent],
   imports: [
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAuth(() => getAuth()),
+    HttpClientModule,
     CommonModule,
     RouterModule.forChild([
       {

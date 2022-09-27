@@ -11,6 +11,8 @@ import {
   SolflareWalletAdapter,
   SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
+import { PublicKey } from '@solana/web3.js';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'em-shell',
@@ -83,11 +85,28 @@ import {
   providers: [ConfigStore],
 })
 export class ShellComponent implements OnInit {
+  publicKey: PublicKey | undefined;
+
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
+    private readonly _userService: UserService,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
-  ) {}
+  ) {
+    _hdWalletStore.publicKey$.subscribe((value) => {
+      if (value != undefined) {
+        const nonce = this._userService.getNonce(value.toBase58());
+        const encodedNonce = new TextEncoder().encode(nonce);
+        this._hdWalletStore
+          .signMessage(encodedNonce)
+          ?.subscribe((signature) => {
+            if (signature != undefined) {
+              this._userService.signIn(signature.toString(), value.toBase58());
+            }
+          });
+      }
+    });
+  }
 
   ngOnInit() {
     this._hdConnectionStore.setEndpoint(this.environment.network);
