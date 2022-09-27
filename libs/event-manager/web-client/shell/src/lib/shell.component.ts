@@ -3,6 +3,7 @@ import {
   ConfigStore,
   EnvironmentConfig,
   ENVIRONMENT_CONFIG,
+  LoginStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
@@ -12,7 +13,6 @@ import {
   SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { PublicKey } from '@solana/web3.js';
-import { UserService } from './services/user.service';
 
 @Component({
   selector: 'em-shell',
@@ -90,20 +90,17 @@ export class ShellComponent implements OnInit {
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
-    private readonly _userService: UserService,
+    private readonly _loginStore: LoginStore,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
     _hdWalletStore.publicKey$.subscribe((value) => {
       if (value != undefined) {
-        console.log(value.toBase58());
-        this._userService.getNonce(value.toBase58()).subscribe((nonce) => {
-          console.log(nonce);
-          const encodedNonce = new TextEncoder().encode(nonce);
+        this._loginStore.getNonce(value.toBase58()).subscribe((nonce) => {
           this._hdWalletStore
-            .signMessage(encodedNonce)
+            .signMessage(new TextEncoder().encode(nonce))
             ?.subscribe((signature) => {
               if (signature != undefined) {
-                this._userService.signIn(
+                this._loginStore.signIn(
                   Buffer.from(signature),
                   value.toBase58()
                 );
