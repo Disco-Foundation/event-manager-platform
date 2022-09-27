@@ -95,15 +95,21 @@ export class ShellComponent implements OnInit {
   ) {
     _hdWalletStore.publicKey$.subscribe((value) => {
       if (value != undefined) {
-        const nonce = this._userService.getNonce(value.toBase58());
-        const encodedNonce = new TextEncoder().encode(nonce);
-        this._hdWalletStore
-          .signMessage(encodedNonce)
-          ?.subscribe((signature) => {
-            if (signature != undefined) {
-              this._userService.signIn(signature.toString(), value.toBase58());
-            }
-          });
+        console.log(value.toBase58());
+        this._userService.getNonce(value.toBase58()).subscribe((nonce) => {
+          console.log(nonce);
+          const encodedNonce = new TextEncoder().encode(nonce);
+          this._hdWalletStore
+            .signMessage(encodedNonce)
+            ?.subscribe((signature) => {
+              if (signature != undefined) {
+                this._userService.signIn(
+                  Buffer.from(signature),
+                  value.toBase58()
+                );
+              }
+            });
+        });
       }
     });
   }
