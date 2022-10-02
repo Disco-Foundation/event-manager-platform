@@ -14,6 +14,7 @@ import {
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
+import { CreateEventDto, EventService } from './firebase/event.service';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
@@ -84,6 +85,10 @@ export class EventApiService {
   constructor(
     private readonly _connectionStore: ConnectionStore,
     private readonly _walletStore: WalletStore,
+
+    //FIREBASE
+    private readonly _eventService: EventService,
+
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
     combineLatest([
@@ -335,6 +340,23 @@ export class EventApiService {
               authority: provider.wallet.publicKey,
             })
             .rpc()
+        )
+      );
+    });
+  }
+
+  createEvent(args: CreateEventDto) {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(
+        this._eventService.createEvent(
+          provider.wallet.publicKey.toBase58(),
+          args
         )
       );
     });

@@ -27,8 +27,6 @@ import { AppComponent } from './app.component';
         decimals: environment.acceptedMintDecimals,
       },
       network: environment.network,
-      firebase: environment.firebase,
-      useEmulators: environment.useEmulators,
     }),
   ],
   providers: [LoginStore],

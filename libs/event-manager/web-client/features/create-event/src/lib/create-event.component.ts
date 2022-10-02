@@ -530,10 +530,9 @@ export class CreateEventComponent {
   onSubmit() {
     this.submitted = true;
 
-    if (this.informationForm.valid && this.ticketsForm.valid) {
+    if (this.informationForm.valid) {
       this._eventApiService
-        .create({
-          ...this.ticketsForm.value,
+        .createEvent({
           ...this.informationForm.value,
         })
         .pipe(
@@ -559,4 +558,37 @@ export class CreateEventComponent {
         .subscribe();
     }
   }
+
+  // onSubmit() {
+  //   this.submitted = true;
+
+  //   if (this.informationForm.valid && this.ticketsForm.valid) {
+  //     this._eventApiService
+  //       .create({
+  //         ...this.ticketsForm.value,
+  //         ...this.informationForm.value,
+  //       })
+  //       .pipe(
+  //         concatMap(() => {
+  //           return this._matSnackBar
+  //             .open('Event created!', 'View events list', {
+  //               duration: 5000,
+  //             })
+  //             .afterDismissed()
+  //             .pipe(
+  //               tap(({ dismissedByAction }) => {
+  //                 if (dismissedByAction) {
+  //                   this._router.navigate(['/list-events']);
+  //                 }
+  //               })
+  //             );
+  //         }),
+  //         catchError((error) => {
+  //           this._matSnackBar.open(error.message);
+  //           return EMPTY;
+  //         })
+  //       )
+  //       .subscribe();
+  //   }
+  // }
 }
