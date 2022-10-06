@@ -51,21 +51,21 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         >
           <header class="relative flex flex-col gap-2">
             <figure class="h-52 overflow-hidden disco-layer blue">
-              <img [src]="event.account.banner" alt="" />
+              <img [src]="event.banner" alt="" />
             </figure>
 
             <div>
               <h3
                 class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
               >
-                {{ event.account.name }}
+                {{ event.name }}
               </h3>
 
               <p
                 class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
               >
                 <mat-icon inline>place</mat-icon>
-                {{ event.account.location }}
+                {{ event.location }}
               </p>
             </div>
 
@@ -73,7 +73,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               class="absolute top-0 right-0"
               mat-icon-button
               aria-label="View details"
-              [routerLink]="['/view-event', event.publicKey.toBase58()]"
+              [routerLink]="['/view-event', event.id]"
             >
               <mat-icon>launch</mat-icon>
             </a>
@@ -81,7 +81,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
           <div class="flex flex-col gap-2">
             <p class="line-clamp-3 text-justify m-0 h-14">
-              {{ event.account.description }}
+              {{ event.description }}
             </p>
 
             <div class="flex justify-between items-center">
@@ -89,7 +89,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Starts at: <br />
 
                 <span class="font-bold">{{
-                  event.account.eventStartDate.toNumber() | date: 'short'
+                  event.startDate | date: 'short'
                 }}</span>
               </p>
 
@@ -97,12 +97,12 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Ends at: <br />
 
                 <span class="font-bold">{{
-                  event.account.eventEndDate.toNumber() | date: 'short'
+                  event.endDate | date: 'short'
                 }}</span>
               </p>
             </div>
 
-            <div class="flex flex-col items-center gap-3">
+            <!-- <div class="flex flex-col items-center gap-3">
               <div class=" px-4 py-2 disco-layer disco-border border-2 blue">
                 <p
                   *ngIf="event.account.ticketQuantity > 0"
@@ -191,7 +191,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                   </span>
                 </div>
               </button>
-            </div>
+            </div> -->
           </div>
         </article>
       </section>

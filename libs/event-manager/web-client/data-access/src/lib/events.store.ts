@@ -1,27 +1,20 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
-import {
-  Account as TokenAccount,
-  getAccount as getTokenAccount,
-  getMint,
-  Mint,
-} from '@solana/spl-token';
+import { Account as TokenAccount, Mint } from '@solana/spl-token';
 import { Connection } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
   concatMap,
-  defer,
   EMPTY,
-  forkJoin,
   from,
   map,
   switchMap,
   toArray,
 } from 'rxjs';
 import { EventAccount, EventApiService } from './event-api.service';
+import { EventDto } from './firebase/types';
 
 export interface EventItem extends EventAccount {
   temporalVault: TokenAccount;
@@ -35,7 +28,7 @@ export interface EventItem extends EventAccount {
 
 interface ViewModel {
   loading: boolean;
-  events: EventItem[] | null;
+  events: EventDto[] | null; //EventItem[] | null;
   error: unknown | null;
 }
 
@@ -68,7 +61,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
     );
   }
 
-  private readonly _loadEvents = this.effect<Connection | null>(
+  /*private readonly _loadEvents = this.effect<Connection | null>(
     switchMap((connection) => {
       // If there's no connection ignore loading call
       if (connection === null) {
@@ -113,6 +106,29 @@ export class EventsStore extends ComponentStore<ViewModel> {
             toArray()
           )
         ),
+        tapResponse(
+          (events) =>
+            this.patchState({
+              events,
+              loading: false,
+            }),
+          (error) => this.patchState({ error, loading: false })
+        )
+      );
+    })
+  );*/
+
+  private readonly _loadEvents = this.effect<Connection | null>(
+    switchMap((connection) => {
+      // If there's no connection ignore loading call
+      if (connection === null) {
+        return EMPTY;
+      }
+
+      this.patchState({ loading: true });
+
+      return this._eventApiService.findAllEvents().pipe(
+        concatMap((events) => from(events).pipe(toArray())),
         tapResponse(
           (events) =>
             this.patchState({

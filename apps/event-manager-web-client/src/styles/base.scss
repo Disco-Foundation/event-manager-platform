@@ -34,6 +34,13 @@
   border: 3px solid #19fb9b;
 }
 
+.disco-btn.green:active,
+.disco-btn.green:focus {
+  background: #19fb9b;
+  color: #000;
+  box-shadow: 0 0 0.25rem #19fb9b, 0 0 0.65rem #19fb9b;
+}
+
 .disco-btn.green:hover {
   background: #19fb9b;
   color: #000;

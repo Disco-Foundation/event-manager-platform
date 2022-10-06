@@ -51,7 +51,7 @@ export class EventService {
   }
 
   // get all the events for certain user
-  getUserEvents(owner: string) {
+  getUserEvents(owner: string): Observable<EventDto[]> {
     const eventsRef = collection(this._firestore, 'events');
 
     return collectionData(

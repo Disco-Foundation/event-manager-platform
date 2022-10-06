@@ -1,30 +1,20 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
-import {
-  Account as TokenAccount,
-  getAccount,
-  getMint,
-  Mint,
-} from '@solana/spl-token';
+import { Account as TokenAccount, Mint } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
   concatMap,
   EMPTY,
-  forkJoin,
   from,
   map,
   switchMap,
   toArray,
 } from 'rxjs';
-import {
-  EventAccount,
-  EventApiService,
-  EVENT_PROGRAM_ID,
-} from './event-api.service';
+import { EventAccount, EventApiService } from './event-api.service';
+import { EventDto } from './firebase/types';
 
 export interface EventItemByOwner extends EventAccount {
   ticketVault: TokenAccount;
@@ -38,7 +28,8 @@ export interface EventItemByOwner extends EventAccount {
 interface ViewModel {
   loading: boolean;
   owner: PublicKey | null;
-  events: EventItemByOwner[] | null;
+  events: EventDto[] | null; //EventItemByOwner[] | null;
+  tickets: EventDto[] | null;
   error: unknown | null;
 }
 
@@ -46,6 +37,7 @@ const initialState: ViewModel = {
   loading: false,
   owner: null,
   events: null,
+  tickets: null,
   error: null,
 };
 
@@ -55,6 +47,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
   readonly owner$ = this.select(({ owner }) => owner);
   readonly events$ = this.select(({ events }) => events);
+  readonly tickets$ = this.select(({ tickets }) => tickets);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
 
@@ -76,6 +69,19 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
         this.reloadSubject.asObservable(),
       ]).pipe(map(([data]) => data))
     );
+
+    this._loadTickets(
+      combineLatest([
+        // Trigger load tickets when connection changes
+        this.select(
+          this._connectionStore.connection$,
+          this.owner$,
+          (connection, owner) => ({ connection, owner }),
+          { debounce: true }
+        ),
+        this.reloadSubject.asObservable(),
+      ]).pipe(map(([data]) => data))
+    );
   }
 
   readonly setOwner = this.updater<PublicKey | null>((state, owner) => ({
@@ -83,7 +89,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
     owner,
   }));
 
-  private readonly _loadEvents = this.effect<{
+  /*private readonly _loadEvents = this.effect<{
     connection: Connection | null;
     owner: PublicKey | null;
   }>(
@@ -134,6 +140,58 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
           (events) =>
             this.patchState({
               events,
+              loading: false,
+            }),
+          (error) => this.patchState({ error, loading: false })
+        )
+      );
+    })
+  );*/
+
+  private readonly _loadEvents = this.effect<{
+    connection: Connection | null;
+    owner: PublicKey | null;
+  }>(
+    switchMap(({ connection, owner }) => {
+      // If there's no connection ignore loading call
+      if (connection === null || owner === null) {
+        return EMPTY;
+      }
+
+      this.patchState({ loading: true });
+
+      return this._eventApiService.findEventByTicketOwner(owner).pipe(
+        concatMap((events) => from(events).pipe(toArray())),
+        tapResponse(
+          (events) =>
+            this.patchState({
+              events: events,
+              loading: false,
+            }),
+          (error) => this.patchState({ error, loading: false })
+        )
+      );
+    })
+  );
+
+  private readonly _loadTickets = this.effect<{
+    connection: Connection | null;
+    owner: PublicKey | null;
+  }>(
+    switchMap(({ connection, owner }) => {
+      // If there's no connection ignore loading call
+      if (connection === null || owner === null) {
+        return EMPTY;
+      }
+
+      this.patchState({ loading: true });
+
+      return this._eventApiService.findEventByTicketOwner(owner).pipe(
+        concatMap((events) => from(events).pipe(toArray())),
+        tapResponse(
+          (tickes) =>
+            this.patchState({
+              tickets: tickes,
               loading: false,
             }),
           (error) => this.patchState({ error, loading: false })

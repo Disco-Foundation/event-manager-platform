@@ -361,4 +361,30 @@ export class EventApiService {
       );
     });
   }
+
+  findEventByTicketOwner(owner: PublicKey) {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(
+        this._eventService.getUserEvents(provider.wallet.publicKey.toBase58())
+      );
+    });
+  }
+
+  findAllEvents() {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(this._eventService.getPublishedEvents());
+    });
+  }
 }
