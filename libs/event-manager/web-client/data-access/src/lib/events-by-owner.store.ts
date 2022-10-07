@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
-import { Account as TokenAccount, Mint } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
 import {
   BehaviorSubject,
@@ -14,23 +13,17 @@ import {
   toArray,
 } from 'rxjs';
 import { EventAccount, EventApiService } from './event-api.service';
-import { EventDto } from './firebase/types';
 
 export interface EventItemByOwner extends EventAccount {
-  ticketVault: TokenAccount;
-  acceptedMint: Mint;
-  ticketMint: Mint;
-  ticketsLeft: number;
-  ticketQuantity: number;
-  ticketPrice: number;
+  published: boolean;
 }
 
 interface ViewModel {
   loading: boolean;
   owner: PublicKey | null;
-  events: EventDto[] | null; //EventItemByOwner[] | null;
-  tickets: EventDto[] | null;
-  draftEvents: EventDto[] | null;
+  events: EventItemByOwner[] | null;
+  tickets: EventItemByOwner[] | null;
+  draftEvents: EventItemByOwner[] | null;
   error: unknown | null;
 }
 
@@ -168,9 +161,5 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
   reload() {
     this.reloadSubject.next(null);
-  }
-
-  publish(event: EventDto) {
-    this._eventApiService.publishEvent(event);
   }
 }

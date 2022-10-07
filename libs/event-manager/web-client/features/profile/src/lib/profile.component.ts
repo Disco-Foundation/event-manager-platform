@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
+  EventAccount,
   EventApiService,
   EventsByOwnerStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
-import { EventDto } from 'libs/event-manager/web-client/data-access/src/lib/firebase/types';
 import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
 @Component({
@@ -60,21 +60,21 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               >
                 <header class="relative flex flex-col gap-2">
                   <figure class="h-52 overflow-hidden bg-black">
-                    <img [src]="ticket.banner" alt="" />
+                    <img [src]="ticket.account.banner" alt="" />
                   </figure>
 
                   <div>
                     <h3
                       class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
                     >
-                      {{ ticket.name }}
+                      {{ ticket.account.name }}
                     </h3>
 
                     <p
                       class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
                     >
                       <mat-icon inline>place</mat-icon>
-                      {{ ticket.location }}
+                      {{ ticket.account.location }}
                     </p>
                   </div>
 
@@ -82,7 +82,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', ticket.id]"
+                    [routerLink]="['/view-event', ticket.publicKey]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -90,7 +90,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
                 <div class="flex flex-col gap-2 flex-grow">
                   <p class="line-clamp-3 text-justify m-0 flex-grow">
-                    {{ ticket.description }}
+                    {{ ticket.account.description }}
                   </p>
 
                   <div class="flex justify-between items-center">
@@ -98,7 +98,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Starts at: <br />
 
                       <span class="font-bold">{{
-                        ticket.startDate | date: 'short'
+                        ticket.account.eventStartDate | date: 'short'
                       }}</span>
                     </p>
 
@@ -106,7 +106,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Ends at: <br />
 
                       <span class="font-bold">{{
-                        ticket.endDate | date: 'short'
+                        ticket.account.eventEndDate | date: 'short'
                       }}</span>
                     </p>
                   </div>
@@ -148,9 +148,9 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                   <button
                     class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                     emBuyTicketsTrigger
-                    [eventName]="ticket.name"
-                    [ticketPrice]="ticket.tickets[0].ticketPrice"
-                    [eventId]="ticket.id"
+                    [eventName]="ticket.account.name"
+                    [ticketPrice]="ticket.account.ticketPrice"
+                    [eventId]="ticket.account.eventId"
                   >
                     <div class="flex flex-col items-center">
                       <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -158,8 +158,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                         Only
                         <b
                           >{{
-                            ticket.tickets[0].ticketQuantity -
-                              ticket.tickets[0].ticketsSold | number
+                            ticket.account.ticketQuantity -
+                              ticket.account.ticketsSold | number
                           }}
                           ticket(s)</b
                         >
@@ -190,7 +190,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               >
                 <header class="relative flex flex-col gap-2">
                   <figure class="h-52 overflow-hidden disco-layer blue">
-                    <img [src]="event.banner" alt="" />
+                    <img [src]="event.account.banner" alt="" />
                   </figure>
 
                   <div>
@@ -203,18 +203,15 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       <h3
                         class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
                       >
-                        {{ event.name }}
+                        {{ event.account.name }}
                       </h3>
-                      <p class="text-m m-0 flex items-center disco-text gold">
-                        {{ !event.published ? 'Draft' : '' }}
-                      </p>
                     </div>
 
                     <p
                       class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
                     >
                       <mat-icon inline>place</mat-icon>
-                      {{ event.location }}
+                      {{ event.account.location }}
                     </p>
                   </div>
 
@@ -222,7 +219,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', event.id]"
+                    [routerLink]="['/view-event', event.publicKey]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -230,7 +227,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
                 <div class="flex flex-col gap-2">
                   <p class="line-clamp-3 text-justify m-0 h-14">
-                    {{ event.description }}
+                    {{ event.account.description }}
                   </p>
 
                   <div class="flex justify-between items-center">
@@ -238,7 +235,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Starts at: <br />
 
                       <span class="font-bold">{{
-                        event.startDate | date: 'short'
+                        event.account.eventStartDate | date: 'short'
                       }}</span>
                     </p>
 
@@ -246,7 +243,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Ends at: <br />
 
                       <span class="font-bold">{{
-                        event.endDate | date: 'short'
+                        event.account.eventEndDate | date: 'short'
                       }}</span>
                     </p>
                   </div>
@@ -256,38 +253,36 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       class=" px-4 py-2 disco-layer disco-border border-2 blue"
                     >
                       <p
-                        *ngIf="event.tickets[0].ticketQuantity > 0"
+                        *ngIf="event.account.ticketQuantity > 0"
                         class="m-0 text-justify disco-text gold"
                       >
-                        <ng-container
-                          *ngIf="event.tickets[0].ticketsSold === 0"
-                        >
+                        <ng-container *ngIf="event.account.ticketsSold === 0">
                           Out of the total of
                           <b class="text-lg">{{
-                            event.tickets[0].ticketQuantity | number
+                            event.account.ticketQuantity | number
                           }}</b>
                           tickets, none have been sold.
                         </ng-container>
-                        <ng-container *ngIf="event.tickets[0].ticketsSold > 0">
+                        <ng-container *ngIf="event.account.ticketsSold > 0">
                           Out of the total of
                           <b class="text-lg">{{
-                            event.tickets[0].ticketQuantity | number
+                            event.account.ticketQuantity | number
                           }}</b>
                           tickets,
                           <b class="text-lg">{{
-                            event.tickets[0].ticketsSold | number
+                            event.account.ticketsSold | number
                           }}</b>
                           have been already sold.
                         </ng-container>
                         <ng-container
                           *ngIf="
-                            event.tickets[0].ticketsSold ===
-                            event.tickets[0].ticketQuantity
+                            event.account.ticketsSold ===
+                            event.account.ticketQuantity
                           "
                         >
                           All
                           <b class="text-lg">{{
-                            event.tickets[0].ticketQuantity | number
+                            event.account.ticketQuantity | number
                           }}</b>
                           tickets have been sold out.
                         </ng-container>
@@ -310,15 +305,15 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                             <span
                               class="text-2xl font-bold leading-none disco-text green"
                               >{{
-                                event.tickets[0].ticketPrice | number: '1.2-2'
+                                event.account.ticketPrice | number: '1.2-2'
                               }}</span
                             >
                           </div>
                         </div>
 
                         <p class="m-0">
-                          {{ event.tickets[0].ticketsSold | number }}/{{
-                            event.tickets[0].ticketQuantity | number
+                          {{ event.account.ticketsSold | number }}/{{
+                            event.account.ticketQuantity | number
                           }}
                         </p>
                       </div>
@@ -328,8 +323,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       *ngIf="event.published"
                       class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                       emBuyTicketsTrigger
-                      [eventName]="event.name"
-                      [ticketPrice]="event.tickets[0].ticketPrice"
+                      [eventName]="event.account.name"
+                      [ticketPrice]="event.account.ticketPrice"
                     >
                       <div class="flex flex-col items-center">
                         <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -337,8 +332,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                           Only
                           <b
                             >{{
-                              event.tickets[0].ticketQuantity -
-                                event.tickets[0].ticketsSold | number
+                              event.account.ticketQuantity -
+                                event.account.ticketsSold | number
                             }}
                             ticket(s)</b
                           >
@@ -370,7 +365,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               >
                 <header class="relative flex flex-col gap-2">
                   <figure class="h-52 overflow-hidden disco-layer blue">
-                    <img [src]="draft.banner" alt="" />
+                    <img [src]="draft.account.banner" alt="" />
                   </figure>
 
                   <div>
@@ -383,10 +378,10 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       <h3
                         class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
                       >
-                        {{ draft.name }}
+                        {{ draft.account.name }}
                       </h3>
                       <p class="text-m m-0 flex items-center disco-text gold">
-                        {{ !draft.published ? 'Draft' : '' }}
+                        Draft
                       </p>
                     </div>
 
@@ -394,7 +389,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
                     >
                       <mat-icon inline>place</mat-icon>
-                      {{ draft.location }}
+                      {{ draft.account.location }}
                     </p>
                   </div>
 
@@ -402,7 +397,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', draft.id]"
+                    [routerLink]="['/view-draft-event', draft.account.eventId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -410,7 +405,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
                 <div class="flex flex-col gap-2">
                   <p class="line-clamp-3 text-justify m-0 h-14">
-                    {{ draft.description }}
+                    {{ draft.account.description }}
                   </p>
 
                   <div class="flex justify-between items-center">
@@ -418,7 +413,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Starts at: <br />
 
                       <span class="font-bold">{{
-                        draft.startDate | date: 'short'
+                        draft.account.eventStartDate | date: 'short'
                       }}</span>
                     </p>
 
@@ -426,7 +421,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Ends at: <br />
 
                       <span class="font-bold">{{
-                        draft.endDate | date: 'short'
+                        draft.account.eventEndDate | date: 'short'
                       }}</span>
                     </p>
                   </div>
@@ -436,38 +431,36 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       class=" px-4 py-2 disco-layer disco-border border-2 blue"
                     >
                       <p
-                        *ngIf="draft.tickets[0].ticketQuantity > 0"
+                        *ngIf="draft.account.ticketQuantity > 0"
                         class="m-0 text-justify disco-text gold"
                       >
-                        <ng-container
-                          *ngIf="draft.tickets[0].ticketsSold === 0"
-                        >
+                        <ng-container *ngIf="draft.account.ticketsSold === 0">
                           Out of the total of
                           <b class="text-lg">{{
-                            draft.tickets[0].ticketQuantity | number
+                            draft.account.ticketQuantity | number
                           }}</b>
                           tickets, none have been sold.
                         </ng-container>
-                        <ng-container *ngIf="draft.tickets[0].ticketsSold > 0">
+                        <ng-container *ngIf="draft.account.ticketsSold > 0">
                           Out of the total of
                           <b class="text-lg">{{
-                            draft.tickets[0].ticketQuantity | number
+                            draft.account.ticketQuantity | number
                           }}</b>
                           tickets,
                           <b class="text-lg">{{
-                            draft.tickets[0].ticketsSold | number
+                            draft.account.ticketsSold | number
                           }}</b>
                           have been already sold.
                         </ng-container>
                         <ng-container
                           *ngIf="
-                            draft.tickets[0].ticketsSold ===
-                            draft.tickets[0].ticketQuantity
+                            draft.account.ticketsSold ===
+                            draft.account.ticketQuantity
                           "
                         >
                           All
                           <b class="text-lg">{{
-                            draft.tickets[0].ticketQuantity | number
+                            draft.account.ticketQuantity | number
                           }}</b>
                           tickets have been sold out.
                         </ng-container>
@@ -490,15 +483,15 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                             <span
                               class="text-2xl font-bold leading-none disco-text green"
                               >{{
-                                draft.tickets[0].ticketPrice | number: '1.2-2'
+                                draft.account.ticketPrice | number: '1.2-2'
                               }}</span
                             >
                           </div>
                         </div>
 
                         <p class="m-0">
-                          {{ draft.tickets[0].ticketsSold | number }}/{{
-                            draft.tickets[0].ticketQuantity | number
+                          {{ draft.account.ticketsSold | number }}/{{
+                            draft.account.ticketQuantity | number
                           }}
                         </p>
                       </div>
@@ -602,7 +595,7 @@ export class ProfileComponent implements OnInit {
       .subscribe();
   }
 
-  onPublishEvent(event: EventDto) {
+  onPublishEvent(event: EventAccount) {
     this._eventApiService.publishEvent(event);
   }
 }

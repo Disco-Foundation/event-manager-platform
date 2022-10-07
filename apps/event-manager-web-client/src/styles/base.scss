@@ -18,6 +18,27 @@
   box-shadow: 0 0 0.25rem #ff5ef9, 0 0 0.65rem #ff5ef9;
 }
 
+.disco-btn.gold {
+  color: #ffd600;
+  border: 3px solid #ffd600;
+}
+
+.disco-btn.gold:hover {
+  background: #ffd600;
+  color: #000;
+  box-shadow: 0 0 0.25rem #ffd600, 0 0 0.65rem #ffd600;
+}
+
+.disco-btn.purple {
+  color: #af7eff;
+  border: 3px solid #af7eff;
+}
+
+.disco-btn.purple:hover {
+  background: #af7eff;
+  color: #000;
+  box-shadow: 0 0 0.25rem #af7eff, 0 0 0.65rem #af7eff;
+}
 .disco-btn.red {
   color: #ff6b6b;
   border: 3px solid #ff6b6b;

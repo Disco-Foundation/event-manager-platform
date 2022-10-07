@@ -19,19 +19,13 @@ import {
 import { EventAccount, EventApiService } from './event-api.service';
 
 export interface EventDetailsView extends EventAccount {
-  acceptedMint: Mint;
-  ticketMint: Mint;
+  acceptedMint: Mint | null;
+  ticketMint: Mint | null;
   salesProgress: number;
   ticketPrice: number;
   ticketsSold: number;
   ticketsLeft: number;
-  totalValueLocked: number;
-  totalValueLockedInRecharges: number;
-  totalValueLockedInTickets: number;
-  totalDeposited: number;
   totalProfit: number;
-  totalProfitInTickets: number;
-  totalProfitInPurchases: number;
 }
 
 interface ViewModel {
@@ -39,6 +33,7 @@ interface ViewModel {
   eventId: string | null;
   event: EventDetailsView | null;
   error: unknown | null;
+  draft: boolean;
 }
 
 const initialState: ViewModel = {
@@ -46,6 +41,7 @@ const initialState: ViewModel = {
   event: null,
   eventId: null,
   error: null,
+  draft: false,
 };
 
 @Injectable()
@@ -56,6 +52,7 @@ export class EventStore extends ComponentStore<ViewModel> {
   readonly event$ = this.select(({ event }) => event);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
+  readonly draft$ = this.select(({ draft }) => draft);
 
   constructor(
     private readonly _eventApiService: EventApiService,
@@ -82,6 +79,11 @@ export class EventStore extends ComponentStore<ViewModel> {
     eventId,
   }));
 
+  readonly setDraft = this.updater<boolean>((state, draft) => ({
+    ...state,
+    draft,
+  }));
+
   private readonly _loadEvent = this.effect<{
     eventId: string | null;
     connection: Connection | null;
@@ -94,7 +96,8 @@ export class EventStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findById(eventId).pipe(
+      console.log(eventId);
+      return this._eventApiService.findEventById(eventId).pipe(
         concatMap((event) => {
           if (event === null) {
             return of(null);
@@ -102,45 +105,45 @@ export class EventStore extends ComponentStore<ViewModel> {
 
           return forkJoin({
             acceptedMint: defer(() =>
-              from(getMint(connection, event.account.acceptedMint))
+              from(
+                event.account.acceptedMint != null
+                  ? getMint(connection, event.account.acceptedMint!)
+                  : of(null)
+              )
             ),
-            ticketMint: getMint(connection, event.account.ticketMint),
+            ticketMint:
+              event.account.ticketMint != null
+                ? getMint(connection, event.account.ticketMint)
+                : of(null),
           }).pipe(
             map(({ acceptedMint, ticketMint }) => ({
               ...event,
               acceptedMint,
               ticketMint,
-              ticketPrice: event.account.ticketPrice
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
+              ticketPrice:
+                event.account.acceptedMint != null
+                  ? event.account.ticketPrice
+                      .div(new BN(10).pow(new BN(acceptedMint!.decimals)))
+                      .toNumber()
+                  : 0,
               ticketsSold: event.account.ticketsSold,
               ticketsLeft:
-                event.account.ticketQuantity - Number(ticketMint.supply),
-              salesProgress: Math.floor(
-                (Number(ticketMint.supply) * 100) / event.account.ticketQuantity
-              ),
-              totalValueLocked: event.account.totalValueLocked
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalValueLockedInTickets: event.account.totalValueLockedInTickets
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalValueLockedInRecharges:
-                event.account.totalValueLockedInRecharges
-                  .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                  .toNumber(),
-              totalDeposited: event.account.totalDeposited
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfit: event.account.totalProfit
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfitInTickets: event.account.totalProfitInTickets
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfitInPurchases: event.account.totalProfitInPurchases
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
+                event.account.ticketMint != null
+                  ? event.account.ticketQuantity - Number(ticketMint!.supply)
+                  : 0,
+              salesProgress:
+                event.account.ticketMint != null
+                  ? Math.floor(
+                      (Number(ticketMint!.supply) * 100) /
+                        event.account.ticketQuantity
+                    )
+                  : 0,
+              totalProfit:
+                event.account.acceptedMint != null
+                  ? event.account.totalProfit
+                      .div(new BN(10).pow(new BN(acceptedMint!.decimals)))
+                      .toNumber()
+                  : 0,
             }))
           );
         }),

@@ -11,9 +11,14 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
-import { CreateEventArguments } from '@event-manager-web-client/data-access';
+import {
+  CreateEventArguments,
+  EventAccount,
+  EventItemByOwner,
+} from '@event-manager-web-client/data-access';
+import { PublicKey } from '@solana/web3.js';
 import { defer, from, map, Observable } from 'rxjs';
-import { Entity, EventDto } from './types';
+import { Entity } from './types';
 
 export type CreateEventDto = Entity<{
   name: string;
@@ -34,53 +39,122 @@ export class EventService {
   private readonly _firestore = inject(Firestore);
 
   // get event details by id
-  getEvent(eventId: string): Observable<EventDto> {
+  getEvent(eventId: string): Observable<EventAccount> {
     const eventRef = doc(this._firestore, `events/${eventId}`);
+    console.log(eventRef);
 
     return docData(eventRef).pipe(
       map((event) => ({
-        id: eventId,
-        owner: event['owner'],
-        name: event['name'],
-        description: event['description'],
-        location: event['location'],
-        banner: event['banner'],
-        startDate: event['startDate'],
-        endDate: event['endDate'],
-        tickets: event['tickets'].map((ticket: { [x: string]: any }) => {
-          ticket['ticketPrice'],
-            ticket['ticketQuantity'],
-            ticket['ticketsSold'],
-            ticket['ticketsMint'];
-        }),
-        treasury: event['treasury'],
-        certifierFunds: event['certifierFunds'],
-        published: event['publisehd'],
+        publicKey:
+          event['publicKey'] != null ? new PublicKey(event['publicKey']) : null,
+        account: {
+          owner: new PublicKey(event['owner']),
+          name: event['name'],
+          description: event['description'],
+          location: event['location'],
+          banner: event['banner'],
+          eventStartDate: event['startDate'],
+          eventEndDate: event['endDate'],
+          tickets: event['tickets'],
+          acceptedMint:
+            event['acceptedMint'] != null
+              ? new PublicKey(event['acceptedMint'])
+              : null,
+          totalProfit: event['profit'],
+          certifierFunds: event['certifierFunds'],
+          published: event['published'],
+          eventBump: event['eventBump'],
+          eventMintBump: event['eventBump'],
+          certifier:
+            event['certifier'] != null
+              ? new PublicKey(event['certifier'])
+              : null,
+          authority:
+            event['authority'] != null
+              ? new PublicKey(event['authority'])
+              : null,
+          eventMint:
+            event['eventMint'] != null
+              ? new PublicKey(event['eventMint'])
+              : null,
+          eventId: event['eventId'],
+          temporalVault:
+            event['temporalVault'] != null
+              ? new PublicKey(event['temporalVault'])
+              : null,
+          temporalVaultBump: event['temporalVaultBump'],
+          ticketMint:
+            event['ticketMint'] != null
+              ? new PublicKey(event['ticketMint'])
+              : null,
+          ticketMintBump: event['ticketMintBump'],
+          ticketPrice: event['ticketPrice'],
+          ticketsSold: event['ticketsSold'],
+          ticketQuantity: event['ticketQuantity'],
+        },
       }))
     );
   }
 
   // get all the events for certain user
-  getUserEvents(owner: string): Observable<EventDto[]> {
+  getUserEvents(owner: string): Observable<EventItemByOwner[]> {
     const eventsRef = collection(this._firestore, 'events');
 
     return collectionData(
       query(eventsRef, where('owner', '==', owner)).withConverter({
         fromFirestore: (snapshot) => {
           const event = snapshot.data();
+          console.log(event);
 
           return {
-            id: snapshot.id,
-            owner: event['owner'],
-            name: event['name'],
-            description: event['description'],
-            location: event['location'],
-            banner: event['banner'],
-            startDate: event['startDate'],
-            endDate: event['endDate'],
-            tickets: event['tickets'],
-            treasury: event['treasury'],
-            certifierFunds: event['certifierFunds'],
+            publicKey:
+              event['publicKey'] != null
+                ? new PublicKey(event['publicKey'])
+                : null,
+            account: {
+              owner: new PublicKey(event['owner']),
+              name: event['name'],
+              description: event['description'],
+              location: event['location'],
+              banner: event['banner'],
+              eventStartDate: event['startDate'],
+              eventEndDate: event['endDate'],
+              acceptedMint:
+                event['acceptedMint'] != null
+                  ? new PublicKey(event['acceptedMint'])
+                  : null,
+              totalProfit: event['profit'],
+              certifierFunds: event['certifierFunds'],
+              published: event['published'],
+              eventBump: event['eventBump'],
+              eventMintBump: event['eventBump'],
+              certifier:
+                event['certifier'] != null
+                  ? new PublicKey(event['certifier'])
+                  : null,
+              authority:
+                event['authority'] != null
+                  ? new PublicKey(event['authority'])
+                  : null,
+              eventMint:
+                event['eventMint'] != null
+                  ? new PublicKey(event['eventMint'])
+                  : null,
+              eventId: snapshot.id,
+              temporalVault:
+                event['temporalVault'] != null
+                  ? new PublicKey(event['temporalVault'])
+                  : null,
+              temporalVaultBump: event['temporalVaultBump'],
+              ticketMint:
+                event['ticketMint'] != null
+                  ? new PublicKey(event['ticketMint'])
+                  : null,
+              ticketMintBump: event['ticketMintBump'],
+              ticketPrice: event['ticketPrice'],
+              ticketsSold: event['ticketsSold'],
+              ticketQuantity: event['ticketQuantity'],
+            },
             published: event['published'],
           };
         },
@@ -99,23 +173,34 @@ export class EventService {
           const event = snapshot.data();
 
           return {
-            id: snapshot.id,
-            owner: event['owner'],
-            name: event['name'],
-            description: event['description'],
-            location: event['location'],
-            banner: event['banner'],
-            startDate: event['startDate'],
-            endDate: event['endDate'],
-            tickets: event['tickets'],
-            treasury: {
-              acceptedMint: '',
-              valueLocked: 0,
-              valueDeposited: 0,
-              profit: 0,
+            publicKey: event['publicKey'],
+            account: {
+              owner: new PublicKey(event['owner']),
+              name: event['name'],
+              description: event['description'],
+              location: event['location'],
+              banner: event['banner'],
+              eventStartDate: event['startDate'],
+              eventEndDate: event['endDate'],
+              tickets: event['tickets'],
+              acceptedMint: new PublicKey(event['acceptedMint']),
+              totalProfit: event['profit'],
+              certifierFunds: event['certifierFunds'],
+              published: event['published'],
+              eventBump: event['eventBump'],
+              eventMintBump: event['eventBump'],
+              certifier: new PublicKey(event['certifier']),
+              authority: new PublicKey(event['authority']),
+              eventMint: new PublicKey(event['eventMint']),
+              eventId: snapshot.id,
+              temporalVault: new PublicKey(event['temporalVault']),
+              temporalVaultBump: event['temporalVaultBump'],
+              ticketMint: new PublicKey(event['ticketMint']),
+              ticketMintBump: event['ticketMintBump'],
+              ticketPrice: event['ticketPrice'],
+              ticketsSold: event['ticketsSold'],
+              ticketQuantity: event['ticketsQuantity'],
             },
-            certifierFunds: event['certifierFunds'],
-            published: event['published'],
           };
         },
         toFirestore: (it) => it,
@@ -151,17 +236,23 @@ export class EventService {
           banner,
           startDate,
           endDate,
-          tickets: [
-            { ticketPrice, ticketQuantity, ticketsSold: 0, ticketMint: null },
-          ],
-          treasury: {
-            acceptedMint: null,
-            valueLocked: 0,
-            valueDeposited: 0,
-            profit: 0,
-          },
-          certifierFunds,
           published,
+          ticketPrice,
+          ticketQuantity,
+          ticketsSold: 0,
+          ticketMint: null,
+          acceptedMint: null,
+          profit: 0,
+          eventBump: null,
+          eventMintBump: null,
+          certifierFunds,
+          certifier: null,
+          authority: null,
+          eventMint: null,
+          eventId: newEventRef.id,
+          temporalVault: null,
+          temporalVaultBump: null,
+          publicKey: null,
         })
       )
     );
@@ -169,7 +260,31 @@ export class EventService {
 
   //------ only for unpublished events-------- //
 
-  updateEvent(eventId: string, changes: UpdateEventDto) {
+  updateEventTickets(
+    eventId: string,
+    changes: { ticketPrice: number; ticketQuantity: number }
+  ) {
+    const eventRef = doc(this._firestore, `events/${eventId}`);
+    return defer(() => from(updateDoc(eventRef, changes)));
+  }
+
+  updateEventDates(
+    eventId: string,
+    changes: { startDate: string; endDate: string }
+  ) {
+    const eventRef = doc(this._firestore, `events/${eventId}`);
+    return defer(() => from(updateDoc(eventRef, changes)));
+  }
+
+  updateEventInfo(
+    eventId: string,
+    changes: {
+      name: string;
+      description: string;
+      location: string;
+      banner: string;
+    }
+  ) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
     return defer(() => from(updateDoc(eventRef, changes)));
   }

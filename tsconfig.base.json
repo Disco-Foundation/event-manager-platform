@@ -50,6 +50,9 @@
       ],
       "@event-manager/event-manager/web-client/features/get-token-image": [
         "libs/event-manager/web-client/features/get-token-image/src/index.ts"
+      ],
+      "@event-manager-web-client/view-draft-event": [
+        "libs/event-manager/web-client/features/view-draft-event/src/index.ts"
       ]
     }
   },

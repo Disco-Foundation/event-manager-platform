@@ -85,7 +85,7 @@ import {
                 class="disco-text purple disco-text-glow text-left w-32"
                 emGenerateEventQrTrigger
                 [eventName]="event.account.name"
-                [eventId]="event.publicKey.toBase58()"
+                [eventId]="event.publicKey!.toBase58()"
               >
                 Pair with App
               </button>
@@ -145,7 +145,7 @@ import {
                 <a
                   [href]="
                     'https://solscan.io/token/' +
-                    event.ticketMint.address.toBase58()
+                    event.ticketMint!.address.toBase58()
                   "
                   class="disco-text purple disco-text-glow"
                   target="__blank"
@@ -181,11 +181,11 @@ import {
                 emBuyTicketsTrigger
                 [eventName]="event.account.name"
                 [ticketPrice]="event.ticketPrice"
-                [eventId]="event.publicKey.toBase58()"
+                [eventId]="event.publicKey!.toBase58()"
                 (buyTickets)="
                   onBuyTickets(
-                    event.publicKey,
-                    event.account.acceptedMint,
+                    event.publicKey!,
+                    event.account.acceptedMint!,
                     $event
                   )
                 "
@@ -304,137 +304,12 @@ import {
                 <a
                   [href]="
                     'https://solscan.io/token/' +
-                    event.account.acceptedMint.toBase58()
+                    event.account.acceptedMint!.toBase58()
                   "
                   target="__blank"
                   class="disco-text purple disco-text-glow"
                   >[view in explorer]</a
                 >
-              </div>
-
-              <div class="flex justify-between">
-                <div class="flex flex-col">
-                  <p class="m-0">Total Value Locked</p>
-
-                  <div class="flex items-center gap-2">
-                    <figure>
-                      <img
-                        class="disco-accepted-mint-logo"
-                        src="{{ acceptedMintLogo$ | async }}"
-                        alt="usdc logo"
-                      />
-                    </figure>
-                    <span
-                      class="text-2xl font-bold leading-none disco-text green"
-                      >{{ event.totalValueLocked | number: '1.2-2' }}</span
-                    >
-                  </div>
-                </div>
-
-                <div class="flex flex-col">
-                  <p class="m-0">Total Deposited</p>
-
-                  <div class="flex items-center gap-2">
-                    <figure>
-                      <img
-                        class="disco-accepted-mint-logo"
-                        src="{{ acceptedMintLogo$ | async }}"
-                        alt="usdc logo"
-                      />
-                    </figure>
-                    <span
-                      class="text-2xl font-bold leading-none disco-text green"
-                      >{{ event.totalDeposited | number: '1.2-2' }}</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex justify-between items-center gap-4">
-                <div class="w-full h-full flex justify-end items-center">
-                  <ngx-charts-advanced-pie-chart
-                    *ngIf="event.totalValueLocked > 0"
-                    [view]="[500, 160]"
-                    [scheme]="colorScheme"
-                    [gradient]="true"
-                    [results]="[
-                      {
-                        name: 'Tickets',
-                        value: event.totalValueLockedInTickets
-                      },
-                      {
-                        name: 'Recharges',
-                        value: event.totalValueLockedInRecharges
-                      }
-                    ]"
-                  >
-                  </ngx-charts-advanced-pie-chart>
-
-                  <p *ngIf="event.totalValueLocked === 0">
-                    There's no total value locked.
-                  </p>
-                </div>
-                <div class="w-full h-full flex flex-col gap-2 justify-center">
-                  <div
-                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
-                  >
-                    <div
-                      class="inline-block w-4 h-4 rounded-full"
-                      style="background-color: #19fb9b"
-                    ></div>
-
-                    <div>
-                      <p class="m-0 text-lg font-bold">Tickets</p>
-
-                      <div class="flex items-center gap-2">
-                        <figure>
-                          <img
-                            class="disco-accepted-mint-logo"
-                            src="{{ acceptedMintLogo$ | async }}"
-                            alt="usdc logo"
-                          />
-                        </figure>
-                        <p
-                          class="m-0 text-sm font-bold leading-none disco-text green"
-                        >
-                          {{
-                            event.totalValueLockedInTickets | number: '1.2-2'
-                          }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
-                  >
-                    <div
-                      class="inline-block w-4 h-4 rounded-full"
-                      style="background-color: #ff5ef9"
-                    ></div>
-
-                    <div>
-                      <p class="m-0 text-lg font-bold">Recharges</p>
-
-                      <div class="flex items-center gap-2">
-                        <figure>
-                          <img
-                            class="disco-accepted-mint-logo"
-                            src="{{ acceptedMintLogo$ | async }}"
-                            alt="usdc logo"
-                          />
-                        </figure>
-                        <p
-                          class="m-0 text-sm font-bold leading-none disco-text green"
-                        >
-                          {{
-                            event.totalValueLockedInRecharges | number: '1.2-2'
-                          }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div class="flex flex-col">
@@ -453,93 +328,6 @@ import {
                       class="text-3xl font-bold leading-none disco-text green"
                       >{{ event.totalProfit | number: '1.2-2' }}</span
                     >
-                    <span class="text-xs disco-text green">
-                      ({{
-                        (event.totalProfit * 100) / event.totalDeposited
-                          | number
-                      }}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex justify-between items-center gap-4">
-                <div class="w-full h-full flex justify-end items-center ">
-                  <ngx-charts-advanced-pie-chart
-                    *ngIf="event.totalProfit > 0"
-                    [view]="[500, 160]"
-                    [scheme]="colorScheme"
-                    [gradient]="true"
-                    [results]="[
-                      {
-                        name: 'Tickets',
-                        value: event.totalProfitInTickets
-                      },
-                      {
-                        name: 'Purchases',
-                        value: event.totalProfitInPurchases
-                      }
-                    ]"
-                  >
-                  </ngx-charts-advanced-pie-chart>
-
-                  <p *ngIf="event.totalProfit === 0">There's no profit yet.</p>
-                </div>
-                <div class="w-full h-full flex flex-col gap-2 justify-center">
-                  <div
-                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
-                  >
-                    <div
-                      class="inline-block w-4 h-4 rounded-full"
-                      style="background-color: #19fb9b"
-                    ></div>
-
-                    <div>
-                      <p class="m-0 text-lg font-bold">Tickets</p>
-
-                      <div class="flex items-center gap-2">
-                        <figure>
-                          <img
-                            class="disco-accepted-mint-logo"
-                            src="{{ acceptedMintLogo$ | async }}"
-                            alt="usdc logo"
-                          />
-                        </figure>
-                        <p
-                          class="m-0 text-sm font-bold leading-none disco-text green"
-                        >
-                          {{ event.totalProfitInTickets | number: '1.2-2' }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
-                  >
-                    <div
-                      class="inline-block w-4 h-4 rounded-full"
-                      style="background-color: #ff5ef9"
-                    ></div>
-
-                    <div>
-                      <p class="m-0 text-lg font-bold">Purchases</p>
-
-                      <div class="flex items-center gap-2">
-                        <figure>
-                          <img
-                            class="disco-accepted-mint-logo"
-                            src="{{ acceptedMintLogo$ | async }}"
-                            alt="usdc logo"
-                          />
-                        </figure>
-                        <p
-                          class="m-0 text-sm font-bold leading-none disco-text green"
-                        >
-                          {{ event.totalProfitInPurchases | number: '1.2-2' }}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

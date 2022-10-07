@@ -1,20 +1,27 @@
 import { Injectable } from '@angular/core';
+import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
-import { Account as TokenAccount, Mint } from '@solana/spl-token';
+import {
+  Account as TokenAccount,
+  getAccount as getTokenAccount,
+  getMint,
+  Mint,
+} from '@solana/spl-token';
 import { Connection } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
   concatMap,
+  defer,
   EMPTY,
+  forkJoin,
   from,
   map,
   switchMap,
   toArray,
 } from 'rxjs';
 import { EventAccount, EventApiService } from './event-api.service';
-import { EventDto } from './firebase/types';
 
 export interface EventItem extends EventAccount {
   temporalVault: TokenAccount;
@@ -28,7 +35,7 @@ export interface EventItem extends EventAccount {
 
 interface ViewModel {
   loading: boolean;
-  events: EventDto[] | null; //EventItem[] | null;
+  events: EventItem[] | null;
   error: unknown | null;
 }
 
@@ -61,7 +68,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
     );
   }
 
-  /*private readonly _loadEvents = this.effect<Connection | null>(
+  private readonly _loadEvents = this.effect<Connection | null>(
     switchMap((connection) => {
       // If there's no connection ignore loading call
       if (connection === null) {
@@ -70,7 +77,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findAll().pipe(
+      return this._eventApiService.findAllEvents().pipe(
         concatMap((events) =>
           from(events).pipe(
             concatMap((event) =>
@@ -82,7 +89,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   from(getMint(connection, event.account.acceptedMint))
                 ),
                 ticketMint: defer(() =>
-                  from(getMint(connection, event.account.ticketMint))
+                  from(getMint(connection, event.account.tickets[0].ticketMint))
                 ),
               }).pipe(
                 map(({ temporalVault, acceptedMint, ticketMint }) => ({
@@ -90,45 +97,23 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   temporalVault,
                   acceptedMint,
                   ticketMint,
-                  ticketPrice: event.account.ticketPrice
+                  ticketPrice: event.account.tickets[0].ticketPrice
                     .div(new BN(10).pow(new BN(acceptedMint.decimals)))
                     .toNumber(),
-                  ticketsSold: event.account.ticketsSold,
+                  ticketsSold: event.account.tickets[0].ticketsSold,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /
-                      event.account.ticketQuantity
+                      event.account.tickets[0].ticketQuantity
                   ),
                   ticketsLeft:
-                    event.account.ticketQuantity - Number(ticketMint.supply),
+                    event.account.tickets[0].ticketQuantity -
+                    Number(ticketMint.supply),
                 }))
               )
             ),
             toArray()
           )
         ),
-        tapResponse(
-          (events) =>
-            this.patchState({
-              events,
-              loading: false,
-            }),
-          (error) => this.patchState({ error, loading: false })
-        )
-      );
-    })
-  );*/
-
-  private readonly _loadEvents = this.effect<Connection | null>(
-    switchMap((connection) => {
-      // If there's no connection ignore loading call
-      if (connection === null) {
-        return EMPTY;
-      }
-
-      this.patchState({ loading: true });
-
-      return this._eventApiService.findAllEvents().pipe(
-        concatMap((events) => from(events).pipe(toArray())),
         tapResponse(
           (events) =>
             this.patchState({

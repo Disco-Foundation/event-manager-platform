@@ -83,6 +83,13 @@ import { ShellComponent } from './shell.component';
               ),
           },
           {
+            path: 'view-draft-event/:eventId',
+            loadChildren: () =>
+              import('@event-manager-web-client/view-draft-event').then(
+                (m) => m.ViewDraftEventModule
+              ),
+          },
+          {
             path: 'profile',
             loadChildren: () =>
               import('@event-manager-web-client/profile').then(

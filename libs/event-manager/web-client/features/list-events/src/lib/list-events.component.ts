@@ -51,21 +51,21 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         >
           <header class="relative flex flex-col gap-2">
             <figure class="h-52 overflow-hidden disco-layer blue">
-              <img [src]="event.banner" alt="" />
+              <img [src]="event.account.banner" alt="" />
             </figure>
 
             <div>
               <h3
                 class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
               >
-                {{ event.name }}
+                {{ event.account.name }}
               </h3>
 
               <p
                 class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
               >
                 <mat-icon inline>place</mat-icon>
-                {{ event.location }}
+                {{ event.account.location }}
               </p>
             </div>
 
@@ -73,7 +73,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               class="absolute top-0 right-0"
               mat-icon-button
               aria-label="View details"
-              [routerLink]="['/view-event', event.id]"
+              [routerLink]="['/view-event', event.publicKey]"
             >
               <mat-icon>launch</mat-icon>
             </a>
@@ -81,7 +81,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 
           <div class="flex flex-col gap-2">
             <p class="line-clamp-3 text-justify m-0 h-14">
-              {{ event.description }}
+              {{ event.account.description }}
             </p>
 
             <div class="flex justify-between items-center">
@@ -89,7 +89,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Starts at: <br />
 
                 <span class="font-bold">{{
-                  event.startDate | date: 'short'
+                  event.account.eventStartDate | date: 'short'
                 }}</span>
               </p>
 
@@ -97,7 +97,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Ends at: <br />
 
                 <span class="font-bold">{{
-                  event.endDate | date: 'short'
+                  event.account.eventEndDate | date: 'short'
                 }}</span>
               </p>
             </div>
@@ -105,36 +105,35 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
             <div class="flex flex-col items-center gap-3">
               <div class=" px-4 py-2 disco-layer disco-border border-2 blue">
                 <p
-                  *ngIf="event.tickets[0].ticketQuantity > 0"
+                  *ngIf="event.account.ticketQuantity > 0"
                   class="m-0 text-justify disco-text gold"
                 >
-                  <ng-container *ngIf="event.tickets[0].ticketsSold === 0">
+                  <ng-container *ngIf="event.account.ticketsSold === 0">
                     Out of the total of
                     <b class="text-lg">{{
-                      event.tickets[0].ticketQuantity | number
+                      event.account.ticketQuantity | number
                     }}</b>
                     tickets, none have been sold.
                   </ng-container>
-                  <ng-container *ngIf="event.tickets[0].ticketsSold > 0">
+                  <ng-container *ngIf="event.account.ticketsSold > 0">
                     Out of the total of
                     <b class="text-lg">{{
-                      event.tickets[0].ticketQuantity | number
+                      event.account.ticketQuantity | number
                     }}</b>
                     tickets,
                     <b class="text-lg">{{
-                      event.tickets[0].ticketsSold | number
+                      event.account.ticketsSold | number
                     }}</b>
                     have been already sold.
                   </ng-container>
                   <ng-container
                     *ngIf="
-                      event.tickets[0].ticketsSold ===
-                      event.tickets[0].ticketQuantity
+                      event.account.ticketsSold === event.account.ticketQuantity
                     "
                   >
                     All
                     <b class="text-lg">{{
-                      event.tickets[0].ticketQuantity | number
+                      event.account.ticketQuantity | number
                     }}</b>
                     tickets have been sold out.
                   </ng-container>
@@ -160,16 +159,14 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       </figure>
                       <span
                         class="text-2xl font-bold leading-none disco-text green"
-                        >{{
-                          event.tickets[0].ticketPrice | number: '1.2-2'
-                        }}</span
+                        >{{ event.account.ticketPrice | number: '1.2-2' }}</span
                       >
                     </div>
                   </div>
 
                   <p class="m-0">
-                    {{ event.tickets[0].ticketsSold | number }}/{{
-                      event.tickets[0].ticketQuantity | number
+                    {{ event.account.ticketsSold | number }}/{{
+                      event.account.ticketQuantity | number
                     }}
                   </p>
                 </div>
@@ -178,9 +175,9 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                 emBuyTicketsTrigger
-                [eventName]="event.name"
-                [ticketPrice]="event.tickets[0].ticketPrice"
-                [eventId]="event.id"
+                [eventName]="event.account.name"
+                [ticketPrice]="event.account.ticketPrice"
+                [eventId]="event.account.eventId"
               >
                 <div class="flex flex-col items-center">
                   <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -188,8 +185,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     Only
                     <b
                       >{{
-                        event.tickets[0].ticketQuantity -
-                          event.tickets[0].ticketsSold | number
+                        event.account.ticketQuantity - event.account.ticketsSold
+                          | number
                       }}
                       ticket(s)</b
                     >

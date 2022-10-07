@@ -5,53 +5,39 @@ import {
 } from '@event-manager/event-manager-certifiers';
 import { AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
-import {
-  getAccount,
-  getAssociatedTokenAddress,
-  getMint,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
 import { EventService } from './firebase/event.service';
-import { EventDto } from './firebase/types';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
-  acceptedMint: PublicKey;
-  authority: PublicKey;
+  acceptedMint: PublicKey | null;
+  authority: PublicKey | null;
   banner: string;
-  certifier: PublicKey;
+  certifier: PublicKey | null;
   description: string;
-  eventBump: number;
+  eventBump: number | null;
   eventEndDate: BN;
   eventId: BN;
-  eventMint: PublicKey;
-  eventMintBump: number;
+  eventMint: PublicKey | null;
+  eventMintBump: number | null;
   eventStartDate: BN;
-  gainVault: PublicKey;
-  gainVaultBump: number;
   location: string;
   name: string;
-  temporalVault: PublicKey;
-  temporalVaultBump: number;
-  ticketMint: PublicKey;
-  ticketMintBump: number;
+  ticketMint: PublicKey | null;
+  ticketMintBump: number | null;
   ticketPrice: BN;
   ticketsSold: number;
   ticketQuantity: number;
-  totalDeposited: BN;
-  totalValueLocked: BN;
-  totalValueLockedInTickets: BN;
-  totalValueLockedInRecharges: BN;
   totalProfit: BN;
-  totalProfitInTickets: BN;
-  totalProfitInPurchases: BN;
+  temporalVault: PublicKey | null;
+  temporalVaultBump: number | null;
 }
 
 export interface EventAccount {
-  publicKey: PublicKey;
+  publicKey: PublicKey | null;
   account: EventAccountInfo;
 }
 
@@ -175,87 +161,6 @@ export class EventApiService {
               } as EventAccount)
             : null
         )
-      );
-    });
-  }
-
-  findByTicketOwner(owner: PublicKey) {
-    return defer(() => {
-      const reader = this.reader;
-
-      if (reader === null) {
-        return throwError(() => new Error('ProgramReaderMissing'));
-      }
-
-      return from(
-        // get all token accounts from current wallet
-        reader.provider.connection
-          .getTokenAccountsByOwner(owner, {
-            programId: TOKEN_PROGRAM_ID,
-          })
-          // get the decoded token accounts
-          .then((tokenAccounts) =>
-            Promise.all(
-              tokenAccounts.value.map((tokenAccount) =>
-                getAccount(reader.provider.connection, tokenAccount.pubkey)
-              )
-            )
-          )
-          // Get all the mints from the current wallet
-          .then((accounts) =>
-            Promise.all(
-              [
-                ...new Set(accounts.map((account) => account.mint.toBase58())),
-              ].map((mint) =>
-                getMint(reader.provider.connection, new PublicKey(mint))
-              )
-            )
-          )
-          // Get each of the mint authorities
-          .then((mints) =>
-            Promise.all(
-              [
-                ...new Set(
-                  mints
-                    .map((mint) => mint.mintAuthority?.toBase58() ?? null)
-                    .filter(
-                      (mintAuthority): mintAuthority is string =>
-                        mintAuthority !== null
-                    )
-                ),
-              ].map((mintAuthority) =>
-                reader.provider.connection
-                  .getAccountInfo(new PublicKey(mintAuthority))
-                  .then((account) => ({ pubkey: mintAuthority, account }))
-              )
-            )
-          )
-          // Filter the mint authorities by the ones owned by
-          // the event manager program. These are supposed to be
-          // events.
-          .then(async (mintAuthorityOwners) => {
-            const eventPublicKeys = [
-              ...new Set(
-                mintAuthorityOwners
-                  .filter((mintAuthorityOwner) =>
-                    mintAuthorityOwner.account?.owner.equals(EVENT_PROGRAM_ID)
-                  )
-                  .map(({ pubkey }) => pubkey)
-              ),
-            ];
-            const eventAccounts = await reader.account.event.fetchMultiple(
-              eventPublicKeys
-            );
-            return eventAccounts
-              .map((account, index) => ({
-                publicKey: new PublicKey(eventPublicKeys[index]),
-                account,
-              }))
-              .filter(
-                (eventAccount): eventAccount is EventAccount =>
-                  eventAccount.account !== null
-              );
-          })
       );
     });
   }
@@ -390,20 +295,81 @@ export class EventApiService {
     });
   }
 
-  publishEvent(event: EventDto) {
+  publishEvent(event: EventAccount) {
     return this.create({
-      name: event.name,
-      description: event.description,
-      location: event.location,
-      banner: event.banner,
-      startDate: event.startDate.toString(),
-      endDate: event.endDate.toString(),
-      ticketPrice: event.tickets[0].ticketPrice,
-      ticketQuantity: event.tickets[0].ticketQuantity,
-      certifierFunds: event.certifierFunds,
+      name: event.account.name,
+      description: event.account.description,
+      location: event.account.location,
+      banner: event.account.banner,
+      startDate: event.account.eventStartDate.toString(),
+      endDate: event.account.eventEndDate.toString(),
+      ticketPrice: event.account.ticketPrice,
+      ticketQuantity: event.account.ticketQuantity,
+      certifierFunds: 0,
     }).subscribe(() => {
       console.log('ENTRAAA');
-      this._eventService.setPublishedEvent(event.id);
+      this._eventService.setPublishedEvent(event.account.eventId);
+    });
+  }
+
+  findEventById(eventId: string): Observable<EventAccount | null> {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+      return from(this._eventService.getEvent(eventId));
+    });
+  }
+
+  updateEventTickets(
+    eventId: string,
+    args: { ticketPrice: number; ticketQuantity: number }
+  ) {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(this._eventService.updateEventTickets(eventId, args));
+    });
+  }
+
+  updateEventDates(
+    eventId: string,
+    args: { startDate: string; endDate: string }
+  ) {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(this._eventService.updateEventDates(eventId, args));
+    });
+  }
+
+  updateEventInfo(
+    eventId: string,
+    args: {
+      name: string;
+      description: string;
+      location: string;
+      banner: string;
+    }
+  ) {
+    return defer(() => {
+      const provider = this.provider;
+
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
+      return from(this._eventService.updateEventInfo(eventId, args));
     });
   }
 }
