@@ -30,6 +30,7 @@ interface ViewModel {
   owner: PublicKey | null;
   events: EventDto[] | null; //EventItemByOwner[] | null;
   tickets: EventDto[] | null;
+  draftEvents: EventDto[] | null;
   error: unknown | null;
 }
 
@@ -38,6 +39,7 @@ const initialState: ViewModel = {
   owner: null,
   events: null,
   tickets: null,
+  draftEvents: null,
   error: null,
 };
 
@@ -47,6 +49,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
   readonly owner$ = this.select(({ owner }) => owner);
   readonly events$ = this.select(({ events }) => events);
+  readonly draftEvents$ = this.select(({ draftEvents }) => draftEvents);
   readonly tickets$ = this.select(({ tickets }) => tickets);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
@@ -60,19 +63,6 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
     this._loadEvents(
       combineLatest([
         // Trigger load events when connection changes
-        this.select(
-          this._connectionStore.connection$,
-          this.owner$,
-          (connection, owner) => ({ connection, owner }),
-          { debounce: true }
-        ),
-        this.reloadSubject.asObservable(),
-      ]).pipe(map(([data]) => data))
-    );
-
-    this._loadTickets(
-      combineLatest([
-        // Trigger load tickets when connection changes
         this.select(
           this._connectionStore.connection$,
           this.owner$,
@@ -165,33 +155,9 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
         tapResponse(
           (events) =>
             this.patchState({
-              events: events,
-              loading: false,
-            }),
-          (error) => this.patchState({ error, loading: false })
-        )
-      );
-    })
-  );
-
-  private readonly _loadTickets = this.effect<{
-    connection: Connection | null;
-    owner: PublicKey | null;
-  }>(
-    switchMap(({ connection, owner }) => {
-      // If there's no connection ignore loading call
-      if (connection === null || owner === null) {
-        return EMPTY;
-      }
-
-      this.patchState({ loading: true });
-
-      return this._eventApiService.findEventByTicketOwner(owner).pipe(
-        concatMap((events) => from(events).pipe(toArray())),
-        tapResponse(
-          (tickes) =>
-            this.patchState({
-              tickets: tickes,
+              events: events.filter((event) => event.published === true),
+              draftEvents: events.filter((event) => event.published === false),
+              tickets: events,
               loading: false,
             }),
           (error) => this.patchState({ error, loading: false })
@@ -202,5 +168,9 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
   reload() {
     this.reloadSubject.next(null);
+  }
+
+  publish(event: EventDto) {
+    this._eventApiService.publishEvent(event);
   }
 }

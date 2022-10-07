@@ -11,6 +11,7 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
+import { CreateEventArguments } from '@event-manager-web-client/data-access';
 import { defer, from, map, Observable } from 'rxjs';
 import { Entity, EventDto } from './types';
 
@@ -46,6 +47,15 @@ export class EventService {
         banner: event['banner'],
         startDate: event['startDate'],
         endDate: event['endDate'],
+        tickets: event['tickets'].map((ticket: { [x: string]: any }) => {
+          ticket['ticketPrice'],
+            ticket['ticketQuantity'],
+            ticket['ticketsSold'],
+            ticket['ticketsMint'];
+        }),
+        treasury: event['treasury'],
+        certifierFunds: event['certifierFunds'],
+        published: event['publisehd'],
       }))
     );
   }
@@ -68,6 +78,10 @@ export class EventService {
             banner: event['banner'],
             startDate: event['startDate'],
             endDate: event['endDate'],
+            tickets: event['tickets'],
+            treasury: event['treasury'],
+            certifierFunds: event['certifierFunds'],
+            published: event['published'],
           };
         },
         toFirestore: (it) => it,
@@ -93,6 +107,15 @@ export class EventService {
             banner: event['banner'],
             startDate: event['startDate'],
             endDate: event['endDate'],
+            tickets: event['tickets'],
+            treasury: {
+              acceptedMint: '',
+              valueLocked: 0,
+              valueDeposited: 0,
+              profit: 0,
+            },
+            certifierFunds: event['certifierFunds'],
+            published: event['published'],
           };
         },
         toFirestore: (it) => it,
@@ -102,6 +125,7 @@ export class EventService {
 
   createEvent(
     owner: string,
+    published = false,
     {
       name,
       description,
@@ -109,8 +133,10 @@ export class EventService {
       banner,
       startDate,
       endDate,
-      published = false,
-    }: CreateEventDto
+      ticketPrice,
+      ticketQuantity,
+      certifierFunds = 0,
+    }: CreateEventArguments
   ) {
     // new event with auto-generated id
     const newEventRef = doc(collection(this._firestore, 'events'));
@@ -125,6 +151,16 @@ export class EventService {
           banner,
           startDate,
           endDate,
+          tickets: [
+            { ticketPrice, ticketQuantity, ticketsSold: 0, ticketMint: null },
+          ],
+          treasury: {
+            acceptedMint: null,
+            valueLocked: 0,
+            valueDeposited: 0,
+            profit: 0,
+          },
+          certifierFunds,
           published,
         })
       )
@@ -136,6 +172,11 @@ export class EventService {
   updateEvent(eventId: string, changes: UpdateEventDto) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
     return defer(() => from(updateDoc(eventRef, changes)));
+  }
+
+  setPublishedEvent(eventId: string) {
+    const eventRef = doc(this._firestore, `events/${eventId}`);
+    return defer(() => from(updateDoc(eventRef, { published: true })));
   }
 
   deleteEvent(eventId: string) {

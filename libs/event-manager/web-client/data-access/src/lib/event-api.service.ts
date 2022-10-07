@@ -14,7 +14,8 @@ import {
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
 import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
-import { CreateEventDto, EventService } from './firebase/event.service';
+import { EventService } from './firebase/event.service';
+import { EventDto } from './firebase/types';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
@@ -345,7 +346,7 @@ export class EventApiService {
     });
   }
 
-  createEvent(args: CreateEventDto) {
+  createEvent(args: CreateEventArguments) {
     return defer(() => {
       const provider = this.provider;
 
@@ -356,6 +357,7 @@ export class EventApiService {
       return from(
         this._eventService.createEvent(
           provider.wallet.publicKey.toBase58(),
+          false,
           args
         )
       );
@@ -385,6 +387,23 @@ export class EventApiService {
       }
 
       return from(this._eventService.getPublishedEvents());
+    });
+  }
+
+  publishEvent(event: EventDto) {
+    return this.create({
+      name: event.name,
+      description: event.description,
+      location: event.location,
+      banner: event.banner,
+      startDate: event.startDate.toString(),
+      endDate: event.endDate.toString(),
+      ticketPrice: event.tickets[0].ticketPrice,
+      ticketQuantity: event.tickets[0].ticketQuantity,
+      certifierFunds: event.certifierFunds,
+    }).subscribe(() => {
+      console.log('ENTRAAA');
+      this._eventService.setPublishedEvent(event.id);
     });
   }
 }

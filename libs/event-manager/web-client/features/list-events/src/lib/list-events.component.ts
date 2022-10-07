@@ -102,34 +102,39 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               </p>
             </div>
 
-            <!-- <div class="flex flex-col items-center gap-3">
+            <div class="flex flex-col items-center gap-3">
               <div class=" px-4 py-2 disco-layer disco-border border-2 blue">
                 <p
-                  *ngIf="event.account.ticketQuantity > 0"
+                  *ngIf="event.tickets[0].ticketQuantity > 0"
                   class="m-0 text-justify disco-text gold"
                 >
-                  <ng-container *ngIf="event.ticketsSold === 0">
+                  <ng-container *ngIf="event.tickets[0].ticketsSold === 0">
                     Out of the total of
                     <b class="text-lg">{{
-                      event.account.ticketQuantity | number
+                      event.tickets[0].ticketQuantity | number
                     }}</b>
                     tickets, none have been sold.
                   </ng-container>
-                  <ng-container *ngIf="event.ticketsSold > 0">
+                  <ng-container *ngIf="event.tickets[0].ticketsSold > 0">
                     Out of the total of
                     <b class="text-lg">{{
-                      event.account.ticketQuantity | number
+                      event.tickets[0].ticketQuantity | number
                     }}</b>
                     tickets,
-                    <b class="text-lg">{{ event.ticketsSold | number }}</b>
+                    <b class="text-lg">{{
+                      event.tickets[0].ticketsSold | number
+                    }}</b>
                     have been already sold.
                   </ng-container>
                   <ng-container
-                    *ngIf="event.ticketsSold === event.account.ticketQuantity"
+                    *ngIf="
+                      event.tickets[0].ticketsSold ===
+                      event.tickets[0].ticketQuantity
+                    "
                   >
                     All
                     <b class="text-lg">{{
-                      event.account.ticketQuantity | number
+                      event.tickets[0].ticketQuantity | number
                     }}</b>
                     tickets have been sold out.
                   </ng-container>
@@ -140,7 +145,6 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 <mat-progress-bar
                   mode="determinate"
                   color="accent"
-                  [value]="event.salesProgress"
                 ></mat-progress-bar>
                 <div class="flex justify-between items-baseline">
                   <div class="flex gap-2 items-center">
@@ -156,14 +160,16 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       </figure>
                       <span
                         class="text-2xl font-bold leading-none disco-text green"
-                        >{{ event.ticketPrice | number: '1.2-2' }}</span
+                        >{{
+                          event.tickets[0].ticketPrice | number: '1.2-2'
+                        }}</span
                       >
                     </div>
                   </div>
 
                   <p class="m-0">
-                    {{ event.ticketsSold | number }}/{{
-                      event.account.ticketQuantity | number
+                    {{ event.tickets[0].ticketsSold | number }}/{{
+                      event.tickets[0].ticketQuantity | number
                     }}
                   </p>
                 </div>
@@ -172,26 +178,26 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                 emBuyTicketsTrigger
-                [eventName]="event.account.name"
-                [ticketPrice]="event.ticketPrice"
-                [eventId]="event.publicKey.toBase58()"
-                (buyTickets)="
-                  onBuyTickets(
-                    event.publicKey,
-                    event.account.acceptedMint,
-                    $event
-                  )
-                "
+                [eventName]="event.name"
+                [ticketPrice]="event.tickets[0].ticketPrice"
+                [eventId]="event.id"
               >
                 <div class="flex flex-col items-center">
                   <span class="uppercase text-2xl"> Buy Tickets! </span>
                   <span class="text-xs italic">
                     Only
-                    <b>{{ event.ticketsLeft | number }} ticket(s)</b> left.
+                    <b
+                      >{{
+                        event.tickets[0].ticketQuantity -
+                          event.tickets[0].ticketsSold | number
+                      }}
+                      ticket(s)</b
+                    >
+                    left.
                   </span>
                 </div>
               </button>
-            </div> -->
+            </div>
           </div>
         </article>
       </section>

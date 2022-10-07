@@ -465,7 +465,7 @@ export function publicKeyValidator(): ValidatorFn {
                   class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                   (click)="onSubmit()"
                 >
-                  Submit
+                  Save
                 </button>
               </div>
             </div>
@@ -530,9 +530,10 @@ export class CreateEventComponent {
   onSubmit() {
     this.submitted = true;
 
-    if (this.informationForm.valid) {
+    if (this.informationForm.valid && this.ticketsForm.valid) {
       this._eventApiService
         .createEvent({
+          ...this.ticketsForm.value,
           ...this.informationForm.value,
         })
         .pipe(

@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
 import { BuyTicketsModule } from '@event-manager-web-client/buy-tickets';
 import { ProfileComponent } from './profile.component';
@@ -23,6 +24,7 @@ import { ProfileComponent } from './profile.component';
     MatIconModule,
     MatSnackBarModule,
     BuyTicketsModule,
+    MatTabsModule,
   ],
   declarations: [ProfileComponent],
 })

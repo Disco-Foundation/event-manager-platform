@@ -8,4 +8,20 @@ export type EventDto = Entity<{
   banner: string;
   startDate: Date;
   endDate: Date;
+  tickets: [
+    {
+      ticketPrice: number;
+      ticketQuantity: number;
+      ticketsSold: number;
+      ticketMint: string | null;
+    }
+  ];
+  treasury: {
+    acceptedMint: string | null;
+    valueLocked: number;
+    valueDeposited: number;
+    profit: number;
+  };
+  certifierFunds: number;
+  published: boolean;
 }>;
