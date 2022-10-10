@@ -37,4 +37,5 @@ export interface CreateEventData {
   ticketPrice: number;
   ticketQuantity: number;
   acceptedMint: string;
+  fId: string;
 }

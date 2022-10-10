@@ -89,7 +89,8 @@ pub fn handle(
   event_start_date: i64,
   event_end_date: i64,
   ticket_price: u64, 
-  ticket_quantity: u32
+  ticket_quantity: u32,
+  f_id: String
 ) -> Result<()> {
   msg!("Creating Event...");
   (*ctx.accounts.event).authority = ctx.accounts.authority.key();
@@ -101,6 +102,7 @@ pub fn handle(
   (*ctx.accounts.event).location = location;
   (*ctx.accounts.event).event_start_date = event_start_date;
   (*ctx.accounts.event).event_end_date = event_end_date;
+  (*ctx.accounts.event).f_id = f_id;
   let ticket_price_multiplier = (10 as u32).checked_pow(ctx.accounts.accepted_mint.decimals as u32).unwrap();
   (*ctx.accounts.event).ticket_price = ticket_price.checked_mul(ticket_price_multiplier as u64).unwrap();
   (*ctx.accounts.event).ticket_quantity = ticket_quantity;

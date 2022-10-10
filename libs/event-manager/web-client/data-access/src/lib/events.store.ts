@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import {
@@ -83,13 +82,15 @@ export class EventsStore extends ComponentStore<ViewModel> {
             concatMap((event) =>
               forkJoin({
                 temporalVault: defer(() =>
-                  from(getTokenAccount(connection, event.account.temporalVault))
+                  from(
+                    getTokenAccount(connection, event.account.temporalVault!)
+                  )
                 ),
                 acceptedMint: defer(() =>
-                  from(getMint(connection, event.account.acceptedMint))
+                  from(getMint(connection, event.account.acceptedMint!))
                 ),
                 ticketMint: defer(() =>
-                  from(getMint(connection, event.account.tickets[0].ticketMint))
+                  from(getMint(connection, event.account.ticketMint!))
                 ),
               }).pipe(
                 map(({ temporalVault, acceptedMint, ticketMint }) => ({
@@ -97,17 +98,17 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   temporalVault,
                   acceptedMint,
                   ticketMint,
-                  ticketPrice: event.account.tickets[0].ticketPrice
-                    .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                    .toNumber(),
-                  ticketsSold: event.account.tickets[0].ticketsSold,
+                  ticketPrice: event.account.ticketPrice! /*.div(
+                      new BN(10).pow(new BN(acceptedMint.decimals))
+                    )
+                    .toNumber()*/,
+                  ticketsSold: event.account.ticketsSold!,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /
-                      event.account.tickets[0].ticketQuantity
+                      event.account.ticketQuantity
                   ),
                   ticketsLeft:
-                    event.account.tickets[0].ticketQuantity -
-                    Number(ticketMint.supply),
+                    event.account.ticketQuantity - Number(ticketMint.supply),
                 }))
               )
             ),

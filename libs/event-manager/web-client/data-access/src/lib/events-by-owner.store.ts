@@ -12,7 +12,11 @@ import {
   switchMap,
   toArray,
 } from 'rxjs';
-import { EventAccount, EventApiService } from './event-api.service';
+import {
+  CreateEventArguments,
+  EventAccount,
+  EventApiService,
+} from './event-api.service';
 
 export interface EventItemByOwner extends EventAccount {
   published: boolean;
@@ -22,7 +26,6 @@ interface ViewModel {
   loading: boolean;
   owner: PublicKey | null;
   events: EventItemByOwner[] | null;
-  tickets: EventItemByOwner[] | null;
   draftEvents: EventItemByOwner[] | null;
   error: unknown | null;
 }
@@ -31,7 +34,6 @@ const initialState: ViewModel = {
   loading: false,
   owner: null,
   events: null,
-  tickets: null,
   draftEvents: null,
   error: null,
 };
@@ -43,7 +45,6 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
   readonly owner$ = this.select(({ owner }) => owner);
   readonly events$ = this.select(({ events }) => events);
   readonly draftEvents$ = this.select(({ draftEvents }) => draftEvents);
-  readonly tickets$ = this.select(({ tickets }) => tickets);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
 
@@ -72,65 +73,6 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
     owner,
   }));
 
-  /*private readonly _loadEvents = this.effect<{
-    connection: Connection | null;
-    owner: PublicKey | null;
-  }>(
-    switchMap(({ connection, owner }) => {
-      // If there's no connection ignore loading call
-      if (connection === null || owner === null) {
-        return EMPTY;
-      }
-
-      this.patchState({ loading: true });
-
-      return this._eventApiService.findByTicketOwner(owner).pipe(
-        concatMap((events) =>
-          from(events).pipe(
-            concatMap((event) =>
-              forkJoin({
-                ticketMint: getMint(connection, event.account.ticketMint),
-                acceptedMint: getMint(connection, event.account.acceptedMint),
-                ticketVault: PublicKey.findProgramAddress(
-                  [
-                    Buffer.from('ticket_vault', 'utf-8'),
-                    event.account.ticketMint.toBuffer(),
-                    owner.toBuffer(),
-                  ],
-                  EVENT_PROGRAM_ID
-                ).then(([vaultAddress]) =>
-                  getAccount(connection, vaultAddress)
-                ),
-              }).pipe(
-                map(({ ticketMint, ticketVault, acceptedMint }) => ({
-                  ...event,
-                  acceptedMint,
-                  ticketVault,
-                  ticketMint,
-                  ticketPrice: event.account.ticketPrice
-                    .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                    .toNumber(),
-                  ticketsLeft:
-                    event.account.ticketQuantity - Number(ticketMint.supply),
-                  ticketQuantity: Number(ticketVault.amount),
-                }))
-              )
-            ),
-            toArray()
-          )
-        ),
-        tapResponse(
-          (events) =>
-            this.patchState({
-              events,
-              loading: false,
-            }),
-          (error) => this.patchState({ error, loading: false })
-        )
-      );
-    })
-  );*/
-
   private readonly _loadEvents = this.effect<{
     connection: Connection | null;
     owner: PublicKey | null;
@@ -150,7 +92,6 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
             this.patchState({
               events: events.filter((event) => event.published === true),
               draftEvents: events.filter((event) => event.published === false),
-              tickets: events,
               loading: false,
             }),
           (error) => this.patchState({ error, loading: false })
@@ -161,5 +102,24 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
   reload() {
     this.reloadSubject.next(null);
+  }
+
+  publishDraft(event: EventAccount) {
+    const args = {
+      name: event.account.name,
+      description: event.account.description,
+      location: event.account.location,
+      banner: event.account.banner,
+      startDate: event.account.eventStartDate,
+      endDate: event.account.eventEndDate,
+      ticketPrice: event.account.ticketPrice,
+      ticketQuantity: event.account.ticketQuantity,
+      certifierFunds: 0,
+      fId: event.account.fId,
+    };
+    console.log('ARGS:', args);
+    this._eventApiService
+      .publish(args as CreateEventArguments)
+      .subscribe(() => console.log('FINISHED'));
   }
 }

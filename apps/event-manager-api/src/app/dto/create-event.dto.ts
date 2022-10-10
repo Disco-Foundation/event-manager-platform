@@ -21,4 +21,6 @@ export class CreateEventDTO {
   ticketQuantity: number;
   @IsString()
   acceptedMint: string;
+  @IsString()
+  fId: string;
 }

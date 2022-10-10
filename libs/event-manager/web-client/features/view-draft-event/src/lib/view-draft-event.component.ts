@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   ConfigStore,
   EventAccount,
@@ -33,8 +33,8 @@ import {
         </h2>
 
         <p class="m-0 text-center">
-          Everything you'll need to know about
-          <b class="disco-text gold">{{ event.account.name }}</b> goes here.
+          You can edit everything about
+          <b class="disco-text gold">{{ event.account.name }}</b> here.
         </p>
 
         <p class="m-0" *ngIf="error$ | async as error">
@@ -42,10 +42,11 @@ import {
         </p>
       </header>
 
-      <div class="flex flex-wrap justify-center gap-4 mt-8">
-        <div class="flex flex-row gap-4" style="width: 45rem">
+      <div class="flex flex-wrap justify-center gap-8">
+        <div class="flex flex-row gap-4" style="width: 50rem; margin-top:2rem">
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
+            style="width: 60%;"
           >
             <header class="flex flex-col gap-2">
               <figure class="h-48 overflow-hidden bg-black">
@@ -81,13 +82,13 @@ import {
               </p>
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-                (click)="onPublishEvent(event.account.eventId)"
+                (click)="onPublishEvent(event)"
               >
                 Publish Event
               </button>
             </div>
           </section>
-          <div class="flex flex-col gap-4 w-96">
+          <div class="flex flex-col gap-4 w-98" style="width: 20rem;">
             <section
               class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
             >
@@ -578,7 +579,8 @@ export class ViewDraftEventComponent implements OnInit {
     private readonly _configStore: ConfigStore,
     private readonly _eventApiService: EventApiService,
     private readonly _formBuilder: UntypedFormBuilder,
-    private readonly _matSnackBar: MatSnackBar
+    private readonly _matSnackBar: MatSnackBar,
+    private readonly _router: Router
   ) {}
 
   ngOnInit() {
@@ -594,7 +596,24 @@ export class ViewDraftEventComponent implements OnInit {
   }
 
   onPublishEvent(event: EventAccount) {
-    this._eventApiService.publishEvent(event);
+    if (this.id != null) {
+      this._eventApiService
+        .publishEvent(event)
+        .pipe(
+          concatMap(() => {
+            return this._matSnackBar
+              .open('Event published!', '', {
+                duration: 5000,
+              })
+              .afterOpened();
+          }),
+          catchError((error) => {
+            this._matSnackBar.open(error.message);
+            return EMPTY;
+          })
+        )
+        .subscribe(() => this._router.navigate(['/profile']));
+    }
   }
 
   showEditTickets() {

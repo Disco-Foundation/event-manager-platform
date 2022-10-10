@@ -7,7 +7,7 @@ mod utils;
 
 use instructions::*;
 
-declare_id!("915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF");
+declare_id!("4QjKHnUKebDM2utCHa3TCywLobo4iC7Cbi1PyThMw6ND");//"915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF");
 
 #[program]
 pub mod event_manager {
@@ -24,6 +24,7 @@ pub mod event_manager {
         event_end_date: i64,
         ticket_price: u64,
         ticket_quantity: u32,
+        f_id: String,
     ) -> Result<()> {
         instructions::event::create_event::handle(
             ctx,
@@ -36,6 +37,7 @@ pub mod event_manager {
             event_end_date,
             ticket_price,
             ticket_quantity,
+            f_id
         )
     }
 

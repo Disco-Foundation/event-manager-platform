@@ -44,6 +44,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         *ngIf="events$ | async as events; else notLoaded"
         class="flex flex-wrap gap-8 justify-center"
       >
+        <p *ngIf="events.length === 0">No Events Found</p>
+
         <article
           *ngFor="let event of events"
           class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
@@ -178,6 +180,13 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 [eventName]="event.account.name"
                 [ticketPrice]="event.account.ticketPrice"
                 [eventId]="event.account.eventId"
+                (buyTickets)="
+                  onBuyTickets(
+                    event.publicKey!,
+                    event.account.acceptedMint!,
+                    $event
+                  )
+                "
               >
                 <div class="flex flex-col items-center">
                   <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -257,6 +266,7 @@ export class ListEventsComponent {
                 from(connection.confirmTransaction(signature))
               ).pipe(
                 catchError((error) => {
+                  console.log('ERROR:', error);
                   this._matSnackBar.open(error.msg);
                   return EMPTY;
                 })

@@ -48,6 +48,7 @@ export class EventService {
         publicKey:
           event['publicKey'] != null ? new PublicKey(event['publicKey']) : null,
         account: {
+          fId: eventId,
           owner: new PublicKey(event['owner']),
           name: event['name'],
           description: event['description'],
@@ -96,7 +97,7 @@ export class EventService {
     );
   }
 
-  // get all the events for certain user
+  // get all the events for created by certain user
   getUserEvents(owner: string): Observable<EventItemByOwner[]> {
     const eventsRef = collection(this._firestore, 'events');
 
@@ -140,7 +141,8 @@ export class EventService {
                 event['eventMint'] != null
                   ? new PublicKey(event['eventMint'])
                   : null,
-              eventId: snapshot.id,
+              fId: snapshot.id,
+              eventId: event['eventId'],
               temporalVault:
                 event['temporalVault'] != null
                   ? new PublicKey(event['temporalVault'])
@@ -192,14 +194,15 @@ export class EventService {
               certifier: new PublicKey(event['certifier']),
               authority: new PublicKey(event['authority']),
               eventMint: new PublicKey(event['eventMint']),
-              eventId: snapshot.id,
+              eventId: event['eventId'],
+              fId: snapshot.id,
               temporalVault: new PublicKey(event['temporalVault']),
               temporalVaultBump: event['temporalVaultBump'],
               ticketMint: new PublicKey(event['ticketMint']),
               ticketMintBump: event['ticketMintBump'],
               ticketPrice: event['ticketPrice'],
               ticketsSold: event['ticketsSold'],
-              ticketQuantity: event['ticketsQuantity'],
+              ticketQuantity: event['ticketQuantity'],
             },
           };
         },
@@ -249,7 +252,7 @@ export class EventService {
           certifier: null,
           authority: null,
           eventMint: null,
-          eventId: newEventRef.id,
+          eventId: null, //newEventRef.id,
           temporalVault: null,
           temporalVaultBump: null,
           publicKey: null,
@@ -289,13 +292,98 @@ export class EventService {
     return defer(() => from(updateDoc(eventRef, changes)));
   }
 
-  setPublishedEvent(eventId: string) {
-    const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() => from(updateDoc(eventRef, { published: true })));
+  setPublishedEvent(event: EventAccount) {
+    event.account.published = true;
+    const eventRef = doc(this._firestore, `events/${event.account.fId}`);
+    return defer(() =>
+      from(
+        updateDoc(eventRef, {
+          published: true,
+          acceptedMint: event.account.acceptedMint?.toBase58(),
+          authority: event.account.authority?.toBase58(),
+          certifier: event.account.certifier?.toBase58(),
+          eventBump: event.account.eventBump,
+          eventMint: event.account.eventMint?.toBase58(),
+          eventMintBump: event.account.eventMintBump,
+          eventId: event.account.eventId.toNumber(),
+          publicKey: event.publicKey?.toBase58(),
+          temporalVault: event.account.temporalVault?.toBase58(),
+          temporalVaultBump: event.account.temporalVaultBump,
+          ticketMint: event.account.ticketMint?.toBase58(),
+        })
+      )
+    );
   }
 
   deleteEvent(eventId: string) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
     return defer(() => from(deleteDoc(eventRef)));
+  }
+
+  // get all the events for created by certain user
+  getEventsByPubKey(keys: string[]): Observable<EventAccount[]> {
+    const eventsRef = collection(this._firestore, 'events');
+    return collectionData(
+      query(eventsRef, where('publicKey', 'in', keys)).withConverter({
+        fromFirestore: (snapshot) => {
+          const event = snapshot.data();
+          console.log(event);
+
+          return {
+            publicKey:
+              event['publicKey'] != null
+                ? new PublicKey(event['publicKey'])
+                : null,
+            account: {
+              owner: new PublicKey(event['owner']),
+              name: event['name'],
+              description: event['description'],
+              location: event['location'],
+              banner: event['banner'],
+              eventStartDate: event['startDate'],
+              eventEndDate: event['endDate'],
+              acceptedMint:
+                event['acceptedMint'] != null
+                  ? new PublicKey(event['acceptedMint'])
+                  : null,
+              totalProfit: event['profit'],
+              certifierFunds: event['certifierFunds'],
+              published: event['published'],
+              eventBump: event['eventBump'],
+              eventMintBump: event['eventBump'],
+              certifier:
+                event['certifier'] != null
+                  ? new PublicKey(event['certifier'])
+                  : null,
+              authority:
+                event['authority'] != null
+                  ? new PublicKey(event['authority'])
+                  : null,
+              eventMint:
+                event['eventMint'] != null
+                  ? new PublicKey(event['eventMint'])
+                  : null,
+              fId: snapshot.id,
+              eventId: event['eventId'],
+              temporalVault:
+                event['temporalVault'] != null
+                  ? new PublicKey(event['temporalVault'])
+                  : null,
+              temporalVaultBump: event['temporalVaultBump'],
+              ticketMint:
+                event['ticketMint'] != null
+                  ? new PublicKey(event['ticketMint'])
+                  : null,
+              ticketMintBump: event['ticketMintBump'],
+              ticketPrice: event['ticketPrice'],
+              ticketsSold: event['ticketsSold'],
+              ticketQuantity: event['ticketQuantity'],
+            },
+            published: event['published'],
+          };
+        },
+        toFirestore: (it) => it,
+      })
+    );
   }
 }

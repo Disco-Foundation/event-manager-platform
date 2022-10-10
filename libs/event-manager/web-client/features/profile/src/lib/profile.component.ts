@@ -5,6 +5,7 @@ import {
   EventAccount,
   EventApiService,
   EventsByOwnerStore,
+  TicketsByOwnerStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
@@ -32,16 +33,6 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         <p class="text-center" *ngIf="error$ | async as error">
           {{ error }}
         </p>
-
-        <div>
-          <button
-            (click)="onReload()"
-            class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-            style="margin: 10px;"
-          >
-            Reload
-          </button>
-        </div>
       </header>
       <div>
         <mat-tab-group animationDuration="0ms" style="align-items: center;">
@@ -82,7 +73,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', ticket.publicKey]"
+                    [routerLink]="['/view-event', ticket.account.fId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -98,7 +89,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Starts at: <br />
 
                       <span class="font-bold">{{
-                        ticket.account.eventStartDate | date: 'short'
+                        ticket.account.eventStartDate.toNumber() | date: 'short'
                       }}</span>
                     </p>
 
@@ -106,7 +97,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       Ends at: <br />
 
                       <span class="font-bold">{{
-                        ticket.account.eventEndDate | date: 'short'
+                        ticket.account.eventEndDate.toNumber() | date: 'short'
                       }}</span>
                     </p>
                   </div>
@@ -150,10 +141,10 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     emBuyTicketsTrigger
                     [eventName]="ticket.account.name"
                     [ticketPrice]="ticket.account.ticketPrice"
-                    [eventId]="ticket.account.eventId"
+                    [eventId]="ticket.publicKey!.toBase58()"
                   >
                     <div class="flex flex-col items-center">
-                      <span class="uppercase text-2xl"> Buy Tickets! </span>
+                      <span class="uppercase text-2xl"> Buy More </span>
                       <span class="text-xs italic">
                         Only
                         <b
@@ -219,7 +210,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', event.publicKey]"
+                    [routerLink]="['/view-event', event.account.fId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -320,11 +311,11 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     </div>
 
                     <button
-                      *ngIf="event.published"
                       class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                       emBuyTicketsTrigger
                       [eventName]="event.account.name"
                       [ticketPrice]="event.account.ticketPrice"
+                      [eventId]="event.publicKey!.toBase58()"
                     >
                       <div class="flex flex-col items-center">
                         <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -397,7 +388,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-draft-event', draft.account.eventId]"
+                    [routerLink]="['/view-draft-event', draft.account.fId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -517,11 +508,11 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
       </div>
     </div>
   `,
-  providers: [EventsByOwnerStore, ConfigStore],
+  providers: [EventsByOwnerStore, ConfigStore, TicketsByOwnerStore],
 })
 export class ProfileComponent implements OnInit {
   readonly events$ = this._eventsByOwnerStore.events$;
-  readonly tickets$ = this._eventsByOwnerStore.tickets$;
+  readonly tickets$ = this._ticketsByOwnerStore.tickets$;
   readonly draftEvents$ = this._eventsByOwnerStore.draftEvents$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
   readonly error$ = this._eventsByOwnerStore.error$;
@@ -531,16 +522,19 @@ export class ProfileComponent implements OnInit {
     private readonly _walletStore: WalletStore,
     private readonly _configStore: ConfigStore,
     private readonly _eventsByOwnerStore: EventsByOwnerStore,
+    private readonly _ticketsByOwnerStore: TicketsByOwnerStore,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
     this._eventsByOwnerStore.setOwner(this._walletStore.publicKey$);
+    this._ticketsByOwnerStore.setOwner(this._walletStore.publicKey$);
   }
 
   onReload() {
     this._eventsByOwnerStore.reload();
+    this._ticketsByOwnerStore.reload();
   }
 
   onBuyTickets(
@@ -595,7 +589,7 @@ export class ProfileComponent implements OnInit {
       .subscribe();
   }
 
-  onPublishEvent(event: EventAccount) {
-    this._eventApiService.publishEvent(event);
+  onPublishEvent(draft: EventAccount) {
+    this._eventsByOwnerStore.publishDraft(draft);
   }
 }

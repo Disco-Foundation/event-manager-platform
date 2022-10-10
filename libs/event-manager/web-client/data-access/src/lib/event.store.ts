@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { getMint, Mint } from '@solana/spl-token';
@@ -99,6 +98,7 @@ export class EventStore extends ComponentStore<ViewModel> {
       console.log(eventId);
       return this._eventApiService.findEventById(eventId).pipe(
         concatMap((event) => {
+          console.log(event);
           if (event === null) {
             return of(null);
           }
@@ -123,9 +123,9 @@ export class EventStore extends ComponentStore<ViewModel> {
               ticketPrice:
                 event.account.acceptedMint != null
                   ? event.account.ticketPrice
-                      .div(new BN(10).pow(new BN(acceptedMint!.decimals)))
-                      .toNumber()
-                  : 0,
+                  : /*.div(new BN(10).pow(new BN(acceptedMint!.decimals)))
+                      .toNumber()*/
+                    0,
               ticketsSold: event.account.ticketsSold,
               ticketsLeft:
                 event.account.ticketMint != null
@@ -141,9 +141,9 @@ export class EventStore extends ComponentStore<ViewModel> {
               totalProfit:
                 event.account.acceptedMint != null
                   ? event.account.totalProfit
-                      .div(new BN(10).pow(new BN(acceptedMint!.decimals)))
-                      .toNumber()
-                  : 0,
+                  : /*.div(new BN(10).pow(new BN(acceptedMint!.decimals)))
+                      .toNumber()*/
+                    0,
             }))
           );
         }),

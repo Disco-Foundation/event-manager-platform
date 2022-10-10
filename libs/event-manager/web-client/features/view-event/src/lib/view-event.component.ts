@@ -215,35 +215,22 @@ import {
                 *ngIf="now$ | async as now"
                 class="italic text-xs m-0 disco-text gold"
               >
-                <ng-container
-                  *ngIf="now < event.account.eventStartDate.toNumber()"
-                >
+                <ng-container *ngIf="now < event.account.eventStartDate">
                   Starts
-                  {{
-                    event.account.eventStartDate.toNumber() - now
-                      | emRelativeTime
-                  }}.
+                  {{ event.account.eventStartDate - now | emRelativeTime }}.
                 </ng-container>
                 <ng-container
                   *ngIf="
-                    now > event.account.eventStartDate.toNumber() &&
-                    now < event.account.eventEndDate.toNumber()
+                    now > event.account.eventStartDate &&
+                    now < event.account.eventEndDate
                   "
                 >
                   Ends
-                  {{
-                    event.account.eventEndDate.toNumber() - now
-                      | emRelativeTime
-                  }}.
+                  {{ event.account.eventEndDate - now | emRelativeTime }}.
                 </ng-container>
-                <ng-container
-                  *ngIf="now > event.account.eventEndDate.toNumber()"
-                >
+                <ng-container *ngIf="now > event.account.eventEndDate">
                   Ended
-                  {{
-                    now - event.account.eventEndDate.toNumber()
-                      | emRelativeTime
-                  }}.
+                  {{ now - event.account.eventEndDate | emRelativeTime }}.
                 </ng-container>
               </p>
             </header>
@@ -253,15 +240,13 @@ import {
                 <p class="m-0">
                   From <br />
                   <span class="text-xl font-bold">
-                    {{
-                      event.account.eventStartDate.toNumber() | date: 'medium'
-                    }}
+                    {{ event.account.eventStartDate | date: 'medium' }}
                   </span>
                 </p>
                 <p class="m-0">
                   To <br />
                   <span class="text-xl font-bold">
-                    {{ event.account.eventEndDate.toNumber() | date: 'medium' }}
+                    {{ event.account.eventEndDate | date: 'medium' }}
                   </span>
                 </p>
               </div>
@@ -272,8 +257,8 @@ import {
                 >
                   Lasts
                   {{
-                    event.account.eventEndDate.toNumber() -
-                      event.account.eventStartDate.toNumber() | emDurationTime
+                    event.account.eventEndDate - event.account.eventStartDate
+                      | emDurationTime
                   }}
                 </p>
               </div>

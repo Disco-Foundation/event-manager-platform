@@ -872,6 +872,10 @@ export type EventManager = {
           {
             name: 'gainVaultBump';
             type: 'u8';
+          },
+          {
+            name: 'fId';
+            type: 'string';
           }
         ];
       };
@@ -1798,6 +1802,10 @@ export const IDL: EventManager = {
           {
             name: 'gainVaultBump',
             type: 'u8',
+          },
+          {
+            name: 'fId',
+            type: 'string',
           },
         ],
       },
