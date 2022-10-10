@@ -2,11 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  ConfigStore,
-  EventApiService,
-  EventStore,
-} from '@event-manager-web-client/data-access';
+import { ConfigStore, EventStore } from '@event-manager-web-client/data-access';
 import { ScaleType } from '@swimlane/ngx-charts';
 import {
   catchError,
@@ -576,7 +572,6 @@ export class ViewDraftEventComponent implements OnInit {
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _eventStore: EventStore,
     private readonly _configStore: ConfigStore,
-    private readonly _eventApiService: EventApiService,
     private readonly _formBuilder: UntypedFormBuilder,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _router: Router

@@ -20,6 +20,15 @@ import { PublicKey } from '@solana/web3.js';
 import { runTransaction } from 'firebase/firestore';
 import { defer, from, map, Observable } from 'rxjs';
 
+export interface User {
+  id: string;
+  name: string;
+  lastName: string;
+  image: string | null;
+  email: string | null;
+  discoTokens: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FirebaseService {
   private readonly _firestore = inject(Firestore);
@@ -332,5 +341,35 @@ export class FirebaseService {
         })
       )
     );
+  }
+
+  // get event details by id
+  getUser(userId: string): Observable<User> {
+    const userRef = doc(this._firestore, `users/${userId}`);
+    console.log(userRef);
+
+    return docData(userRef).pipe(
+      map((user) => ({
+        id: userRef.id,
+        name: user['name'],
+        lastName: user['lastName'],
+        image: user['image'],
+        email: user['email'],
+        discoTokens: user['discoTokens'],
+      }))
+    );
+  }
+
+  updateUser(
+    userId: string,
+    changes: {
+      name: string;
+      lastName: string;
+      email: string;
+      image: string;
+    }
+  ) {
+    const userRef = doc(this._firestore, `users/${userId}`);
+    return defer(() => from(updateDoc(userRef, changes)));
   }
 }

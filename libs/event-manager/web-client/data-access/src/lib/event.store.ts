@@ -16,7 +16,7 @@ import {
   switchMap,
 } from 'rxjs';
 import { EventAccount } from './event-api.service';
-import { FirebaseService } from './firebase/event.service';
+import { FirebaseService } from './firebase/firebase.service';
 
 export interface EventDetailsView extends EventAccount {
   acceptedMint: Mint | null;

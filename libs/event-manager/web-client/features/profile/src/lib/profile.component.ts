@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
@@ -10,6 +11,7 @@ import {
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
+import { UserStore } from './user.store';
 
 @Component({
   selector: 'em-profile',
@@ -41,19 +43,219 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
           [selectedIndex]="selectedTab"
         >
           <mat-tab label="Account info">
-            <!--<figure
-										*ngIf="!(user | bdItemChanging)"
-										class="flex justify-center items-center w-20 h-20 rounded-full overflow-hidden"
-									>
-										<img
-											class="w-full"
-											[src]="user.thumbnailUrl"
-											alt=""
-											width="80"
-											height="80"
-											onerror="this.src='assets/images/default-profile.png';"
-										/>
-									</figure>-->
+            <section
+              class="flex flex-wrap gap-8 justify-center mt-6"
+              *ngIf="user$ | async as user; else loading"
+            >
+              <article
+                class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
+                style="width: 36rem;"
+              >
+                <header class="relative flex flex-row gap-2">
+                  <figure
+                    class=" overflow-hidden bg-black"
+                    style="width: 12rem !important; height: 12rem"
+                  >
+                    <img
+                      [src]="user.image"
+                      alt=""
+                      style="object-fit: cover;height: 100%;"
+                    />
+                  </figure>
+
+                  <div style="margin-left: 20px; width: 60%;">
+                    <div style="display: flex;justify-content: space-between;">
+                      <h3
+                        class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
+                      >
+                        {{ user.name }}
+                      </h3>
+                      <button
+                        class=" top-0 right-0"
+                        mat-icon-button
+                        (click)="showInfo(true)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </div>
+
+                    <h3
+                      class="text-3xl uppercase m-0 disco-text blue disco-font overflow-hidden whitespace-nowrap overflow-ellipsis"
+                    >
+                      {{ user.lastName }}
+                    </h3>
+                    <div
+                      class="mt-3"
+                      style="display: flex;align-items: center;"
+                    >
+                      <mat-icon>email</mat-icon>
+                      <p class="line-clamp-3 text-justify m-0 flex-grow ml-2">
+                        {{ user.email }}
+                      </p>
+                    </div>
+                    <div
+                      class="mt-3"
+                      style="display: flex;align-items: center;"
+                    >
+                      <figure
+                        class=" overflow-hidden bg-black"
+                        style="width: 24px !important; height: 24px"
+                      >
+                        <img
+                          src="usdc-logo.png"
+                          alt=""
+                          style="object-fit: cover;height: 100%;"
+                        />
+                      </figure>
+                      <p class="line-clamp-3 text-justify m-0 flex-grow ml-2">
+                        {{ user.discoTokens }}
+                      </p>
+                    </div>
+                  </div>
+                </header>
+              </article>
+              <ng-container *ngIf="editingInfo">
+                <div
+                  class="disco-layer disco-border border-4 disco-glow blue mt-0"
+                  style="width: 36rem; padding:1rem;"
+                >
+                  <h4 class="m-0 text-xl disco-text">Edit Profile Info</h4>
+                  <form
+                    [formGroup]="userForm"
+                    class="flex flex-col gap-2 w-full"
+                    style="margin-top: 1rem; marging-bottom:1rem"
+                  >
+                    <mat-form-field
+                      class="w-full"
+                      appearance="fill"
+                      hintLabel="Enter your name."
+                    >
+                      <mat-label>Name</mat-label>
+                      <input
+                        matInput
+                        formControlName="name"
+                        required
+                        autocomplete="off"
+                        maxlength="40"
+                        [(ngModel)]="user.name"
+                      />
+                      <mat-hint align="end"
+                        >{{
+                          userForm.get('name')?.value?.length || 0
+                        }}/40</mat-hint
+                      >
+                      <mat-error
+                        *ngIf="
+                          submitted &&
+                          userForm.get('name')?.hasError('maxlength')
+                        "
+                        >Maximum length is 40.</mat-error
+                      >
+                    </mat-form-field>
+
+                    <mat-form-field
+                      class="w-full"
+                      appearance="fill"
+                      hintLabel="Enter your last name."
+                    >
+                      <mat-label>Last Name</mat-label>
+                      <input
+                        matInput
+                        formControlName="lastName"
+                        required
+                        autocomplete="off"
+                        maxlength="40"
+                        [(ngModel)]="user.lastName"
+                      />
+                      <mat-hint align="end"
+                        >{{
+                          userForm.get('lastName')?.value?.length || 0
+                        }}/40</mat-hint
+                      >
+                      <mat-error
+                        *ngIf="
+                          submitted &&
+                          userForm.get('lastName')?.hasError('maxlength')
+                        "
+                        >Maximum length is 40.</mat-error
+                      >
+                    </mat-form-field>
+
+                    <mat-form-field
+                      class="w-full"
+                      appearance="fill"
+                      hintLabel="Enter your email address"
+                    >
+                      <mat-label>Email</mat-label>
+                      <input
+                        matInput
+                        formControlName="email"
+                        required
+                        autocomplete="off"
+                        maxlength="40"
+                        [(ngModel)]="user.email"
+                      />
+                      <mat-hint align="end"
+                        >{{
+                          userForm.get('email')?.value?.length || 0
+                        }}/40</mat-hint
+                      >
+
+                      <mat-error
+                        *ngIf="
+                          submitted &&
+                          userForm.get('email')?.hasError('maxlength')
+                        "
+                        >Maximum length is 40.</mat-error
+                      >
+                    </mat-form-field>
+
+                    <mat-form-field
+                      class="w-full"
+                      appearance="fill"
+                      hintLabel="Enter your profile image"
+                    >
+                      <mat-label>Profile Image</mat-label>
+                      <input
+                        matInput
+                        formControlName="image"
+                        required
+                        autocomplete="off"
+                        maxlength="40"
+                        type="url"
+                        [(ngModel)]="user.image"
+                      />
+                      <mat-hint align="end"
+                        >{{
+                          userForm.get('image')?.value?.length || 0
+                        }}/40</mat-hint
+                      >
+                      <mat-error
+                        *ngIf="
+                          submitted &&
+                          userForm.get('image')?.hasError('maxlength')
+                        "
+                        >Maximum length is 40.</mat-error
+                      >
+                    </mat-form-field>
+                  </form>
+                  <div class="flex gap-2 w-full" style="margin-top: 1rem;">
+                    <button
+                      class="disco-btn red ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+                      (click)="showInfo(false)"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+                      (click)="onSaveUser()"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+            </section>
           </mat-tab>
 
           <mat-tab label="Tickets">
@@ -540,12 +742,29 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
 })
 export class ProfileComponent implements OnInit {
   @Input() selectedTab: number = 0; // Account Info
-
+  editingInfo = false;
+  submitted = false;
   readonly events$ = this._eventsByOwnerStore.events$;
   readonly tickets$ = this._ticketsByOwnerStore.tickets$;
   readonly draftEvents$ = this._eventsByOwnerStore.draftEvents$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
   readonly error$ = this._eventsByOwnerStore.error$;
+  readonly user$ = this._userStore.user$;
+
+  readonly userForm = this._formBuilder.group({
+    name: this._formBuilder.control(null, {
+      validators: [Validators.required, Validators.maxLength(40)],
+    }),
+    lastName: this._formBuilder.control(null, {
+      validators: [Validators.required, Validators.maxLength(40)],
+    }),
+    email: this._formBuilder.control(null, {
+      validators: [Validators.required, Validators.maxLength(40)],
+    }),
+    image: this._formBuilder.control(null, {
+      validators: [Validators.required, Validators.maxLength(40)],
+    }),
+  });
 
   constructor(
     private readonly _connectionStore: ConnectionStore,
@@ -554,12 +773,15 @@ export class ProfileComponent implements OnInit {
     private readonly _eventsByOwnerStore: EventsByOwnerStore,
     private readonly _ticketsByOwnerStore: TicketsByOwnerStore,
     private readonly _eventApiService: EventApiService,
-    private readonly _matSnackBar: MatSnackBar
+    private readonly _matSnackBar: MatSnackBar,
+    private readonly _userStore: UserStore,
+    private readonly _formBuilder: UntypedFormBuilder
   ) {}
 
   ngOnInit() {
     this._eventsByOwnerStore.setOwner(this._walletStore.publicKey$);
     this._ticketsByOwnerStore.setOwner(this._walletStore.publicKey$);
+    this._userStore.setUserId(this._walletStore.publicKey$);
   }
 
   onReload() {
@@ -629,5 +851,33 @@ export class ProfileComponent implements OnInit {
 
   onPublishEvent(draft: EventAccount) {
     this._eventsByOwnerStore.publishDraft(draft);
+  }
+
+  showInfo(show: boolean) {
+    this.editingInfo = show;
+  }
+
+  onSaveUser() {
+    this.submitted = true;
+    if (this.userForm.valid) {
+      this._userStore
+        .updateUserInfo({
+          ...this.userForm.value,
+        })
+        .pipe(
+          concatMap(() => {
+            return this._matSnackBar
+              .open('Profile updated!', '', {
+                duration: 5000,
+              })
+              .afterOpened();
+          }),
+          catchError((error) => {
+            this._matSnackBar.open(error.message);
+            return EMPTY;
+          })
+        )
+        .subscribe(() => this.showInfo(false));
+    }
   }
 }

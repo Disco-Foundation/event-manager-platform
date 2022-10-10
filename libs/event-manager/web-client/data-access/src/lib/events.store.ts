@@ -21,7 +21,7 @@ import {
   toArray,
 } from 'rxjs';
 import { EventAccount } from './event-api.service';
-import { FirebaseService } from './firebase/event.service';
+import { FirebaseService } from './firebase/firebase.service';
 
 export interface EventItem extends EventAccount {
   temporalVault: TokenAccount;

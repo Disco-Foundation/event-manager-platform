@@ -22,7 +22,7 @@ import {
   throwError,
 } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
-import { FirebaseService } from './firebase/event.service';
+import { FirebaseService } from './firebase/firebase.service';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
