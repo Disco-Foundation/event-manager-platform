@@ -85,7 +85,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findEventByTicketOwner(owner).pipe(
+      return this._eventApiService.findUserEvents().pipe(
         concatMap((events) => from(events).pipe(toArray())),
         tapResponse(
           (events) =>

@@ -17,25 +17,11 @@ import {
   EventItemByOwner,
 } from '@event-manager-web-client/data-access';
 import { PublicKey } from '@solana/web3.js';
+import { runTransaction } from 'firebase/firestore';
 import { defer, from, map, Observable } from 'rxjs';
-import { Entity } from './types';
-
-export type CreateEventDto = Entity<{
-  name: string;
-  description: string;
-  location: string;
-  banner: string;
-  startDate: Date;
-  endDate: Date;
-  published: boolean;
-}>;
-
-export type UpdateEventDto = Partial<{
-  name: string;
-}>;
 
 @Injectable({ providedIn: 'root' })
-export class EventService {
+export class FirebaseService {
   private readonly _firestore = inject(Firestore);
 
   // get event details by id
@@ -211,6 +197,7 @@ export class EventService {
     );
   }
 
+  // create new draft event
   createEvent(
     owner: string,
     published = false,
@@ -261,8 +248,7 @@ export class EventService {
     );
   }
 
-  //------ only for unpublished events-------- //
-
+  // update event ticket info
   updateEventTickets(
     eventId: string,
     changes: { ticketPrice: number; ticketQuantity: number }
@@ -271,6 +257,7 @@ export class EventService {
     return defer(() => from(updateDoc(eventRef, changes)));
   }
 
+  // update event dates info
   updateEventDates(
     eventId: string,
     changes: { startDate: string; endDate: string }
@@ -279,6 +266,7 @@ export class EventService {
     return defer(() => from(updateDoc(eventRef, changes)));
   }
 
+  // update event basic info
   updateEventInfo(
     eventId: string,
     changes: {
@@ -292,6 +280,7 @@ export class EventService {
     return defer(() => from(updateDoc(eventRef, changes)));
   }
 
+  // update publish status and event info
   setPublishedEvent(event: EventAccount) {
     event.account.published = true;
     const eventRef = doc(this._firestore, `events/${event.account.fId}`);
@@ -315,75 +304,33 @@ export class EventService {
     );
   }
 
+  // delete draft event
   deleteEvent(eventId: string) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
     return defer(() => from(deleteDoc(eventRef)));
   }
 
-  // get all the events for created by certain user
-  getEventsByPubKey(keys: string[]): Observable<EventAccount[]> {
-    const eventsRef = collection(this._firestore, 'events');
-    return collectionData(
-      query(eventsRef, where('publicKey', 'in', keys)).withConverter({
-        fromFirestore: (snapshot) => {
-          const event = snapshot.data();
-          console.log(event);
+  // update tickets sold amount
+  updateSoldTickets(eventId: string, quantity: number): Observable<void> {
+    const eventRef = doc(this._firestore, `events/${eventId}`);
+    return defer(() =>
+      from(
+        runTransaction(this._firestore, async (transaction) => {
+          return transaction.get(eventRef).then((res) => {
+            if (!res.exists) {
+              throw 'Document does not exist!';
+            }
 
-          return {
-            publicKey:
-              event['publicKey'] != null
-                ? new PublicKey(event['publicKey'])
-                : null,
-            account: {
-              owner: new PublicKey(event['owner']),
-              name: event['name'],
-              description: event['description'],
-              location: event['location'],
-              banner: event['banner'],
-              eventStartDate: event['startDate'],
-              eventEndDate: event['endDate'],
-              acceptedMint:
-                event['acceptedMint'] != null
-                  ? new PublicKey(event['acceptedMint'])
-                  : null,
-              totalProfit: event['profit'],
-              certifierFunds: event['certifierFunds'],
-              published: event['published'],
-              eventBump: event['eventBump'],
-              eventMintBump: event['eventBump'],
-              certifier:
-                event['certifier'] != null
-                  ? new PublicKey(event['certifier'])
-                  : null,
-              authority:
-                event['authority'] != null
-                  ? new PublicKey(event['authority'])
-                  : null,
-              eventMint:
-                event['eventMint'] != null
-                  ? new PublicKey(event['eventMint'])
-                  : null,
-              fId: snapshot.id,
-              eventId: event['eventId'],
-              temporalVault:
-                event['temporalVault'] != null
-                  ? new PublicKey(event['temporalVault'])
-                  : null,
-              temporalVaultBump: event['temporalVaultBump'],
-              ticketMint:
-                event['ticketMint'] != null
-                  ? new PublicKey(event['ticketMint'])
-                  : null,
-              ticketMintBump: event['ticketMintBump'],
-              ticketPrice: event['ticketPrice'],
-              ticketsSold: event['ticketsSold'],
-              ticketQuantity: event['ticketQuantity'],
-            },
-            published: event['published'],
-          };
-        },
-        toFirestore: (it) => it,
-      })
+            // Compute new number of soldTickets
+            var newTicketsSold = res.data()!['ticketsSold'] + quantity;
+
+            // Commit to Firestore
+            transaction.update(eventRef, {
+              ticketsSold: newTicketsSold,
+            });
+          });
+        })
+      )
     );
   }
 }

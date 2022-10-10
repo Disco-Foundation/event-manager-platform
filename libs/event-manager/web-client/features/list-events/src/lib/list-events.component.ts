@@ -184,7 +184,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                   onBuyTickets(
                     event.publicKey!,
                     event.account.acceptedMint!,
-                    $event
+                    $event,
+                    event.account.fId
                   )
                 "
               >
@@ -242,7 +243,8 @@ export class ListEventsComponent {
   onBuyTickets(
     event: PublicKey,
     acceptedMint: PublicKey,
-    ticketQuantity: number
+    ticketQuantity: number,
+    eventFId: string
   ) {
     this._eventApiService
       .buyTickets({
@@ -265,11 +267,17 @@ export class ListEventsComponent {
               return defer(() =>
                 from(connection.confirmTransaction(signature))
               ).pipe(
-                catchError((error) => {
-                  console.log('ERROR:', error);
-                  this._matSnackBar.open(error.msg);
-                  return EMPTY;
-                })
+                concatMap(() =>
+                  this._eventApiService
+                    .updateSold(eventFId, ticketQuantity)
+                    .pipe(
+                      catchError((error) => {
+                        console.log('ERROR:', error);
+                        this._matSnackBar.open(error.msg);
+                        return EMPTY;
+                      })
+                    )
+                )
               );
             }),
             tap(() => {

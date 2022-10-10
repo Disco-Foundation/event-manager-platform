@@ -15,7 +15,8 @@ import {
   of,
   switchMap,
 } from 'rxjs';
-import { EventAccount, EventApiService } from './event-api.service';
+import { EventAccount } from './event-api.service';
+import { FirebaseService } from './firebase/event.service';
 
 export interface EventDetailsView extends EventAccount {
   acceptedMint: Mint | null;
@@ -54,7 +55,7 @@ export class EventStore extends ComponentStore<ViewModel> {
   readonly draft$ = this.select(({ draft }) => draft);
 
   constructor(
-    private readonly _eventApiService: EventApiService,
+    private readonly _firebaseService: FirebaseService,
     private readonly _connectionStore: ConnectionStore
   ) {
     super(initialState);
@@ -96,7 +97,7 @@ export class EventStore extends ComponentStore<ViewModel> {
       this.patchState({ loading: true });
 
       console.log(eventId);
-      return this._eventApiService.findEventById(eventId).pipe(
+      return this._firebaseService.getEvent(eventId).pipe(
         concatMap((event) => {
           console.log(event);
           if (event === null) {
@@ -162,5 +163,49 @@ export class EventStore extends ComponentStore<ViewModel> {
 
   reload() {
     this.reloadSubject.next(null);
+  }
+
+  publishEvent() {
+    const event = this.get().event;
+
+    return defer(() => {
+      if (event === null) {
+        return of(null);
+      }
+
+      return from(this._firebaseService.setPublishedEvent(event));
+    });
+  }
+
+  updateEventTickets(
+    eventId: string,
+    args: { ticketPrice: number; ticketQuantity: number }
+  ) {
+    return defer(() => {
+      return from(this._firebaseService.updateEventTickets(eventId, args));
+    });
+  }
+
+  updateEventDates(
+    eventId: string,
+    args: { startDate: string; endDate: string }
+  ) {
+    return defer(() => {
+      return from(this._firebaseService.updateEventDates(eventId, args));
+    });
+  }
+
+  updateEventInfo(
+    eventId: string,
+    args: {
+      name: string;
+      description: string;
+      location: string;
+      banner: string;
+    }
+  ) {
+    return defer(() => {
+      return from(this._firebaseService.updateEventInfo(eventId, args));
+    });
   }
 }

@@ -11,7 +11,7 @@ import {
   getMint,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import {
   combineLatest,
   concatMap,
@@ -22,7 +22,7 @@ import {
   throwError,
 } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
-import { EventService } from './firebase/event.service';
+import { FirebaseService } from './firebase/event.service';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
@@ -90,7 +90,7 @@ export class EventApiService {
     private readonly _walletStore: WalletStore,
 
     //FIREBASE
-    private readonly _eventService: EventService,
+    private readonly _firebaseService: FirebaseService,
 
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
@@ -144,6 +144,7 @@ export class EventApiService {
     });
   }
 
+  // find all the published event on the blockchain
   findAll(): Observable<EventAccount[]> {
     return defer(() => {
       const reader = this.reader;
@@ -158,6 +159,7 @@ export class EventApiService {
     });
   }
 
+  // find published event by event id
   findById(eventId: string): Observable<EventAccount | null> {
     return defer(() => {
       const reader = this.reader;
@@ -181,6 +183,7 @@ export class EventApiService {
     });
   }
 
+  // find published event by firebase id
   findByFId(eventFId: string): Observable<EventAccount | undefined> {
     return defer(() => {
       const reader = this.reader;
@@ -200,78 +203,24 @@ export class EventApiService {
     });
   }
 
-  create(
-    args: CreateEventArguments
-  ): Observable<{ signature: TransactionSignature; certifier: Keypair }> {
-    return defer(() => {
-      const writer = this.writer;
-      const provider = this.provider;
-      const certifierKeypair = getCertifier(Certifier.productPayer);
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-
-      if (writer === null) {
-        return throwError(() => new Error('ProgramWriterMissing'));
-      }
-
-      if (args.fId === null) {
-        return throwError(() => new Error('EventNotFound'));
-      }
-
-      return from(
-        writer.methods
-          .createEvent(
-            new BN(Date.now()),
-            args.name,
-            args.description,
-            args.banner,
-            args.location,
-            new BN(new Date(args.startDate).getTime()),
-            new BN(new Date(args.endDate).getTime()),
-            new BN(args.ticketPrice),
-            args.ticketQuantity,
-            args.fId!
-          )
-          .accounts({
-            authority: provider.wallet.publicKey,
-            //acceptedMint: new PublicKey(args.acceptedMint),
-            acceptedMint: new PublicKey(
-              this.environment.acceptedMint.publicKey
-            ), // fixed for now
-            certifier: certifierKeypair.publicKey,
-          })
-          /* .preInstructions([
-            SystemProgram.transfer({
-              fromPubkey: provider.wallet.publicKey,
-              toPubkey: certifierKeypair.publicKey,
-              lamports: args.certifierFunds * LAMPORTS_PER_SOL,
-            }),
-          ]) */
-          .signers([certifierKeypair])
-          .rpc()
-      ).pipe(
-        map((signature) => ({
-          signature,
-          certifier: certifierKeypair,
-        }))
-      );
-    });
-  }
-
-  findByTicketOwner(owner: PublicKey) {
+  // get all the tickets of the connected user
+  findUserTickets() {
     return defer(() => {
       const reader = this.reader;
+      const provider = this.provider;
 
       if (reader === null) {
         return throwError(() => new Error('ProgramReaderMissing'));
       }
 
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
       return from(
         // get all token accounts from current wallet
         reader.provider.connection
-          .getTokenAccountsByOwner(owner, {
+          .getTokenAccountsByOwner(provider.wallet.publicKey, {
             programId: TOKEN_PROGRAM_ID,
           })
           // get the decoded token accounts
@@ -341,7 +290,8 @@ export class EventApiService {
     });
   }
 
-  buyTickets(args: BuyTicketsArguments): Observable<TransactionSignature> {
+  // buy ticket
+  buyTickets(args: BuyTicketsArguments) {
     return defer(() => {
       const provider = this.provider;
       const writer = this.writer;
@@ -374,6 +324,7 @@ export class EventApiService {
     });
   }
 
+  // create new draft event
   createEvent(args: CreateEventArguments) {
     return defer(() => {
       const provider = this.provider;
@@ -383,7 +334,7 @@ export class EventApiService {
       }
 
       return from(
-        this._eventService.createEvent(
+        this._firebaseService.createEvent(
           provider.wallet.publicKey.toBase58(),
           false,
           args
@@ -392,7 +343,8 @@ export class EventApiService {
     });
   }
 
-  findEventByTicketOwner(owner: PublicKey) {
+  // get all the events created by the connected user
+  findUserEvents() {
     return defer(() => {
       const provider = this.provider;
 
@@ -401,95 +353,14 @@ export class EventApiService {
       }
 
       return from(
-        this._eventService.getUserEvents(provider.wallet.publicKey.toBase58())
+        this._firebaseService.getUserEvents(
+          provider.wallet.publicKey.toBase58()
+        )
       );
     });
   }
 
-  findAllEvents() {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-
-      return from(this._eventService.getPublishedEvents());
-    });
-  }
-
-  publishEvent(event: EventAccount) {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-      return from(this._eventService.setPublishedEvent(event));
-    });
-  }
-
-  findEventById(eventId: string): Observable<EventAccount | null> {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-      return from(this._eventService.getEvent(eventId));
-    });
-  }
-
-  updateEventTickets(
-    eventId: string,
-    args: { ticketPrice: number; ticketQuantity: number }
-  ) {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-
-      return from(this._eventService.updateEventTickets(eventId, args));
-    });
-  }
-
-  updateEventDates(
-    eventId: string,
-    args: { startDate: string; endDate: string }
-  ) {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-
-      return from(this._eventService.updateEventDates(eventId, args));
-    });
-  }
-
-  updateEventInfo(
-    eventId: string,
-    args: {
-      name: string;
-      description: string;
-      location: string;
-      banner: string;
-    }
-  ) {
-    return defer(() => {
-      const provider = this.provider;
-
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
-      }
-
-      return from(this._eventService.updateEventInfo(eventId, args));
-    });
-  }
-
+  // publish event to the blockchain
   publish(args: CreateEventArguments): Observable<EventAccount | undefined> {
     return defer(() => {
       const writer = this.writer;
@@ -536,15 +407,26 @@ export class EventApiService {
         concatMap(() =>
           this.findByFId(args.fId!).pipe(
             concatMap((event) =>
-              this.publishEvent(event!).pipe(
-                concatMap(() =>
-                  this.findEventById(args.fId!).pipe(map((evnt) => evnt!))
+              this._firebaseService
+                .setPublishedEvent(event!)
+                .pipe(
+                  concatMap(() =>
+                    this._firebaseService
+                      .getEvent(args.fId!)
+                      .pipe(map((evnt) => evnt!))
+                  )
                 )
-              )
             )
           )
         )
       );
     });
+  }
+
+  // update tickets sold quantity
+  updateSold(eventId: string, ticketQuantity: number) {
+    return from(
+      this._firebaseService.updateSoldTickets(eventId, ticketQuantity)
+    );
   }
 }

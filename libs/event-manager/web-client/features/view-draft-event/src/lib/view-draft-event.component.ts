@@ -4,7 +4,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ConfigStore,
-  EventAccount,
   EventApiService,
   EventStore,
 } from '@event-manager-web-client/data-access';
@@ -82,7 +81,7 @@ import {
               </p>
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-                (click)="onPublishEvent(event)"
+                (click)="onPublishEvent()"
               >
                 Publish Event
               </button>
@@ -595,10 +594,10 @@ export class ViewDraftEventComponent implements OnInit {
     this._eventStore.reload();
   }
 
-  onPublishEvent(event: EventAccount) {
+  onPublishEvent() {
     if (this.id != null) {
-      this._eventApiService
-        .publishEvent(event)
+      this._eventStore
+        .publishEvent()
         .pipe(
           concatMap(() => {
             return this._matSnackBar
@@ -625,7 +624,7 @@ export class ViewDraftEventComponent implements OnInit {
   onSaveTickets() {
     this.submitted = true;
     if (this.ticketsForm.valid && this.id != null) {
-      this._eventApiService
+      this._eventStore
         .updateEventTickets(this.id, {
           ...this.ticketsForm.value,
         })
@@ -655,7 +654,7 @@ export class ViewDraftEventComponent implements OnInit {
   onSaveDates() {
     this.submitted = true;
     if (this.datesForm.valid && this.id != null) {
-      this._eventApiService
+      this._eventStore
         .updateEventDates(this.id, {
           ...this.datesForm.value,
         })
@@ -685,7 +684,7 @@ export class ViewDraftEventComponent implements OnInit {
   onSaveInfo() {
     this.submitted = true;
     if (this.infoForm.valid && this.id != null) {
-      this._eventApiService
+      this._eventStore
         .updateEventInfo(this.id, {
           ...this.infoForm.value,
         })

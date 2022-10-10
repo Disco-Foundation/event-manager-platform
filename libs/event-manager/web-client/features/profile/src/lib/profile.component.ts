@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
@@ -35,7 +35,27 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         </p>
       </header>
       <div>
-        <mat-tab-group animationDuration="0ms" style="align-items: center;">
+        <mat-tab-group
+          animationDuration="0ms"
+          style="align-items: center;"
+          [selectedIndex]="selectedTab"
+        >
+          <mat-tab label="Account info">
+            <!--<figure
+										*ngIf="!(user | bdItemChanging)"
+										class="flex justify-center items-center w-20 h-20 rounded-full overflow-hidden"
+									>
+										<img
+											class="w-full"
+											[src]="user.thumbnailUrl"
+											alt=""
+											width="80"
+											height="80"
+											onerror="this.src='assets/images/default-profile.png';"
+										/>
+									</figure>-->
+          </mat-tab>
+
           <mat-tab label="Tickets">
             <section
               *ngIf="tickets$ | async as tickets; else loading"
@@ -316,6 +336,14 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       [eventName]="event.account.name"
                       [ticketPrice]="event.account.ticketPrice"
                       [eventId]="event.publicKey!.toBase58()"
+                      (buyTickets)="
+                        onBuyTickets(
+                          event.publicKey!,
+                          event.account.acceptedMint!,
+                          $event,
+                          event.account.fId
+                        )
+                      "
                     >
                       <div class="flex flex-col items-center">
                         <span class="uppercase text-2xl"> Buy Tickets! </span>
@@ -511,6 +539,8 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
   providers: [EventsByOwnerStore, ConfigStore, TicketsByOwnerStore],
 })
 export class ProfileComponent implements OnInit {
+  @Input() selectedTab: number = 0; // Account Info
+
   readonly events$ = this._eventsByOwnerStore.events$;
   readonly tickets$ = this._ticketsByOwnerStore.tickets$;
   readonly draftEvents$ = this._eventsByOwnerStore.draftEvents$;
@@ -540,7 +570,8 @@ export class ProfileComponent implements OnInit {
   onBuyTickets(
     event: PublicKey,
     acceptedMint: PublicKey,
-    ticketQuantity: number
+    ticketQuantity: number,
+    eventFId: string
   ) {
     this._eventApiService
       .buyTickets({
@@ -563,10 +594,17 @@ export class ProfileComponent implements OnInit {
               return defer(() =>
                 from(connection.confirmTransaction(signature))
               ).pipe(
-                catchError((error) => {
-                  this._matSnackBar.open(error.msg);
-                  return EMPTY;
-                })
+                concatMap(() =>
+                  this._eventApiService
+                    .updateSold(eventFId, ticketQuantity)
+                    .pipe(
+                      catchError((error) => {
+                        console.log('ERROR:', error);
+                        this._matSnackBar.open(error.msg);
+                        return EMPTY;
+                      })
+                    )
+                )
               );
             }),
             tap(() => {
