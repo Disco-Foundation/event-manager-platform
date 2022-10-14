@@ -814,7 +814,9 @@ export class ProfileComponent implements OnInit {
             first(),
             concatMap((connection) => {
               if (connection === null) {
-                this._matSnackBar.open('Connection missing');
+                this._matSnackBar.open('Connection missing', 'close', {
+                  duration: 5000,
+                });
                 return EMPTY;
               }
 
@@ -826,7 +828,9 @@ export class ProfileComponent implements OnInit {
                     .updateSold(eventFId, ticketQuantity)
                     .pipe(
                       catchError((error) => {
-                        this._matSnackBar.open(error.msg);
+                        this._matSnackBar.open(error.msg, 'close', {
+                          duration: 5000,
+                        });
                         return EMPTY;
                       })
                     )
@@ -846,7 +850,9 @@ export class ProfileComponent implements OnInit {
           );
         }),
         catchError((error) => {
-          this._matSnackBar.open(error, 'close');
+          this._matSnackBar.open(error, 'close', {
+            duration: 5000,
+          });
           return EMPTY;
         })
       )
@@ -865,7 +871,9 @@ export class ProfileComponent implements OnInit {
           this.selectedTab = 2;
         }),
         catchError((error) => {
-          this._matSnackBar.open(error, 'close');
+          this._matSnackBar.open(error, 'close', {
+            duration: 5000,
+          });
           return EMPTY;
         })
       )
@@ -892,7 +900,9 @@ export class ProfileComponent implements OnInit {
               .afterOpened();
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )

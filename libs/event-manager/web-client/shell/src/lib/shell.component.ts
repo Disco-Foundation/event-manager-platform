@@ -138,7 +138,9 @@ export class ShellComponent implements OnInit {
     this._loginStore
       .signIn(Buffer.from(signature), publicKey.toBase58())
       .catch((error) => {
-        this._matSnackBar.open(error);
+        this._matSnackBar.open(error, 'close', {
+          duration: 5000,
+        });
         this._hdWalletStore.disconnect().subscribe();
       });
   }

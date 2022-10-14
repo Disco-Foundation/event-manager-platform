@@ -260,7 +260,9 @@ export class ListEventsComponent {
             first(),
             concatMap((connection) => {
               if (connection === null) {
-                this._matSnackBar.open('Connection missing');
+                this._matSnackBar.open('Connection missing', 'close', {
+                  duration: 5000,
+                });
                 return EMPTY;
               }
 
@@ -272,7 +274,9 @@ export class ListEventsComponent {
                     .updateSold(eventFId, ticketQuantity)
                     .pipe(
                       catchError((error) => {
-                        this._matSnackBar.open(error.msg);
+                        this._matSnackBar.open(error.msg, 'close', {
+                          duration: 5000,
+                        });
                         return EMPTY;
                       })
                     )
@@ -292,7 +296,9 @@ export class ListEventsComponent {
           );
         }),
         catchError((error) => {
-          this._matSnackBar.open(error, 'close');
+          this._matSnackBar.open(error, 'close', {
+            duration: 5000,
+          });
           return EMPTY;
         })
       )

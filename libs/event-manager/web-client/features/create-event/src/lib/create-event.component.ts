@@ -515,7 +515,9 @@ export class CreateEventComponent {
               );
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )

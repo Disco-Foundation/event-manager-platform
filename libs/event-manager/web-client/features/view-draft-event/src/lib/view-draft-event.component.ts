@@ -602,7 +602,9 @@ export class ViewDraftEventComponent implements OnInit {
               .afterOpened();
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )
@@ -632,7 +634,9 @@ export class ViewDraftEventComponent implements OnInit {
               .afterOpened();
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )
@@ -656,13 +660,15 @@ export class ViewDraftEventComponent implements OnInit {
         .pipe(
           concatMap(() => {
             return this._matSnackBar
-              .open('Event draft updated!', '', {
+              .open('Event draft updated!', 'close', {
                 duration: 5000,
               })
               .afterOpened();
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )
@@ -692,7 +698,9 @@ export class ViewDraftEventComponent implements OnInit {
               .afterOpened();
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )
