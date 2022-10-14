@@ -1,4 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import {
   ConfigStore,
   EnvironmentConfig,
@@ -13,6 +15,7 @@ import {
   SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { PublicKey } from '@solana/web3.js';
+import { catchError, EMPTY } from 'rxjs';
 
 @Component({
   selector: 'em-shell',
@@ -29,6 +32,7 @@ import { PublicKey } from '@solana/web3.js';
       </div>
       <div class="flex justify-between items-center gap-8">
         <a
+          *ngIf="loggedIn | async; loggedIn"
           class="underline disco-text purple disco-text-glow"
           [routerLink]="['/profile']"
           >My Profile</a
@@ -85,28 +89,37 @@ import { PublicKey } from '@solana/web3.js';
   providers: [ConfigStore],
 })
 export class ShellComponent implements OnInit {
-  publicKey: PublicKey | undefined;
+  readonly loggedIn = this._loginStore.connected$;
 
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
     private readonly _loginStore: LoginStore,
+    private readonly _matSnackBar: MatSnackBar,
+    private readonly _router: Router,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
-    _hdWalletStore.publicKey$.subscribe((value) => {
-      if (value != undefined) {
-        this._loginStore.getNonce(value.toBase58()).subscribe((nonce) => {
-          this._hdWalletStore
-            .signMessage(new TextEncoder().encode(nonce))
-            ?.subscribe((signature) => {
-              if (signature != undefined) {
-                this._loginStore.signIn(
-                  Buffer.from(signature),
-                  value.toBase58()
-                );
-              }
-            });
-        });
+    _hdWalletStore.publicKey$.subscribe(async (publicKey) => {
+      if (publicKey != undefined) {
+        (await this._loginStore.getNonce(publicKey.toBase58())).subscribe(
+          (msg) => {
+            this._hdWalletStore
+              .signMessage(new TextEncoder().encode(msg))
+              ?.pipe(
+                catchError(() => {
+                  this._hdWalletStore.disconnect().subscribe();
+                  return EMPTY;
+                })
+              )
+              ?.subscribe((signature) => {
+                if (signature != undefined) {
+                  this.singIn(publicKey, signature);
+                }
+              });
+          }
+        );
+      } else {
+        this.signOut();
       }
     });
   }
@@ -119,5 +132,20 @@ export class ShellComponent implements OnInit {
       new SolflareWalletAdapter(),
       new SolongWalletAdapter(),
     ]);
+  }
+
+  singIn(publicKey: PublicKey, signature: Uint8Array) {
+    this._loginStore
+      .signIn(Buffer.from(signature), publicKey.toBase58())
+      .catch((error) => {
+        this._matSnackBar.open(error);
+        this._hdWalletStore.disconnect().subscribe();
+      });
+  }
+
+  signOut() {
+    this._loginStore.signOut().then(() => {
+      this._router.navigate(['/list-events']);
+    });
   }
 }

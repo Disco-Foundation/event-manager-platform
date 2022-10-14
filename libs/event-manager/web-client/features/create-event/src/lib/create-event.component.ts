@@ -12,7 +12,6 @@ import {
   ConfigStore,
   EventApiService,
 } from '@event-manager-web-client/data-access';
-import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { catchError, concatMap, EMPTY, tap } from 'rxjs';
 
@@ -26,17 +25,6 @@ export function publicKeyValidator(): ValidatorFn {
     }
   };
 }
-
-/* const downloadCertifier = (certifierSecret: Uint8Array) => {
-  const a = document.createElement('a');
-
-  a.href = URL.createObjectURL(
-    new Blob([`[${certifierSecret.toString()}]`], { type: 'application/json' })
-  );
-  a.download = 'certifier.json';
-  a.click();
-  a.remove();
-}; */
 
 @Component({
   selector: 'em-create-event',
@@ -210,27 +198,6 @@ export function publicKeyValidator(): ValidatorFn {
                     >Maximum length is 40.</mat-error
                   >
                 </mat-form-field>
-
-                <!-- <mat-form-field
-                  class="w-full"
-                  appearance="fill"
-                  hintLabel="Enter the certifier funds."
-                >
-                  <mat-label>Certifier Funds</mat-label>
-                  <input
-                    matInput
-                    formControlName="certifierFunds"
-                    required
-                    type="number"
-                  />
-                  <mat-error
-                    *ngIf="
-                      submitted &&
-                      informationForm.get('certifier')?.hasError('required')
-                    "
-                    >The certifier is mandatory.</mat-error
-                  >
-                </mat-form-field> -->
 
                 <mat-form-field
                   class="w-full"
@@ -499,9 +466,6 @@ export class CreateEventComponent {
     banner: this._formBuilder.control(null, {
       validators: [Validators.required, Validators.maxLength(40)],
     }),
-    /* certifierFunds: this._formBuilder.control(null, {
-      validators: [Validators.required],
-    }), */
     startDate: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
@@ -522,7 +486,6 @@ export class CreateEventComponent {
     private readonly _formBuilder: UntypedFormBuilder,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
-    private readonly _connectionStore: ConnectionStore,
     private readonly _router: Router,
     private readonly _configStore: ConfigStore
   ) {}

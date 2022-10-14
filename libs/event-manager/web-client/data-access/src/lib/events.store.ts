@@ -87,6 +87,9 @@ export class EventsStore extends ComponentStore<ViewModel> {
                     getTokenAccount(connection, event.account.temporalVault!)
                   )
                 ),
+                gainVault: defer(() =>
+                  from(getTokenAccount(connection, event.account.gainVault!))
+                ),
                 acceptedMint: defer(() =>
                   from(getMint(connection, event.account.acceptedMint!))
                 ),
@@ -99,10 +102,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   temporalVault,
                   acceptedMint,
                   ticketMint,
-                  ticketPrice: event.account.ticketPrice! /*.div(
-                      new BN(10).pow(new BN(acceptedMint.decimals))
-                    )
-                    .toNumber()*/,
+                  ticketPrice: event.account.ticketPrice,
                   ticketsSold: event.account.ticketsSold!,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /

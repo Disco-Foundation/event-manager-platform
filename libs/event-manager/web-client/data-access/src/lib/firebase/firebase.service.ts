@@ -15,10 +15,11 @@ import {
   CreateEventArguments,
   EventAccount,
   EventItemByOwner,
+  LoginStore,
 } from '@event-manager-web-client/data-access';
 import { PublicKey } from '@solana/web3.js';
 import { runTransaction } from 'firebase/firestore';
-import { defer, from, map, Observable } from 'rxjs';
+import { defer, from, map, Observable, throwError } from 'rxjs';
 
 export interface User {
   id: string;
@@ -32,11 +33,17 @@ export interface User {
 @Injectable({ providedIn: 'root' })
 export class FirebaseService {
   private readonly _firestore = inject(Firestore);
+  private _loggedIn = false;
+
+  constructor(private readonly _loginStore: LoginStore) {
+    this._loginStore.connected$.subscribe((connected) => {
+      this._loggedIn = connected;
+    });
+  }
 
   // get event details by id
-  getEvent(eventId: string): Observable<EventAccount> {
+  getEvent(eventId: string): Observable<EventAccount | undefined> {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    console.log(eventRef);
 
     return docData(eventRef).pipe(
       map((event) => ({
@@ -56,7 +63,7 @@ export class FirebaseService {
             event['acceptedMint'] != null
               ? new PublicKey(event['acceptedMint'])
               : null,
-          totalProfit: event['profit'],
+          totalProfit: event['totalProfit'],
           certifierFunds: event['certifierFunds'],
           published: event['published'],
           eventBump: event['eventBump'],
@@ -87,6 +94,17 @@ export class FirebaseService {
           ticketPrice: event['ticketPrice'],
           ticketsSold: event['ticketsSold'],
           ticketQuantity: event['ticketQuantity'],
+          gainVault:
+            event['gainVault'] != null
+              ? new PublicKey(event['gainVault'])
+              : null,
+          gainVaultBump: event['gainVaultBump'],
+          totalDeposited: event['totalDeposited'],
+          totalValueLocked: event['totalValueLocked'],
+          totalValueLockedInTickets: event['totalValueLockedInTickets'],
+          totalValueLockedInRecharges: event['totalValueLockedInRecharges'],
+          totalProfitInTickets: event['totalProfitInTickets'],
+          totalProfitInPurchases: event['totalProfitInPurchases'],
         },
       }))
     );
@@ -94,13 +112,15 @@ export class FirebaseService {
 
   // get all the events for created by certain user
   getUserEvents(owner: string): Observable<EventItemByOwner[]> {
+    if (!this._loggedIn) {
+      return throwError(() => new Error('No wallet connected'));
+    }
     const eventsRef = collection(this._firestore, 'events');
 
     return collectionData(
       query(eventsRef, where('owner', '==', owner)).withConverter({
         fromFirestore: (snapshot) => {
           const event = snapshot.data();
-          console.log(event);
 
           return {
             publicKey:
@@ -119,7 +139,7 @@ export class FirebaseService {
                 event['acceptedMint'] != null
                   ? new PublicKey(event['acceptedMint'])
                   : null,
-              totalProfit: event['profit'],
+              totalProfit: event['totalProfit'],
               certifierFunds: event['certifierFunds'],
               published: event['published'],
               eventBump: event['eventBump'],
@@ -151,6 +171,17 @@ export class FirebaseService {
               ticketPrice: event['ticketPrice'],
               ticketsSold: event['ticketsSold'],
               ticketQuantity: event['ticketQuantity'],
+              gainVault:
+                event['gainVault'] != null
+                  ? new PublicKey(event['gainVault'])
+                  : null,
+              gainVaultBump: event['gainVaultBump'],
+              totalDeposited: event['totalDeposited'],
+              totalValueLocked: event['totalValueLocked'],
+              totalValueLockedInTickets: event['totalValueLockedInTickets'],
+              totalValueLockedInRecharges: event['totalValueLockedInRecharges'],
+              totalProfitInTickets: event['totalProfitInTickets'],
+              totalProfitInPurchases: event['totalProfitInPurchases'],
             },
             published: event['published'],
           };
@@ -181,7 +212,7 @@ export class FirebaseService {
               eventEndDate: event['endDate'],
               tickets: event['tickets'],
               acceptedMint: new PublicKey(event['acceptedMint']),
-              totalProfit: event['profit'],
+              totalProfit: event['totalProfit'],
               certifierFunds: event['certifierFunds'],
               published: event['published'],
               eventBump: event['eventBump'],
@@ -198,6 +229,17 @@ export class FirebaseService {
               ticketPrice: event['ticketPrice'],
               ticketsSold: event['ticketsSold'],
               ticketQuantity: event['ticketQuantity'],
+              gainVault:
+                event['gainVault'] != null
+                  ? new PublicKey(event['gainVault'])
+                  : null,
+              gainVaultBump: event['gainVaultBump'],
+              totalDeposited: event['totalDeposited'],
+              totalValueLocked: event['totalValueLocked'],
+              totalValueLockedInTickets: event['totalValueLockedInTickets'],
+              totalValueLockedInRecharges: event['totalValueLockedInRecharges'],
+              totalProfitInTickets: event['totalProfitInTickets'],
+              totalProfitInPurchases: event['totalProfitInPurchases'],
             },
           };
         },
@@ -223,6 +265,11 @@ export class FirebaseService {
     }: CreateEventArguments
   ) {
     // new event with auto-generated id
+
+    if (!this._loggedIn) {
+      return throwError(() => new Error('No wallet connected'));
+    }
+
     const newEventRef = doc(collection(this._firestore, 'events'));
 
     return defer(() =>
@@ -241,17 +288,27 @@ export class FirebaseService {
           ticketsSold: 0,
           ticketMint: null,
           acceptedMint: null,
-          profit: 0,
+          totaProfit: 0,
           eventBump: null,
           eventMintBump: null,
           certifierFunds,
           certifier: null,
           authority: null,
           eventMint: null,
-          eventId: null, //newEventRef.id,
+          eventId: null,
           temporalVault: null,
           temporalVaultBump: null,
           publicKey: null,
+          gainVault: null,
+          gainVaultBump: null,
+          totalDeposited: 0,
+          totalValueLocked: 0,
+          totalValueLockedInTickets: 0,
+          totalValueLockedInRecharges: 0,
+          totalProfitInTickets: 0,
+          totalProfitInPurchases: 0,
+        }).catch((error) => {
+          return throwError(() => new Error(error));
         })
       )
     );
@@ -263,7 +320,13 @@ export class FirebaseService {
     changes: { ticketPrice: number; ticketQuantity: number }
   ) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() => from(updateDoc(eventRef, changes)));
+    return defer(() =>
+      from(
+        updateDoc(eventRef, changes).catch((error) => {
+          throwError(() => new Error(error));
+        })
+      )
+    );
   }
 
   // update event dates info
@@ -272,7 +335,13 @@ export class FirebaseService {
     changes: { startDate: string; endDate: string }
   ) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() => from(updateDoc(eventRef, changes)));
+    return defer(() =>
+      from(
+        updateDoc(eventRef, changes).catch((error) => {
+          throwError(() => new Error(error));
+        })
+      )
+    );
   }
 
   // update event basic info
@@ -286,7 +355,13 @@ export class FirebaseService {
     }
   ) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() => from(updateDoc(eventRef, changes)));
+    return defer(() =>
+      from(
+        updateDoc(eventRef, changes).catch((error) => {
+          throwError(() => new Error(error));
+        })
+      )
+    );
   }
 
   // update publish status and event info
@@ -308,6 +383,20 @@ export class FirebaseService {
           temporalVault: event.account.temporalVault?.toBase58(),
           temporalVaultBump: event.account.temporalVaultBump,
           ticketMint: event.account.ticketMint?.toBase58(),
+          gainVault: event.account.gainVault?.toBase58(),
+          gainVaultBump: event.account.gainVaultBump,
+          totalDeposited: event.account.totalDeposited.toNumber(),
+          totalValueLocked: event.account.totalValueLocked.toNumber(),
+          totalValueLockedInTickets:
+            event.account.totalValueLockedInTickets.toNumber(),
+          totalValueLockedInRecharges:
+            event.account.totalValueLockedInRecharges.toNumber(),
+          totalProfit: event.account.totalProfit.toNumber(),
+          totalProfitInTickets: event.account.totalProfitInTickets.toNumber(),
+          totalProfitInPurchases:
+            event.account.totalProfitInPurchases.toNumber(9),
+        }).catch((error) => {
+          throwError(() => new Error(error));
         })
       )
     );
@@ -316,7 +405,13 @@ export class FirebaseService {
   // delete draft event
   deleteEvent(eventId: string) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() => from(deleteDoc(eventRef)));
+    return defer(() =>
+      from(
+        deleteDoc(eventRef).catch((error) => {
+          throwError(() => new Error(error));
+        })
+      )
+    );
   }
 
   // update tickets sold amount
@@ -325,29 +420,46 @@ export class FirebaseService {
     return defer(() =>
       from(
         runTransaction(this._firestore, async (transaction) => {
-          return transaction.get(eventRef).then((res) => {
-            if (!res.exists) {
-              throw 'Document does not exist!';
-            }
+          return transaction
+            .get(eventRef)
+            .then((res) => {
+              if (!res.exists) {
+                throwError(() => new Error('Event does not exist!'));
+              }
 
-            // Compute new number of soldTickets
-            var newTicketsSold = res.data()!['ticketsSold'] + quantity;
+              // Compute new number of soldTickets
+              var newTicketsSold = res.data()!['ticketsSold'] + quantity;
+              var newValueLockedInTickets =
+                res.data()!['totalValueLockedInTickets'] +
+                res.data()!['ticketPrice'] * quantity;
+              var newValueLocked =
+                res.data()!['totalValueLocked'] + newValueLockedInTickets;
+              var newValueDeposited =
+                res.data()!['totalValueDeposited'] + newValueLockedInTickets;
 
-            // Commit to Firestore
-            transaction.update(eventRef, {
-              ticketsSold: newTicketsSold,
+              // Commit to Firestore
+              transaction.update(eventRef, {
+                ticketsSold: newTicketsSold,
+                totalValueLockedInTickets: newValueLockedInTickets,
+                totalValueLocked: newValueLocked,
+                totalValueDeposited: newValueDeposited,
+              });
+            })
+            .catch((error) => {
+              throwError(() => new Error(error));
             });
-          });
         })
       )
     );
   }
 
   // get event details by id
-  getUser(userId: string): Observable<User> {
-    const userRef = doc(this._firestore, `users/${userId}`);
-    console.log(userRef);
+  getUser(userId: string): Observable<User | undefined> {
+    if (!this._loggedIn) {
+      return throwError(() => new Error('Please connect a wallet'));
+    }
 
+    const userRef = doc(this._firestore, `users/${userId}`);
     return docData(userRef).pipe(
       map((user) => ({
         id: userRef.id,
@@ -370,6 +482,12 @@ export class FirebaseService {
     }
   ) {
     const userRef = doc(this._firestore, `users/${userId}`);
-    return defer(() => from(updateDoc(userRef, changes)));
+    return defer(() =>
+      from(
+        updateDoc(userRef, changes).catch((error) => {
+          throwError(() => new Error(error));
+        })
+      )
+    );
   }
 }

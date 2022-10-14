@@ -2,7 +2,6 @@ import { PublicKey } from '@solana/web3.js';
 import * as firebaseAdmin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as nacl from 'tweetnacl';
-
 const admin = firebaseAdmin.initializeApp({});
 
 export const getNonceToSign = functions.https.onCall(async (data) => {
@@ -16,7 +15,12 @@ export const getNonceToSign = functions.https.onCall(async (data) => {
   if (userDoc.exists) {
     // If the user already exists, return the nonce
     const existingNonce = userDoc.data()?.nonce;
-    return existingNonce;
+    return (
+      'Disco Protocol wants you to sign in with your wallet:\n' +
+      data.publicKey +
+      '\n\nNonce: ' +
+      existingNonce
+    );
   } else {
     // If the user does not exist, create it first
 
@@ -31,10 +35,20 @@ export const getNonceToSign = functions.https.onCall(async (data) => {
     // Associate the new nonce with the user
     await admin.firestore().collection('users').doc(createdUser.uid).set({
       nonce: generatedNonce,
+      name: 'Disco Protocol',
+      lastName: 'User',
+      email: null,
+      discoTokens: 0,
+      image: 'https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4',
     });
 
     // Return new nonce value
-    return generatedNonce;
+    return (
+      'Disco Protocol wants you to sign in with your wallet:\n' +
+      data.publicKey +
+      '\n\nNonce: ' +
+      generatedNonce
+    );
   }
 });
 
@@ -49,10 +63,15 @@ export const verifySignedMessage = functions.https.onCall(async (data) => {
   // if user exists, verify signature
   if (userDoc.exists) {
     const existingNonce = userDoc.data()?.nonce; // Get the nonce for this user
+    const msg =
+      'Disco Protocol wants you to sign in with your wallet:\n' +
+      publicKey.toBase58() +
+      '\n\nNonce: ' +
+      existingNonce;
 
     // Prepare data for verification
     const encodedSignature = new Uint8Array(Object.values(signature));
-    const encodedNonce = new TextEncoder().encode(existingNonce);
+    const encodedNonce = new TextEncoder().encode(msg);
 
     // Verify if the signature corresponded to nonce and public key.
     const data = nacl.sign.detached.verify(

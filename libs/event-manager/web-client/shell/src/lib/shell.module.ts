@@ -14,6 +14,7 @@ import {
   provideFunctions,
 } from '@angular/fire/functions';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 import {
   EnvironmentConfig,
@@ -28,6 +29,7 @@ import {
 import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
 import { environment } from './config/config';
 import { ShellComponent } from './shell.component';
+import { Authenticated } from './utils';
 
 @NgModule({
   declarations: [ShellComponent],
@@ -61,6 +63,7 @@ import { ShellComponent } from './shell.component';
         path: '',
         component: ShellComponent,
         children: [
+          { path: '', redirectTo: '/list-events', pathMatch: 'full' },
           {
             path: 'list-events',
             loadChildren: () =>
@@ -84,6 +87,7 @@ import { ShellComponent } from './shell.component';
           },
           {
             path: 'view-draft-event/:eventId',
+            canActivate: [Authenticated],
             loadChildren: () =>
               import('@event-manager-web-client/view-draft-event').then(
                 (m) => m.ViewDraftEventModule
@@ -91,12 +95,12 @@ import { ShellComponent } from './shell.component';
           },
           {
             path: 'profile',
+            canActivate: [Authenticated],
             loadChildren: () =>
               import('@event-manager-web-client/profile').then(
                 (m) => m.ProfileModule
               ),
           },
-          { path: '', redirectTo: '/list-events', pathMatch: 'full' },
         ],
       },
     ]),
@@ -106,7 +110,9 @@ import { ShellComponent } from './shell.component';
     HdWalletConnectButtonDirective,
     HdWalletDisconnectButtonDirective,
     HdWalletModalButtonDirective,
+    MatSnackBarModule,
   ],
+  providers: [Authenticated],
 })
 export class ShellModule {
   static forRoot(

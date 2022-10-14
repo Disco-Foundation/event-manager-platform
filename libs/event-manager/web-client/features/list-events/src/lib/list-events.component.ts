@@ -75,7 +75,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               class="absolute top-0 right-0"
               mat-icon-button
               aria-label="View details"
-              [routerLink]="['/view-event', event.publicKey]"
+              [routerLink]="['/view-event', event.account.fId]"
             >
               <mat-icon>launch</mat-icon>
             </a>
@@ -272,7 +272,6 @@ export class ListEventsComponent {
                     .updateSold(eventFId, ticketQuantity)
                     .pipe(
                       catchError((error) => {
-                        console.log('ERROR:', error);
                         this._matSnackBar.open(error.msg);
                         return EMPTY;
                       })

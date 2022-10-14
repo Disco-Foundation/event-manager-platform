@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
@@ -48,21 +47,13 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
 
-  constructor(
-    private readonly _eventApiService: EventApiService,
-    private readonly _connectionStore: ConnectionStore
-  ) {
+  constructor(private readonly _eventApiService: EventApiService) {
     super(initialState);
 
     this._loadEvents(
       combineLatest([
         // Trigger load events when connection changes
-        this.select(
-          this._connectionStore.connection$,
-          this.owner$,
-          (connection, owner) => ({ connection, owner }),
-          { debounce: true }
-        ),
+        this.select(this.owner$, (owner) => ({ owner }), { debounce: true }),
         this.reloadSubject.asObservable(),
       ]).pipe(map(([data]) => data))
     );
@@ -74,12 +65,11 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
   }));
 
   private readonly _loadEvents = this.effect<{
-    connection: Connection | null;
     owner: PublicKey | null;
   }>(
-    switchMap(({ connection, owner }) => {
+    switchMap(({ owner }) => {
       // If there's no connection ignore loading call
-      if (connection === null || owner === null) {
+      if (owner === null) {
         return EMPTY;
       }
 
@@ -117,9 +107,6 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
       certifierFunds: 0,
       fId: event.account.fId,
     };
-    console.log('ARGS:', args);
-    this._eventApiService
-      .publish(args as CreateEventArguments)
-      .subscribe(() => console.log('FINISHED'));
+    return this._eventApiService.publish(args as CreateEventArguments);
   }
 }

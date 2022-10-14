@@ -35,16 +35,13 @@ import {
         >
           {{ event.account.name }}
         </h2>
-
         <p class="m-0 text-center">
           Everything you'll need to know about
           <b class="disco-text gold">{{ event.account.name }}</b> goes here.
         </p>
-
         <p class="m-0" *ngIf="error$ | async as error">
           {{ error }}
         </p>
-
         <button
           (click)="onReload()"
           class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
@@ -52,7 +49,6 @@ import {
           Reload
         </button>
       </header>
-
       <div class="flex flex-wrap justify-center gap-4">
         <div class="flex flex-col gap-4" style="width: 30rem">
           <section
@@ -62,12 +58,10 @@ import {
               <figure class="h-48 overflow-hidden bg-black">
                 <img [src]="event.account.banner" alt="" />
               </figure>
-
               <div>
                 <h3 class="text-3xl uppercase m-0 disco-text blue disco-font">
                   {{ event.account.name }}
                 </h3>
-
                 <p
                   class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
                 >
@@ -76,7 +70,6 @@ import {
                 </p>
               </div>
             </header>
-
             <div class="flex flex-col gap-3">
               <p class="m-0 text-justify">
                 {{ event.account.description }}
@@ -91,7 +84,6 @@ import {
               </button>
             </div>
           </section>
-
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           >
@@ -100,7 +92,6 @@ import {
                 Tickets
               </h3>
             </header>
-
             <div class="flex flex-col items-center gap-3">
               <div class="px-4 py-2 disco-layer disco-border border-2 blue">
                 <p
@@ -134,13 +125,11 @@ import {
                   </ng-container>
                 </p>
               </div>
-
               <mat-progress-bar
                 mode="determinate"
                 color="accent"
                 [value]="event.salesProgress"
               ></mat-progress-bar>
-
               <div class="flex justify-between w-full">
                 <a
                   [href]="
@@ -157,10 +146,8 @@ import {
                   }}
                 </p>
               </div>
-
               <div class="flex flex-col gap-2">
                 <p class="text-center m-0">Ticket price:</p>
-
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
@@ -175,7 +162,6 @@ import {
                   >
                 </div>
               </div>
-
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                 emBuyTicketsTrigger
@@ -201,7 +187,6 @@ import {
             </div>
           </section>
         </div>
-
         <div class="flex flex-col gap-4 w-96">
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
@@ -210,7 +195,6 @@ import {
               <h3 class="disco-font m-0 text-3xl uppercase disco-text blue">
                 Dates
               </h3>
-
               <p
                 *ngIf="now$ | async as now"
                 class="italic text-xs m-0 disco-text gold"
@@ -234,7 +218,6 @@ import {
                 </ng-container>
               </p>
             </header>
-
             <div class="flex flex-col gap-3">
               <div>
                 <p class="m-0">
@@ -250,21 +233,8 @@ import {
                   </span>
                 </p>
               </div>
-
-              <div class="py-4 disco-layer disco-border border-2 blue">
-                <p
-                  class="m-0 font-bold uppercase text-2xl text-center disco-text gold"
-                >
-                  Lasts
-                  {{
-                    event.account.eventEndDate - event.account.eventStartDate
-                      | emDurationTime
-                  }}
-                </p>
-              </div>
             </div>
           </section>
-
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           >
@@ -273,7 +243,6 @@ import {
                 Treasury
               </h3>
             </header>
-
             <div class="flex flex-col gap-3">
               <div class="flex flex-col gap-2">
                 <div>Accepted Mint</div>
@@ -296,10 +265,122 @@ import {
                   >[view in explorer]</a
                 >
               </div>
-
+              <div class="flex justify-between">
+                <div class="flex flex-col">
+                  <p class="m-0">Total Value Locked</p>
+                  <div class="flex items-center gap-2">
+                    <figure>
+                      <img
+                        class="disco-accepted-mint-logo"
+                        src="{{ acceptedMintLogo$ | async }}"
+                        alt="usdc logo"
+                      />
+                    </figure>
+                    <span
+                      class="text-2xl font-bold leading-none disco-text green"
+                      >{{ event.totalValueLocked | number: '1.2-2' }}</span
+                    >
+                  </div>
+                </div>
+                <div class="flex flex-col">
+                  <p class="m-0">Total Deposited</p>
+                  <div class="flex items-center gap-2">
+                    <figure>
+                      <img
+                        class="disco-accepted-mint-logo"
+                        src="{{ acceptedMintLogo$ | async }}"
+                        alt="usdc logo"
+                      />
+                    </figure>
+                    <span
+                      class="text-2xl font-bold leading-none disco-text green"
+                      >{{ event.totalDeposited | number: '1.2-2' }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="flex justify-between items-center gap-4">
+                <div class="w-full h-full flex justify-end items-center">
+                  <ngx-charts-advanced-pie-chart
+                    *ngIf="event.totalValueLocked > 0"
+                    [view]="[500, 160]"
+                    [scheme]="colorScheme"
+                    [gradient]="true"
+                    [results]="[
+                      {
+                        name: 'Tickets',
+                        value: event.totalValueLockedInTickets
+                      },
+                      {
+                        name: 'Recharges',
+                        value: event.totalValueLockedInRecharges
+                      }
+                    ]"
+                  >
+                  </ngx-charts-advanced-pie-chart>
+                  <p *ngIf="event.totalValueLocked === 0">
+                    There's no total value locked.
+                  </p>
+                </div>
+                <div class="w-full h-full flex flex-col gap-2 justify-center">
+                  <div
+                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
+                  >
+                    <div
+                      class="inline-block w-4 h-4 rounded-full"
+                      style="background-color: #19fb9b"
+                    ></div>
+                    <div>
+                      <p class="m-0 text-lg font-bold">Tickets</p>
+                      <div class="flex items-center gap-2">
+                        <figure>
+                          <img
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
+                            alt="usdc logo"
+                          />
+                        </figure>
+                        <p
+                          class="m-0 text-sm font-bold leading-none disco-text green"
+                        >
+                          {{
+                            event.totalValueLockedInTickets | number: '1.2-2'
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
+                  >
+                    <div
+                      class="inline-block w-4 h-4 rounded-full"
+                      style="background-color: #ff5ef9"
+                    ></div>
+                    <div>
+                      <p class="m-0 text-lg font-bold">Recharges</p>
+                      <div class="flex items-center gap-2">
+                        <figure>
+                          <img
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
+                            alt="usdc logo"
+                          />
+                        </figure>
+                        <p
+                          class="m-0 text-sm font-bold leading-none disco-text green"
+                        >
+                          {{
+                            event.totalValueLockedInRecharges | number: '1.2-2'
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="flex flex-col">
                 <p class="m-0">Profit</p>
-
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
@@ -313,6 +394,86 @@ import {
                       class="text-3xl font-bold leading-none disco-text green"
                       >{{ event.totalProfit | number: '1.2-2' }}</span
                     >
+                    <span class="text-xs disco-text green">
+                      ({{
+                        (event.totalProfit * 100) / event.totalDeposited
+                          | number
+                      }}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex justify-between items-center gap-4">
+                <div class="w-full h-full flex justify-end items-center ">
+                  <ngx-charts-advanced-pie-chart
+                    *ngIf="event.totalProfit > 0"
+                    [view]="[500, 160]"
+                    [scheme]="colorScheme"
+                    [gradient]="true"
+                    [results]="[
+                      {
+                        name: 'Tickets',
+                        value: event.totalProfitInTickets
+                      },
+                      {
+                        name: 'Purchases',
+                        value: event.totalProfitInPurchases
+                      }
+                    ]"
+                  >
+                  </ngx-charts-advanced-pie-chart>
+                  <p *ngIf="event.totalProfit === 0">There's no profit yet.</p>
+                </div>
+                <div class="w-full h-full flex flex-col gap-2 justify-center">
+                  <div
+                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
+                  >
+                    <div
+                      class="inline-block w-4 h-4 rounded-full"
+                      style="background-color: #19fb9b"
+                    ></div>
+                    <div>
+                      <p class="m-0 text-lg font-bold">Tickets</p>
+                      <div class="flex items-center gap-2">
+                        <figure>
+                          <img
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
+                            alt="usdc logo"
+                          />
+                        </figure>
+                        <p
+                          class="m-0 text-sm font-bold leading-none disco-text green"
+                        >
+                          {{ event.totalProfitInTickets | number: '1.2-2' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
+                  >
+                    <div
+                      class="inline-block w-4 h-4 rounded-full"
+                      style="background-color: #ff5ef9"
+                    ></div>
+                    <div>
+                      <p class="m-0 text-lg font-bold">Purchases</p>
+                      <div class="flex items-center gap-2">
+                        <figure>
+                          <img
+                            class="disco-accepted-mint-logo"
+                            src="{{ acceptedMintLogo$ | async }}"
+                            alt="usdc logo"
+                          />
+                        </figure>
+                        <p
+                          class="m-0 text-sm font-bold leading-none disco-text green"
+                        >
+                          {{ event.totalProfitInPurchases | number: '1.2-2' }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -342,13 +503,13 @@ export class ViewEventComponent implements OnInit {
     map(() => Date.now())
   );
   readonly beforeStart$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventStartDate.toNumber() - now)
+    map(([event, now]) => event?.account.eventStartDate - now)
   );
   readonly beforeEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventEndDate.toNumber() - now)
+    map(([event, now]) => event?.account.eventEndDate - now)
   );
   readonly sinceEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => now - event?.account.eventEndDate.toNumber())
+    map(([event, now]) => now - event?.account.eventEndDate)
   );
   readonly colorScheme = {
     name: 'my-color-scheme',

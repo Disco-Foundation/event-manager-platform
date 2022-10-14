@@ -1,26 +1,19 @@
 import { inject, Injectable } from '@angular/core';
-import {
-  Auth,
-  signInWithCustomToken,
-  signOut,
-  UserCredential,
-} from '@angular/fire/auth';
+import { Auth, signInWithCustomToken, signOut } from '@angular/fire/auth';
 import { Functions, httpsCallableData } from '@angular/fire/functions';
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 
 interface LoginState {
   connected: boolean;
   connecting: boolean;
   disconnecting: boolean;
-  userCredential: UserCredential | null;
 }
 
 const initialState = {
   connected: false,
   connecting: false,
   disconnecting: false,
-  userCredential: null,
 };
 
 @Injectable()
@@ -28,25 +21,7 @@ export class LoginStore extends ComponentStore<LoginState> {
   private readonly _auth = inject(Auth);
   private readonly _fns = inject(Functions);
 
-  private readonly _connected$ = this.select(
-    this.state$,
-    ({ connected }) => connected
-  );
-
-  private readonly _connecting$ = this.select(
-    this.state$,
-    ({ connecting }) => connecting
-  );
-
-  private readonly _disconnecting$ = this.select(
-    this.state$,
-    ({ disconnecting }) => disconnecting
-  );
-
-  private readonly _userCredential$ = this.select(
-    this.state$,
-    ({ userCredential }) => userCredential
-  );
+  readonly connected$ = this.select(({ connected }) => connected);
 
   constructor() {
     super(initialState);
@@ -54,34 +29,52 @@ export class LoginStore extends ComponentStore<LoginState> {
 
   async signOut() {
     this.patchState({ disconnecting: true });
-    await signOut(this._auth);
-    this.patchState({ disconnecting: false, connected: false });
+    await signOut(this._auth)
+      .then(() => this.patchState({ disconnecting: false, connected: false }))
+      .catch((error) => {
+        return throwError(() => new Error(error));
+      });
   }
 
-  getNonce(publicKey: string): Observable<any> {
+  async getNonce(publicKey: string): Promise<Observable<any>> {
     // call getNonceFunction
     this.patchState({ connecting: true });
-    const callable = httpsCallableData(this._fns, 'getNonceToSign');
-    return callable({ publicKey: publicKey });
+    try {
+      const callable = httpsCallableData(this._fns, 'getNonceToSign');
+      return callable({ publicKey: publicKey });
+    } catch (error) {
+      return throwError(() => new Error("Error verifiying user's identity"));
+    }
   }
 
   async signIn(signature: Buffer, publicKey: string) {
     // call verifySignedMessage
     const callable = httpsCallableData(this._fns, 'verifySignedMessage');
-    callable({ signature: signature, publicKey: publicKey }).subscribe(
-      async (token) => {
-        if (token != undefined) {
-          await signInWithCustomToken(this._auth, token as string).then(
-            (userCredentials) => {
-              this.patchState({
-                connecting: false,
-                connected: true,
-                userCredential: userCredentials,
+    try {
+      return callable({ signature: signature, publicKey: publicKey }).subscribe(
+        async (token) => {
+          if (token != undefined) {
+            await signInWithCustomToken(this._auth, token as string)
+              .then(() =>
+                this.patchState({
+                  connecting: false,
+                  connected: true,
+                })
+              )
+              .catch((error) => {
+                this.patchState({
+                  connecting: false,
+                  connected: false,
+                });
+                return throwError(() => new Error(error));
               });
-            }
-          );
+          }
         }
-      }
-    );
+      );
+    } catch (error) {
+      return throwError(
+        () => new Error('Wallet sign in error, please try again')
+      );
+    }
   }
 }

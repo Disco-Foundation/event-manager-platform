@@ -31,10 +31,6 @@ import { UserStore } from './user.store';
             >Create event</a
           >
         </p>
-
-        <p class="text-center" *ngIf="error$ | async as error">
-          {{ error }}
-        </p>
       </header>
       <div>
         <mat-tab-group
@@ -45,11 +41,13 @@ import { UserStore } from './user.store';
           <mat-tab label="Account info">
             <section
               class="flex flex-wrap gap-8 justify-center mt-6"
-              *ngIf="user$ | async as user; else loading"
+              style="flex-direction: column; align-items: center;"
+              *ngIf="user$ | async as user"
             >
               <article
                 class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
                 style="width: 36rem;"
+                *ngIf="user != undefined; else loading"
               >
                 <header class="relative flex flex-row gap-2">
                   <figure
@@ -87,6 +85,7 @@ import { UserStore } from './user.store';
                     <div
                       class="mt-3"
                       style="display: flex;align-items: center;"
+                      *ngIf="user.email != null"
                     >
                       <mat-icon>email</mat-icon>
                       <p class="line-clamp-3 text-justify m-0 flex-grow ml-2">
@@ -95,20 +94,25 @@ import { UserStore } from './user.store';
                     </div>
                     <div
                       class="mt-3"
-                      style="display: flex;align-items: center;"
+                      style="display: flex;align-items: baseline;"
                     >
                       <figure
-                        class=" overflow-hidden bg-black"
-                        style="width: 24px !important; height: 24px"
+                        class="overflow-hidden bg-black"
+                        style="width: 26px !important; height: 26px; padding: 1.5px; border-radius:50%"
                       >
                         <img
-                          src="usdc-logo.png"
+                          src="https://arweave.net/za2HnCvR2t9uog3IrsAxRQhbt5DXCHgyv20l3pu26V4"
                           alt=""
                           style="object-fit: cover;height: 100%;"
                         />
                       </figure>
-                      <p class="line-clamp-3 text-justify m-0 flex-grow ml-2">
-                        {{ user.discoTokens }}
+                      <p
+                        class="text-center text-3xl m-0 ml-2 font-bold leading-none disco-text green"
+                      >
+                        {{ user.discoTokens | number: '1.2-2' }}
+                      </p>
+                      <p class="line-clamp-3 text-justify flex-grow m-0 ml-2">
+                        Disco Tokens
                       </p>
                     </div>
                   </div>
@@ -341,7 +345,7 @@ import { UserStore } from './user.store';
                         <p
                           class="text-center m-0 text-3xl font-bold leading-none disco-text green"
                         >
-                          {{ 1 | number: '1.2-2' }}
+                          {{ ticket.ticketPrice | number: '1.2-2' }}
                         </p>
                       </div>
                     </div>
@@ -353,7 +357,7 @@ import { UserStore } from './user.store';
                       <p
                         class="text-center m-0 text-3xl font-bold leading-none disco-text green"
                       >
-                        {{ 10 | number }}
+                        {{ ticket.ticketQuantity | number }}
                       </p>
                     </div>
                   </div>
@@ -362,20 +366,22 @@ import { UserStore } from './user.store';
                     class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                     emBuyTicketsTrigger
                     [eventName]="ticket.account.name"
-                    [ticketPrice]="ticket.account.ticketPrice"
+                    [ticketPrice]="ticket.ticketPrice"
                     [eventId]="ticket.publicKey!.toBase58()"
+                    (buyTickets)="
+                      onBuyTickets(
+                        ticket.publicKey!,
+                        ticket.account.acceptedMint!,
+                        $event,
+                        ticket.account.fId
+                      )
+                    "
                   >
                     <div class="flex flex-col items-center">
-                      <span class="uppercase text-2xl"> Buy More </span>
+                      <span class="uppercase text-2xl"> Buy More! </span>
                       <span class="text-xs italic">
                         Only
-                        <b
-                          >{{
-                            ticket.account.ticketQuantity -
-                              ticket.account.ticketsSold | number
-                          }}
-                          ticket(s)</b
-                        >
+                        <b>{{ ticket.ticketsLeft | number }} ticket(s)</b>
                         left.
                       </span>
                     </div>
@@ -748,7 +754,6 @@ export class ProfileComponent implements OnInit {
   readonly tickets$ = this._ticketsByOwnerStore.tickets$;
   readonly draftEvents$ = this._eventsByOwnerStore.draftEvents$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
-  readonly error$ = this._eventsByOwnerStore.error$;
   readonly user$ = this._userStore.user$;
 
   readonly userForm = this._formBuilder.group({
@@ -821,7 +826,6 @@ export class ProfileComponent implements OnInit {
                     .updateSold(eventFId, ticketQuantity)
                     .pipe(
                       catchError((error) => {
-                        console.log('ERROR:', error);
                         this._matSnackBar.open(error.msg);
                         return EMPTY;
                       })
@@ -850,7 +854,22 @@ export class ProfileComponent implements OnInit {
   }
 
   onPublishEvent(draft: EventAccount) {
-    this._eventsByOwnerStore.publishDraft(draft);
+    this._eventsByOwnerStore
+      .publishDraft(draft)
+      .pipe(
+        tap(() => {
+          this._matSnackBar.open(`Event published successfully!`, 'Close', {
+            duration: 5000,
+          });
+          this._eventsByOwnerStore.reload();
+          this.selectedTab = 2;
+        }),
+        catchError((error) => {
+          this._matSnackBar.open(error, 'close');
+          return EMPTY;
+        })
+      )
+      .subscribe();
   }
 
   showInfo(show: boolean) {

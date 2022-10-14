@@ -14,8 +14,13 @@ import {
   map,
   of,
   switchMap,
+  throwError,
 } from 'rxjs';
-import { EventAccount } from './event-api.service';
+import {
+  CreateEventArguments,
+  EventAccount,
+  EventApiService,
+} from './event-api.service';
 import { FirebaseService } from './firebase/firebase.service';
 
 export interface EventDetailsView extends EventAccount {
@@ -25,7 +30,13 @@ export interface EventDetailsView extends EventAccount {
   ticketPrice: number;
   ticketsSold: number;
   ticketsLeft: number;
+  totalValueLocked: number;
+  totalValueLockedInRecharges: number;
+  totalValueLockedInTickets: number;
+  totalDeposited: number;
   totalProfit: number;
+  totalProfitInTickets: number;
+  totalProfitInPurchases: number;
 }
 
 interface ViewModel {
@@ -56,7 +67,8 @@ export class EventStore extends ComponentStore<ViewModel> {
 
   constructor(
     private readonly _firebaseService: FirebaseService,
-    private readonly _connectionStore: ConnectionStore
+    private readonly _connectionStore: ConnectionStore,
+    private readonly _eventApiService: EventApiService
   ) {
     super(initialState);
 
@@ -96,12 +108,10 @@ export class EventStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      console.log(eventId);
       return this._firebaseService.getEvent(eventId).pipe(
         concatMap((event) => {
-          console.log(event);
-          if (event === null) {
-            return of(null);
+          if (event === undefined) {
+            return throwError(() => new Error('Error loading the event'));
           }
 
           return forkJoin({
@@ -124,9 +134,7 @@ export class EventStore extends ComponentStore<ViewModel> {
               ticketPrice:
                 event.account.acceptedMint != null
                   ? event.account.ticketPrice
-                  : /*.div(new BN(10).pow(new BN(acceptedMint!.decimals)))
-                      .toNumber()*/
-                    0,
+                  : 0,
               ticketsSold: event.account.ticketsSold,
               ticketsLeft:
                 event.account.ticketMint != null
@@ -139,12 +147,15 @@ export class EventStore extends ComponentStore<ViewModel> {
                         event.account.ticketQuantity
                     )
                   : 0,
-              totalProfit:
-                event.account.acceptedMint != null
-                  ? event.account.totalProfit
-                  : /*.div(new BN(10).pow(new BN(acceptedMint!.decimals)))
-                      .toNumber()*/
-                    0,
+              totalValueLocked: event.account.totalValueLocked,
+              totalValueLockedInTickets:
+                event.account.totalValueLockedInTickets,
+              totalValueLockedInRecharges:
+                event.account.totalValueLockedInRecharges,
+              totalDeposited: event.account.totalDeposited,
+              totalProfit: event.account.totalProfit,
+              totalProfitInTickets: event.account.totalProfitInTickets,
+              totalProfitInPurchases: event.account.totalProfitInPurchases,
             }))
           );
         }),
@@ -155,7 +166,10 @@ export class EventStore extends ComponentStore<ViewModel> {
               loading: false,
             });
           },
-          (error) => this.patchState({ error, loading: false })
+          (error) => {
+            this.patchState({ error, loading: false });
+            throwError(() => new Error(error as string));
+          }
         )
       );
     })
@@ -173,7 +187,20 @@ export class EventStore extends ComponentStore<ViewModel> {
         return of(null);
       }
 
-      return from(this._firebaseService.setPublishedEvent(event));
+      const args = {
+        name: event.account.name,
+        description: event.account.description,
+        location: event.account.location,
+        banner: event.account.banner,
+        startDate: event.account.eventStartDate,
+        endDate: event.account.eventEndDate,
+        ticketPrice: event.account.ticketPrice,
+        ticketQuantity: event.account.ticketQuantity,
+        certifierFunds: 0,
+        fId: event.account.fId,
+      };
+
+      return from(this._eventApiService.publish(args as CreateEventArguments));
     });
   }
 

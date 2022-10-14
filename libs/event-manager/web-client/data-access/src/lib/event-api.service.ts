@@ -44,9 +44,17 @@ export interface EventAccountInfo {
   ticketPrice: BN;
   ticketsSold: number;
   ticketQuantity: number;
-  totalProfit: BN;
   temporalVault: PublicKey | null;
   temporalVaultBump: number | null;
+  gainVault: PublicKey | null;
+  gainVaultBump: number;
+  totalDeposited: BN;
+  totalValueLocked: BN;
+  totalValueLockedInTickets: BN;
+  totalValueLockedInRecharges: BN;
+  totalProfit: BN;
+  totalProfitInTickets: BN;
+  totalProfitInPurchases: BN;
   fId: string;
   published?: boolean;
 }
@@ -76,7 +84,7 @@ export interface BuyTicketsArguments {
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  '4QjKHnUKebDM2utCHa3TCywLobo4iC7Cbi1PyThMw6ND' //'915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  '5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR' //'915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
 );
 
 @Injectable({ providedIn: 'root' })
@@ -197,7 +205,7 @@ export class EventApiService {
           .all()
           .then((events) => events as EventAccount[])
           .then((events: EventAccount[]) =>
-            events.find((event) => (event.account.fId = eventFId))
+            events.find((event) => event.account.fId === eventFId)
           )
       );
     });
@@ -213,8 +221,10 @@ export class EventApiService {
         return throwError(() => new Error('ProgramReaderMissing'));
       }
 
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
+      if (provider === null || provider.wallet.publicKey === undefined) {
+        return throwError(
+          () => new Error('Please connect a wallet to see your tickets')
+        );
       }
 
       return from(
@@ -296,16 +306,16 @@ export class EventApiService {
       const provider = this.provider;
       const writer = this.writer;
 
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
+      if (provider === null || provider.wallet.publicKey === undefined) {
+        return throwError(
+          () => new Error('Please connect a wallet to buy tickets')
+        );
       }
 
       if (writer === null) {
         return throwError(() => new Error('ProgramWriterMissing'));
       }
 
-      console.log('passing headers');
-      console.log(args);
       return from(
         getAssociatedTokenAddress(
           args.acceptedMint,
@@ -329,8 +339,10 @@ export class EventApiService {
     return defer(() => {
       const provider = this.provider;
 
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
+      if (provider === null || provider.wallet.publicKey === undefined) {
+        return throwError(
+          () => new Error('Please connect a wallet to create events')
+        );
       }
 
       return from(
@@ -348,8 +360,10 @@ export class EventApiService {
     return defer(() => {
       const provider = this.provider;
 
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
+      if (provider === null || provider.wallet.publicKey === undefined) {
+        return throwError(
+          () => new Error('Please connect a wallet to view your events')
+        );
       }
 
       return from(
@@ -367,8 +381,10 @@ export class EventApiService {
       const provider = this.provider;
       const certifierKeypair = getCertifier(Certifier.productPayer);
 
-      if (provider === null) {
-        return throwError(() => new Error('ProviderMissing'));
+      if (provider === null || provider.wallet.publicKey === undefined) {
+        return throwError(
+          () => new Error('Please connect a wallet to publish events')
+        );
       }
 
       if (writer === null) {

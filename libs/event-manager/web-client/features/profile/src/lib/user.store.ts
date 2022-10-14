@@ -28,10 +28,8 @@ const initialState: UserState = {
 
 @Injectable()
 export class UserStore extends ComponentStore<UserState> {
-  readonly loading$ = this.select(({ loading }) => loading);
   readonly user$ = this.select(({ user }) => user);
   readonly id$ = this.select(({ id }) => id);
-
   readonly error$ = this.select(({ error }) => error);
 
   constructor(private readonly _firebaseService: FirebaseService) {
@@ -60,21 +58,22 @@ export class UserStore extends ComponentStore<UserState> {
       }
 
       this.patchState({ loading: true });
-      console.log('ID:', id.toBase58());
 
       return this._firebaseService.getUser(id.toBase58()).pipe(
         tapResponse(
-          (user) =>
-            this.patchState({
-              user: {
-                name: user.name,
-                lastName: user.lastName,
-                email: user.email,
-                image: user.image,
-                discoTokens: user.discoTokens,
-              },
-              loading: false,
-            }),
+          (user) => {
+            if (user != undefined)
+              this.patchState({
+                user: {
+                  name: user.name,
+                  lastName: user.lastName,
+                  email: user.email,
+                  image: user.image,
+                  discoTokens: user.discoTokens,
+                },
+                loading: false,
+              });
+          },
           (error) => this.patchState({ error, loading: false })
         )
       );
