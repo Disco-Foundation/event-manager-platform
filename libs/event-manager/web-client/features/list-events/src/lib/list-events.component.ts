@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
@@ -31,13 +32,29 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         <p class="text-center" *ngIf="error$ | async as error">
           {{ error }}
         </p>
-
-        <button
-          (click)="onReload()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Reload
-        </button>
+        <div class="flex flex-wrap gap-8 justify-center mt-1">
+          <form
+            [formGroup]="searchForm"
+            style="width: 25rem; display: flex; flex-direction: row;align-items: center;"
+          >
+            <mat-form-field class="w-full" appearance="fill">
+              <input
+                matInput
+                formControlName="search"
+                required
+                type="string"
+                autocomplete="off"
+                placeholder="Search event..."
+              />
+            </mat-form-field>
+          </form>
+          <!--<button
+            (click)="onReload()"
+            class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+          >
+            Reload
+          </button>-->
+        </div>
       </header>
 
       <section
@@ -47,7 +64,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         <p *ngIf="events.length === 0">No Events Found</p>
 
         <article
-          *ngFor="let event of events"
+          *ngFor="let event of events | searchFilter: searchForm.value.search"
           class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           style="width: 30rem"
         >
@@ -228,12 +245,17 @@ export class ListEventsComponent {
   readonly error$ = this._eventsStore.error$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
 
+  readonly searchForm = this._formBuilder.group({
+    search: '',
+  });
+
   constructor(
     private readonly _configStore: ConfigStore,
     private readonly _eventsStore: EventsStore,
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
-    private readonly _connectionStore: ConnectionStore
+    private readonly _connectionStore: ConnectionStore,
+    private readonly _formBuilder: UntypedFormBuilder
   ) {}
 
   onReload() {
