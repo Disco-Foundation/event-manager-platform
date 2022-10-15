@@ -142,7 +142,8 @@ describe('New Solana X Party Reloaded', () => {
         eventStartDate,
         eventEndDate,
         ticketUiPrice,
-        ticketQuantity
+        ticketQuantity,
+        ''
       )
       .accounts({
         authority: provider.wallet.publicKey,

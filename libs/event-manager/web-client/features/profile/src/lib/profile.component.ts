@@ -40,7 +40,7 @@ import { UserStore } from './user.store';
         >
           <mat-tab label="Account info">
             <section
-              class="flex flex-wrap gap-8 justify-center mt-6"
+              class="flex flex-wrap gap-8 justify-center mt-8"
               style="flex-direction: column; align-items: center;"
               *ngIf="user$ | async as user"
             >
@@ -265,7 +265,7 @@ import { UserStore } from './user.store';
           <mat-tab label="Tickets">
             <section
               *ngIf="tickets$ | async as tickets; else loading"
-              class="flex flex-wrap gap-8 justify-center mt-6"
+              class="flex flex-wrap gap-8 justify-center mt-8"
             >
               <p *ngIf="tickets.length === 0" class="text-center mt-10">
                 There are no tickets.
@@ -397,7 +397,7 @@ import { UserStore } from './user.store';
           <mat-tab label="Events">
             <section
               *ngIf="events$ | async as events; else eventloading"
-              class="flex flex-wrap gap-8 justify-center mt-6"
+              class="flex flex-wrap gap-8 justify-center mt-8"
             >
               <p *ngIf="events.length === 0" class="text-center mt-10">
                 There are no events.
@@ -580,7 +580,7 @@ import { UserStore } from './user.store';
           <mat-tab label="Drafts">
             <section
               *ngIf="draftEvents$ | async as drafts; else draftloading"
-              class="flex flex-wrap gap-8 justify-center mt-6"
+              class="flex flex-wrap gap-8 justify-center mt-8"
             >
               <p *ngIf="drafts.length === 0" class="text-center mt-10">
                 There are no drafts events.

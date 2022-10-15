@@ -4,15 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfigStore, EventStore } from '@event-manager-web-client/data-access';
 import { ScaleType } from '@swimlane/ngx-charts';
-import {
-  catchError,
-  combineLatest,
-  concatMap,
-  EMPTY,
-  interval,
-  map,
-  startWith,
-} from 'rxjs';
+import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
 @Component({
   selector: 'em-view-event',
   template: `
@@ -41,7 +33,7 @@ import {
         <div class="flex flex-row gap-4" style="width: 50rem; margin-top:2rem">
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
-            style="width: 60%;"
+            style="width: 60%; height: fit-content;"
           >
             <header class="flex flex-col gap-2">
               <figure class="h-48 overflow-hidden bg-black">
@@ -105,22 +97,17 @@ import {
                   *ngIf="now$ | async as now"
                   class="italic text-xs m-0 disco-text gold"
                 >
-                  <ng-container *ngIf="now < event.account.eventStartDate">
+                  <ng-container *ngIf="now < startDate">
                     Starts
-                    {{ event.account.eventStartDate - now | emRelativeTime }}.
+                    {{ startDate - now | emRelativeTime }}.
                   </ng-container>
-                  <ng-container
-                    *ngIf="
-                      now > event.account.eventStartDate &&
-                      now < event.account.eventEndDate
-                    "
-                  >
+                  <ng-container *ngIf="now > startDate && now < endDate">
                     Ends
-                    {{ event.account.eventEndDate - now | emRelativeTime }}.
+                    {{ endDate - now | emRelativeTime }}.
                   </ng-container>
-                  <ng-container *ngIf="now > event.account.eventEndDate">
+                  <ng-container *ngIf="now > endDate">
                     Ended
-                    {{ now - event.account.eventEndDate | emRelativeTime }}.
+                    {{ now - endDate | emRelativeTime }}.
                   </ng-container>
                 </p>
               </header>
@@ -130,14 +117,22 @@ import {
                   <p class="m-0">
                     From <br />
                     <span class="text-xl font-bold">
-                      {{ event.account.eventStartDate | date: 'medium' }}
+                      {{ startDate | date: 'medium' }}
                     </span>
                   </p>
                   <p class="m-0">
                     To <br />
                     <span class="text-xl font-bold">
-                      {{ event.account.eventEndDate | date: 'medium' }}
+                      {{ endDate | date: 'medium' }}
                     </span>
+                  </p>
+                </div>
+                <div class="py-4 disco-layer disco-border border-2 blue">
+                  <p
+                    class="m-0 font-bold uppercase text-2xl text-center disco-text gold"
+                  >
+                    Lasts
+                    {{ endDate - startDate | emDurationTime }}
                   </p>
                 </div>
               </div>
@@ -509,7 +504,8 @@ export class ViewDraftEventComponent implements OnInit {
   editingDates = false;
   editingTickets = false;
   submitted = false;
-  id: string | null = null;
+  startDate: number = 0;
+  endDate: number = 0;
 
   readonly event$ = this._eventStore.event$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
@@ -552,15 +548,7 @@ export class ViewDraftEventComponent implements OnInit {
     startWith(Date.now()),
     map(() => Date.now())
   );
-  readonly beforeStart$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventStartDate - now)
-  );
-  readonly beforeEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventEndDate - now)
-  );
-  readonly sinceEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => now - event?.account.eventEndDate)
-  );
+
   readonly colorScheme = {
     name: 'my-color-scheme',
     selectable: false,
@@ -575,12 +563,17 @@ export class ViewDraftEventComponent implements OnInit {
     private readonly _formBuilder: UntypedFormBuilder,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _router: Router
-  ) {}
+  ) {
+    this.event$.subscribe((event) => {
+      this.startDate = Date.parse(event?.account.eventStartDate);
+      this.endDate = Date.parse(event?.account.eventEndDate);
+    });
+  }
 
   ngOnInit() {
     this._eventStore.setEventId(
       this._activatedRoute.paramMap.pipe(
-        map((paramMap) => (this.id = paramMap.get('eventId')))
+        map((paramMap) => paramMap.get('eventId'))
       )
     );
   }
@@ -590,26 +583,24 @@ export class ViewDraftEventComponent implements OnInit {
   }
 
   onPublishEvent() {
-    if (this.id != null) {
-      this._eventStore
-        .publishEvent()
-        .pipe(
-          concatMap(() => {
-            return this._matSnackBar
-              .open('Event published!', '', {
-                duration: 5000,
-              })
-              .afterOpened();
-          }),
-          catchError((error) => {
-            this._matSnackBar.open(error.message, 'close', {
+    this._eventStore
+      .publishEvent()
+      .pipe(
+        concatMap(() => {
+          return this._matSnackBar
+            .open('Event published!', '', {
               duration: 5000,
-            });
-            return EMPTY;
-          })
-        )
-        .subscribe(() => this._router.navigate(['/profile']));
-    }
+            })
+            .afterOpened();
+        }),
+        catchError((error) => {
+          this._matSnackBar.open(error.message, 'close', {
+            duration: 5000,
+          });
+          return EMPTY;
+        })
+      )
+      .subscribe(() => this._router.navigate(['/profile']));
   }
 
   showEditTickets() {
@@ -620,9 +611,9 @@ export class ViewDraftEventComponent implements OnInit {
 
   onSaveTickets() {
     this.submitted = true;
-    if (this.ticketsForm.valid && this.id != null) {
+    if (this.ticketsForm.valid) {
       this._eventStore
-        .updateEventTickets(this.id, {
+        .updateEventTickets({
           ...this.ticketsForm.value,
         })
         .pipe(
@@ -652,9 +643,9 @@ export class ViewDraftEventComponent implements OnInit {
 
   onSaveDates() {
     this.submitted = true;
-    if (this.datesForm.valid && this.id != null) {
+    if (this.datesForm.valid) {
       this._eventStore
-        .updateEventDates(this.id, {
+        .updateEventDates({
           ...this.datesForm.value,
         })
         .pipe(
@@ -684,9 +675,9 @@ export class ViewDraftEventComponent implements OnInit {
 
   onSaveInfo() {
     this.submitted = true;
-    if (this.infoForm.valid && this.id != null) {
+    if (this.infoForm.valid) {
       this._eventStore
-        .updateEventInfo(this.id, {
+        .updateEventInfo({
           ...this.infoForm.value,
         })
         .pipe(

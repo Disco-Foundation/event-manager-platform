@@ -41,10 +41,10 @@ import { ViewDraftEventComponent } from './view-draft-event.component';
     MatFormFieldModule,
   ],
   declarations: [
+    ViewDraftEventComponent,
     TicketStatusMessagePipe,
     DurationTimePipe,
     RelativeTimePipe,
-    ViewDraftEventComponent,
   ],
 })
 export class ViewDraftEventModule {}

@@ -1,5 +1,4 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 
 @Pipe({
   name: 'emDurationTime',
@@ -31,7 +30,7 @@ export class DurationTimePipe implements PipeTransform {
     }
   }
 
-  transform(value: BN): string | null {
-    return this.getMessage(Math.floor(value.toNumber() / 1000));
+  transform(value: number): string | null {
+    return this.getMessage(Math.floor(value / 1000));
   }
 }

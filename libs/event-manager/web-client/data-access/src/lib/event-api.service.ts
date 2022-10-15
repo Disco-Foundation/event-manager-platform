@@ -84,7 +84,7 @@ export interface BuyTicketsArguments {
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  '5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR' //'915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  '915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
 );
 
 @Injectable({ providedIn: 'root' })

@@ -204,35 +204,44 @@ export class EventStore extends ComponentStore<ViewModel> {
     });
   }
 
-  updateEventTickets(
-    eventId: string,
-    args: { ticketPrice: number; ticketQuantity: number }
-  ) {
+  updateEventTickets(args: { ticketPrice: number; ticketQuantity: number }) {
+    const event = this.get().event;
     return defer(() => {
-      return from(this._firebaseService.updateEventTickets(eventId, args));
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._firebaseService.updateEventTickets(event.account.fId, args)
+      );
     });
   }
 
-  updateEventDates(
-    eventId: string,
-    args: { startDate: string; endDate: string }
-  ) {
+  updateEventDates(args: { startDate: string; endDate: string }) {
+    const event = this.get().event;
     return defer(() => {
-      return from(this._firebaseService.updateEventDates(eventId, args));
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._firebaseService.updateEventDates(event.account.fId, args)
+      );
     });
   }
 
-  updateEventInfo(
-    eventId: string,
-    args: {
-      name: string;
-      description: string;
-      location: string;
-      banner: string;
-    }
-  ) {
+  updateEventInfo(args: {
+    name: string;
+    description: string;
+    location: string;
+    banner: string;
+  }) {
+    const event = this.get().event;
     return defer(() => {
-      return from(this._firebaseService.updateEventInfo(eventId, args));
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._firebaseService.updateEventInfo(event.account.fId, args)
+      );
     });
   }
 }
