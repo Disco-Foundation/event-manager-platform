@@ -22,6 +22,9 @@ export class LoginStore extends ComponentStore<LoginState> {
   private readonly _fns = inject(Functions);
 
   readonly connected$ = this.select(({ connected }) => connected);
+  readonly activeConnection$ = this.select(({ connected, connecting }) => {
+    return connecting === false && connected === true;
+  });
 
   constructor() {
     super(initialState);
@@ -53,22 +56,24 @@ export class LoginStore extends ComponentStore<LoginState> {
     try {
       return callable({ signature: signature, publicKey: publicKey }).subscribe(
         async (token) => {
-          if (token != undefined) {
-            await signInWithCustomToken(this._auth, token as string)
-              .then(() =>
-                this.patchState({
-                  connecting: false,
-                  connected: true,
-                })
-              )
-              .catch((error) => {
-                this.patchState({
-                  connecting: false,
-                  connected: false,
-                });
-                return throwError(() => new Error(error));
-              });
+          if (token === undefined) {
+            return throwError(() => new Error('error'));
           }
+
+          return await signInWithCustomToken(this._auth, token as string)
+            .then(() =>
+              this.patchState({
+                connecting: false,
+                connected: true,
+              })
+            )
+            .catch((error) => {
+              this.patchState({
+                connecting: false,
+                connected: false,
+              });
+              return throwError(() => new Error(error));
+            });
         }
       );
     } catch (error) {

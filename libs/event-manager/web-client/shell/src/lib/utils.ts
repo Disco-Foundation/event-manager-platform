@@ -20,7 +20,7 @@ export class Authenticated implements CanActivate {
     | UrlTree
     | Observable<boolean | UrlTree>
     | Promise<boolean | UrlTree> {
-    return this._loginStore.connected$.pipe(
+    return this._loginStore.activeConnection$.pipe(
       tap((connected) => {
         if (!connected) {
           this.router.navigateByUrl('/list-events');
