@@ -2,10 +2,10 @@
 seeds = true
 
 [programs.devnet]
-event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR"
 
 [programs.localnet]
-event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
+event_manager = "5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR"
 
 # [programs.mainnet]
 # event_manager = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"
@@ -15,7 +15,7 @@ url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "/home/dayana/.config/solana/id.json"
 
 [scripts]
-test = "ts-mocha -p ./tsconfig.json -t 1000000 tests/*.spec.ts"
+test = "ts-mocha -p ./tsconfig.json -t 1000000 tests/*.spec.ts --parallel"

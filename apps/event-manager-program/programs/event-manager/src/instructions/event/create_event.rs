@@ -2,7 +2,7 @@ use {crate::collections::Event, anchor_lang::prelude::*, anchor_spl::token::*};
 
 #[derive(Accounts)]
 #[instruction(
-  event_id: u64, 
+  event_id: String, 
   name: String,
   description: String,
   banner: String,
@@ -16,7 +16,7 @@ pub struct CreateEvent<'info> {
     init,
     seeds = [
       b"event".as_ref(),
-      event_id.to_le_bytes().as_ref(),
+      event_id.as_bytes(),
       authority.key().as_ref(),
     ],
     bump,
@@ -81,7 +81,7 @@ pub struct CreateEvent<'info> {
 
 pub fn handle(
   ctx: Context<CreateEvent>, 
-  event_id: u64, 
+  event_id: String, 
   name: String, 
   description: String,
   banner: String,
@@ -89,8 +89,7 @@ pub fn handle(
   event_start_date: i64,
   event_end_date: i64,
   ticket_price: u64, 
-  ticket_quantity: u32,
-  f_id: String
+  ticket_quantity: u32
 ) -> Result<()> {
   msg!("Creating Event...");
   (*ctx.accounts.event).authority = ctx.accounts.authority.key();
@@ -102,7 +101,6 @@ pub fn handle(
   (*ctx.accounts.event).location = location;
   (*ctx.accounts.event).event_start_date = event_start_date;
   (*ctx.accounts.event).event_end_date = event_end_date;
-  (*ctx.accounts.event).f_id = f_id;
   let ticket_price_multiplier = (10 as u32).checked_pow(ctx.accounts.accepted_mint.decimals as u32).unwrap();
   (*ctx.accounts.event).ticket_price = ticket_price.checked_mul(ticket_price_multiplier as u64).unwrap();
   (*ctx.accounts.event).ticket_quantity = ticket_quantity;

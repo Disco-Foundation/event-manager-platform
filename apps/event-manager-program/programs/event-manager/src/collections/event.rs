@@ -26,14 +26,13 @@ pub struct Event {
   pub attendance_mint: Pubkey,              // 32
   pub gain_vault: Pubkey,                   // 32
   pub temporal_vault: Pubkey,               // 32
-  pub event_id: u64,                        // 8
+  pub event_id: String,                     // (40 + 4)
   pub event_bump: u8,                       // 1
   pub event_mint_bump: u8,                  // 1
   pub ticket_mint_bump: u8,                 // 1
   pub attendance_mint_bump: u8,             // 1
   pub temporal_vault_bump: u8,              // 1
   pub gain_vault_bump: u8,                  // 1
-  pub f_id: String,                         // (40 + 4)
 }
 
 impl Event {
@@ -62,14 +61,13 @@ impl Event {
     + 8
     + 8
     + 8
-    + 8
+    + (40 + 4)
     + 1
     + 1
     + 1
     + 1
     + 1
-    + 1
-    + (40 + 4);
+    + 1;
   pub const BUMP_NAME: &'static str = "event";
   pub const BUMP_EVENT_MINT_NAME: &'static str = "event_mint";
   pub const BUMP_TICKET_MINT_NAME: &'static str = "ticket_mint";
