@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { PublicKey } from '@solana/web3.js';
-import { FirebaseService } from 'libs/event-manager/web-client/data-access/src/lib/firebase/firebase.service';
+import { EventFirebaseService } from 'libs/event-manager/web-client/data-access/src/lib/firebase/event-firebase.service';
 import { combineLatest, defer, EMPTY, from, map, switchMap } from 'rxjs';
 
 interface UserState {
@@ -32,7 +32,7 @@ export class UserStore extends ComponentStore<UserState> {
   readonly id$ = this.select(({ id }) => id);
   readonly error$ = this.select(({ error }) => error);
 
-  constructor(private readonly _firebaseService: FirebaseService) {
+  constructor(private readonly _eventFirebaseService: EventFirebaseService) {
     super(initialState);
 
     this._loadUser(
@@ -59,22 +59,27 @@ export class UserStore extends ComponentStore<UserState> {
 
       this.patchState({ loading: true });
 
-      return this._firebaseService.getUser(id.toBase58()).pipe(
+      return this._eventFirebaseService.getUser(id.toBase58()).pipe(
         tapResponse(
           (user) => {
-            if (user != undefined)
-              this.patchState({
-                user: {
-                  name: user.name,
-                  lastName: user.lastName,
-                  email: user.email,
-                  image: user.image,
-                  discoTokens: user.discoTokens,
-                },
+            if (user === undefined) {
+              return this.patchState({
+                error: new Error('user not found'),
                 loading: false,
               });
+            }
+            this.patchState({
+              user: {
+                name: user.name,
+                lastName: user.lastName,
+                email: user.email,
+                image: user.image,
+                discoTokens: user.discoTokens,
+              },
+              loading: false,
+            });
           },
-          (error) => this.patchState({ error, loading: false })
+          (error) => this.patchState({ error: error, loading: false })
         )
       );
     })
@@ -88,7 +93,9 @@ export class UserStore extends ComponentStore<UserState> {
   }) {
     const userId = this.get().id!;
     return defer(() => {
-      return from(this._firebaseService.updateUser(userId?.toBase58(), args));
+      return from(
+        this._eventFirebaseService.updateUser(userId?.toBase58(), args)
+      );
     });
   }
 }

@@ -1,4 +1,3 @@
-import { BN } from '@heavy-duty/anchor';
 import { PublicKey } from '@solana/web3.js';
 
 export interface Event {
@@ -17,7 +16,7 @@ export interface Event {
   ticketMint: PublicKey;
   gainVault: PublicKey;
   temporalVault: PublicKey;
-  eventId: BN | number;
+  eventId: string;
   eventBump: number;
   eventMintBump: number;
   ticketMintBump: number;
@@ -28,7 +27,6 @@ export interface Event {
 
 export interface CreateEventData {
   name: string;
-  id: number;
   description: string;
   banner: string;
   location: string;
@@ -37,5 +35,5 @@ export interface CreateEventData {
   ticketPrice: number;
   ticketQuantity: number;
   acceptedMint: string;
-  fId: string;
+  id: string;
 }
