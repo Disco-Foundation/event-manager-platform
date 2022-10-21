@@ -22,7 +22,7 @@ import {
   throwError,
 } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
-import { FirebaseService } from './firebase/firebase.service';
+import { EventFirebaseService } from './firebase/event-firebase.service';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
 
 export interface EventAccountInfo {
@@ -33,7 +33,7 @@ export interface EventAccountInfo {
   description: string;
   eventBump: number | null;
   eventEndDate: BN;
-  eventId: BN;
+  eventId: string;
   eventMint: PublicKey | null;
   eventMintBump: number | null;
   eventStartDate: BN;
@@ -55,7 +55,6 @@ export interface EventAccountInfo {
   totalProfit: BN;
   totalProfitInTickets: BN;
   totalProfitInPurchases: BN;
-  fId: string;
   published?: boolean;
 }
 
@@ -74,21 +73,22 @@ export interface CreateEventArguments {
   ticketPrice: number;
   ticketQuantity: number;
   certifierFunds: number;
-  fId?: string;
+  eventId?: string;
 }
 
 export interface BuyTicketsArguments {
   event: PublicKey;
   acceptedMint: PublicKey;
   ticketQuantity: number;
+  eventId: string;
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  '915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  '5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR'
 );
 
 @Injectable({ providedIn: 'root' })
-export class EventApiService {
+export class EventProgramService {
   reader: Program<EventManager> | null = null;
   writer: Program<EventManager> | null = null;
   provider: AnchorProvider | null = null;
@@ -98,7 +98,7 @@ export class EventApiService {
     private readonly _walletStore: WalletStore,
 
     //FIREBASE
-    private readonly _firebaseService: FirebaseService,
+    private readonly _eventFirebaseService: EventFirebaseService,
 
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {
@@ -168,45 +168,32 @@ export class EventApiService {
   }
 
   // find published event by event id
-  findById(eventId: string): Observable<EventAccount | null> {
+  findById(eventId: string): Observable<EventAccount | undefined> {
     return defer(() => {
       const reader = this.reader;
+      const provider = this.provider;
 
       if (reader === null) {
         return throwError(() => new Error('ProgramReaderMissing'));
       }
 
+      if (provider === null) {
+        return throwError(() => new Error('ProviderMissing'));
+      }
+
       return from(
-        reader.account.event.fetchNullable(new PublicKey(eventId))
-      ).pipe(
-        map((event) =>
-          event
-            ? ({
-                publicKey: new PublicKey(eventId),
-                account: event,
-              } as EventAccount)
-            : null
+        this.getEventAddress(eventId, reader, provider).then((eventAddress) =>
+          reader.account.event
+            .fetchNullable(eventAddress, 'processed')
+            .then((event) => {
+              return event
+                ? ({
+                    publicKey: eventAddress,
+                    account: event,
+                  } as EventAccount)
+                : undefined;
+            })
         )
-      );
-    });
-  }
-
-  // find published event by firebase id
-  findByFId(eventFId: string): Observable<EventAccount | undefined> {
-    return defer(() => {
-      const reader = this.reader;
-
-      if (reader === null) {
-        return throwError(() => new Error('ProgramReaderMissing'));
-      }
-
-      return from(
-        reader.account.event
-          .all()
-          .then((events) => events as EventAccount[])
-          .then((events: EventAccount[]) =>
-            events.find((event) => event.account.fId === eventFId)
-          )
       );
     });
   }
@@ -329,6 +316,13 @@ export class EventApiService {
               authority: provider.wallet.publicKey,
             })
             .rpc()
+            .then((signature) => {
+              this._eventFirebaseService.updateSoldTickets(
+                args.eventId,
+                args.ticketQuantity
+              );
+              return signature;
+            })
         )
       );
     });
@@ -336,23 +330,18 @@ export class EventApiService {
 
   // create new draft event
   createEvent(args: CreateEventArguments) {
-    return defer(() => {
-      const provider = this.provider;
+    const provider = this.provider;
 
-      if (provider === null || provider.wallet.publicKey === undefined) {
-        return throwError(
-          () => new Error('Please connect a wallet to create events')
-        );
-      }
-
-      return from(
-        this._firebaseService.createEvent(
-          provider.wallet.publicKey.toBase58(),
-          false,
-          args
-        )
+    if (provider === null || provider.wallet.publicKey === undefined) {
+      return throwError(
+        () => new Error('Please connect a wallet to create events')
       );
-    });
+    }
+    return this._eventFirebaseService.createEvent(
+      provider.wallet.publicKey.toBase58(),
+      false,
+      args
+    );
   }
 
   // get all the events created by the connected user
@@ -367,7 +356,7 @@ export class EventApiService {
       }
 
       return from(
-        this._firebaseService.getUserEvents(
+        this._eventFirebaseService.getUserEvents(
           provider.wallet.publicKey.toBase58()
         )
       );
@@ -391,14 +380,15 @@ export class EventApiService {
         return throwError(() => new Error('ProgramWriterMissing'));
       }
 
-      if (args.fId === null) {
+      if (args.eventId === null) {
         return throwError(() => new Error('EventNotFound'));
       }
+      console.log('ARGUMENTS:', args);
 
       return from(
         writer.methods
           .createEvent(
-            new BN(Date.now()),
+            args.eventId!,
             args.name,
             args.description,
             args.banner,
@@ -406,8 +396,7 @@ export class EventApiService {
             new BN(new Date(args.startDate).getTime()),
             new BN(new Date(args.endDate).getTime()),
             new BN(args.ticketPrice),
-            args.ticketQuantity,
-            args.fId!
+            args.ticketQuantity
           )
           .accounts({
             authority: provider.wallet.publicKey,
@@ -421,28 +410,34 @@ export class EventApiService {
           .rpc()
       ).pipe(
         concatMap(() =>
-          this.findByFId(args.fId!).pipe(
-            concatMap((event) =>
-              this._firebaseService
-                .setPublishedEvent(event!)
-                .pipe(
-                  concatMap(() =>
-                    this._firebaseService
-                      .getEvent(args.fId!)
-                      .pipe(map((evnt) => evnt!))
-                  )
-                )
-            )
+          this.findById(args.eventId!).pipe(
+            concatMap((event) => {
+              console.log('EVENT CREATED', event);
+              if (event === undefined) {
+                return throwError(() => new Error('EventNotFound'));
+              }
+              return this._eventFirebaseService
+                .setPublishedEvent(event)
+                .pipe(map(() => event));
+            })
           )
         )
       );
     });
   }
 
-  // update tickets sold quantity
-  updateSold(eventId: string, ticketQuantity: number) {
-    return from(
-      this._firebaseService.updateSoldTickets(eventId, ticketQuantity)
-    );
+  getEventAddress(
+    eventId: string,
+    reader: Program<EventManager>,
+    provider: AnchorProvider
+  ) {
+    return PublicKey.findProgramAddress(
+      [
+        Buffer.from('event', 'utf-8'),
+        Buffer.from(eventId, 'utf-8'),
+        provider.wallet.publicKey.toBuffer(),
+      ],
+      reader.programId
+    ).then(([eventAddress]) => eventAddress);
   }
 }

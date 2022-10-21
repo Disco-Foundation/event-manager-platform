@@ -31,7 +31,7 @@ export interface User {
 }
 
 @Injectable({ providedIn: 'root' })
-export class FirebaseService {
+export class EventFirebaseService {
   private readonly _firestore = inject(Firestore);
   private _loggedIn = false;
 
@@ -47,57 +47,34 @@ export class FirebaseService {
 
     return docData(eventRef).pipe(
       map((event) => ({
-        publicKey:
-          event['publicKey'] != null ? new PublicKey(event['publicKey']) : null,
+        publicKey: this.buildPublicKey(event['publicKey']),
         account: {
-          fId: eventId,
-          owner: new PublicKey(event['owner']),
+          owner: this.buildPublicKey(event['owner']),
           name: event['name'],
           description: event['description'],
           location: event['location'],
           banner: event['banner'],
-          eventStartDate: event['startDate'],
-          eventEndDate: event['endDate'],
+          eventStartDate: Date.parse(event['startDate']),
+          eventEndDate: Date.parse(event['endDate']),
           tickets: event['tickets'],
-          acceptedMint:
-            event['acceptedMint'] != null
-              ? new PublicKey(event['acceptedMint'])
-              : null,
+          acceptedMint: this.buildPublicKey(event['acceptedMint']),
           totalProfit: event['totalProfit'],
           certifierFunds: event['certifierFunds'],
           published: event['published'],
           eventBump: event['eventBump'],
           eventMintBump: event['eventBump'],
-          certifier:
-            event['certifier'] != null
-              ? new PublicKey(event['certifier'])
-              : null,
-          authority:
-            event['authority'] != null
-              ? new PublicKey(event['authority'])
-              : null,
-          eventMint:
-            event['eventMint'] != null
-              ? new PublicKey(event['eventMint'])
-              : null,
-          eventId: event['eventId'],
-          temporalVault:
-            event['temporalVault'] != null
-              ? new PublicKey(event['temporalVault'])
-              : null,
+          certifier: this.buildPublicKey(event['certifier']),
+          authority: this.buildPublicKey(event['authority']),
+          eventMint: this.buildPublicKey(event['eventMint']),
+          eventId: eventId,
+          temporalVault: this.buildPublicKey(event['temporalVault']),
           temporalVaultBump: event['temporalVaultBump'],
-          ticketMint:
-            event['ticketMint'] != null
-              ? new PublicKey(event['ticketMint'])
-              : null,
+          ticketMint: this.buildPublicKey(event['ticketMint']),
           ticketMintBump: event['ticketMintBump'],
           ticketPrice: event['ticketPrice'],
           ticketsSold: event['ticketsSold'],
           ticketQuantity: event['ticketQuantity'],
-          gainVault:
-            event['gainVault'] != null
-              ? new PublicKey(event['gainVault'])
-              : null,
+          gainVault: this.buildPublicKey(event['gainVault']),
           gainVaultBump: event['gainVaultBump'],
           totalDeposited: event['totalDeposited'],
           totalValueLocked: event['totalValueLocked'],
@@ -123,58 +100,33 @@ export class FirebaseService {
           const event = snapshot.data();
 
           return {
-            publicKey:
-              event['publicKey'] != null
-                ? new PublicKey(event['publicKey'])
-                : null,
+            publicKey: this.buildPublicKey(event['publicKey']),
             account: {
-              owner: new PublicKey(event['owner']),
+              owner: this.buildPublicKey(event['owner']),
               name: event['name'],
               description: event['description'],
               location: event['location'],
               banner: event['banner'],
-              eventStartDate: event['startDate'],
-              eventEndDate: event['endDate'],
-              acceptedMint:
-                event['acceptedMint'] != null
-                  ? new PublicKey(event['acceptedMint'])
-                  : null,
+              eventStartDate: Date.parse(event['startDate']),
+              eventEndDate: Date.parse(event['endDate']),
+              acceptedMint: this.buildPublicKey(event['acceptedMint']),
               totalProfit: event['totalProfit'],
               certifierFunds: event['certifierFunds'],
               published: event['published'],
               eventBump: event['eventBump'],
               eventMintBump: event['eventBump'],
-              certifier:
-                event['certifier'] != null
-                  ? new PublicKey(event['certifier'])
-                  : null,
-              authority:
-                event['authority'] != null
-                  ? new PublicKey(event['authority'])
-                  : null,
-              eventMint:
-                event['eventMint'] != null
-                  ? new PublicKey(event['eventMint'])
-                  : null,
-              fId: snapshot.id,
-              eventId: event['eventId'],
-              temporalVault:
-                event['temporalVault'] != null
-                  ? new PublicKey(event['temporalVault'])
-                  : null,
+              certifier: this.buildPublicKey(event['certifier']),
+              authority: this.buildPublicKey(event['authority']),
+              eventMint: this.buildPublicKey(event['eventMint']),
+              eventId: snapshot.id,
+              temporalVault: this.buildPublicKey(event['temporalVault']),
               temporalVaultBump: event['temporalVaultBump'],
-              ticketMint:
-                event['ticketMint'] != null
-                  ? new PublicKey(event['ticketMint'])
-                  : null,
+              ticketMint: this.buildPublicKey(event['ticketMint']),
               ticketMintBump: event['ticketMintBump'],
               ticketPrice: event['ticketPrice'],
               ticketsSold: event['ticketsSold'],
               ticketQuantity: event['ticketQuantity'],
-              gainVault:
-                event['gainVault'] != null
-                  ? new PublicKey(event['gainVault'])
-                  : null,
+              gainVault: this.buildPublicKey(event['gainVault']),
               gainVaultBump: event['gainVaultBump'],
               totalDeposited: event['totalDeposited'],
               totalValueLocked: event['totalValueLocked'],
@@ -203,7 +155,7 @@ export class FirebaseService {
           return {
             publicKey: event['publicKey'],
             account: {
-              owner: new PublicKey(event['owner']),
+              owner: this.buildPublicKey(event['owner']),
               name: event['name'],
               description: event['description'],
               location: event['location'],
@@ -211,28 +163,24 @@ export class FirebaseService {
               eventStartDate: event['startDate'],
               eventEndDate: event['endDate'],
               tickets: event['tickets'],
-              acceptedMint: new PublicKey(event['acceptedMint']),
+              acceptedMint: this.buildPublicKey(event['acceptedMint']),
               totalProfit: event['totalProfit'],
               certifierFunds: event['certifierFunds'],
               published: event['published'],
               eventBump: event['eventBump'],
               eventMintBump: event['eventBump'],
-              certifier: new PublicKey(event['certifier']),
-              authority: new PublicKey(event['authority']),
-              eventMint: new PublicKey(event['eventMint']),
-              eventId: event['eventId'],
-              fId: snapshot.id,
-              temporalVault: new PublicKey(event['temporalVault']),
+              certifier: this.buildPublicKey(event['certifier']),
+              authority: this.buildPublicKey(event['authority']),
+              eventMint: this.buildPublicKey(event['eventMint']),
+              eventId: snapshot.id,
+              temporalVault: this.buildPublicKey(event['temporalVault']),
               temporalVaultBump: event['temporalVaultBump'],
-              ticketMint: new PublicKey(event['ticketMint']),
+              ticketMint: this.buildPublicKey(event['ticketMint']),
               ticketMintBump: event['ticketMintBump'],
               ticketPrice: event['ticketPrice'],
               ticketsSold: event['ticketsSold'],
               ticketQuantity: event['ticketQuantity'],
-              gainVault:
-                event['gainVault'] != null
-                  ? new PublicKey(event['gainVault'])
-                  : null,
+              gainVault: this.buildPublicKey(event['gainVault']),
               gainVaultBump: event['gainVaultBump'],
               totalDeposited: event['totalDeposited'],
               totalValueLocked: event['totalValueLocked'],
@@ -295,7 +243,6 @@ export class FirebaseService {
           certifier: null,
           authority: null,
           eventMint: null,
-          eventId: null,
           temporalVault: null,
           temporalVaultBump: null,
           publicKey: null,
@@ -367,7 +314,7 @@ export class FirebaseService {
   // update publish status and event info
   setPublishedEvent(event: EventAccount) {
     event.account.published = true;
-    const eventRef = doc(this._firestore, `events/${event.account.fId}`);
+    const eventRef = doc(this._firestore, `events/${event.account.eventId}`);
     return defer(() =>
       from(
         updateDoc(eventRef, {
@@ -378,7 +325,6 @@ export class FirebaseService {
           eventBump: event.account.eventBump,
           eventMint: event.account.eventMint?.toBase58(),
           eventMintBump: event.account.eventMintBump,
-          eventId: event.account.eventId.toNumber(),
           publicKey: event.publicKey?.toBase58(),
           temporalVault: event.account.temporalVault?.toBase58(),
           temporalVaultBump: event.account.temporalVaultBump,
@@ -415,42 +361,44 @@ export class FirebaseService {
   }
 
   // update tickets sold amount
-  updateSoldTickets(eventId: string, quantity: number): Observable<void> {
+  updateSoldTickets(eventId: string, quantity: number) {
     const eventRef = doc(this._firestore, `events/${eventId}`);
-    return defer(() =>
-      from(
-        runTransaction(this._firestore, async (transaction) => {
-          return transaction
-            .get(eventRef)
-            .then((res) => {
-              if (!res.exists) {
-                throwError(() => new Error('Event does not exist!'));
-              }
 
-              // Compute new number of soldTickets
-              var newTicketsSold = res.data()!['ticketsSold'] + quantity;
-              var newValueLockedInTickets =
-                res.data()!['totalValueLockedInTickets'] +
-                res.data()!['ticketPrice'] * quantity;
-              var newValueLocked =
-                res.data()!['totalValueLocked'] + newValueLockedInTickets;
-              var newValueDeposited =
-                res.data()!['totalValueDeposited'] + newValueLockedInTickets;
+    runTransaction(this._firestore, async (transaction) => {
+      return transaction
+        .get(eventRef)
+        .then((res) => {
+          if (!res.exists) {
+            throwError(() => new Error('Event does not exist'));
+            return;
+          }
 
-              // Commit to Firestore
-              transaction.update(eventRef, {
-                ticketsSold: newTicketsSold,
-                totalValueLockedInTickets: newValueLockedInTickets,
-                totalValueLocked: newValueLocked,
-                totalValueDeposited: newValueDeposited,
-              });
-            })
-            .catch((error) => {
-              throwError(() => new Error(error));
-            });
+          const data = res.data();
+          if (data === undefined) {
+            throwError(() => new Error('Event does not exist'));
+            return;
+          }
+          // Compute new number of soldTickets
+          var newTicketsSold = data['ticketsSold'] + quantity;
+          var newValueLockedInTickets =
+            data['totalValueLockedInTickets'] + data['ticketPrice'] * quantity;
+          var newValueLocked =
+            data['totalValueLocked'] + newValueLockedInTickets;
+          var newValueDeposited =
+            data['totalValueDeposited'] + newValueLockedInTickets;
+
+          // Commit to Firestore
+          transaction.update(eventRef, {
+            ticketsSold: newTicketsSold,
+            totalValueLockedInTickets: newValueLockedInTickets,
+            totalValueLocked: newValueLocked,
+            totalValueDeposited: newValueDeposited,
+          });
         })
-      )
-    );
+        .catch((error) => {
+          throwError(() => new Error(error));
+        });
+    });
   }
 
   // get event details by id
@@ -489,5 +437,12 @@ export class FirebaseService {
         })
       )
     );
+  }
+
+  buildPublicKey(value: string | null) {
+    if (value === null) {
+      return null;
+    }
+    return new PublicKey(value);
   }
 }
