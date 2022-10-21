@@ -22,9 +22,9 @@ import {
 } from 'rxjs';
 import {
   EventAccount,
-  EventApiService,
+  EventProgramService,
   EVENT_PROGRAM_ID,
-} from './event-api.service';
+} from './event-program.service';
 
 export interface TicketByOwner extends EventAccount {
   ticketVault: TokenAccount;
@@ -59,7 +59,7 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
   readonly error$ = this.select(({ error }) => error);
 
   constructor(
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _connectionStore: ConnectionStore
   ) {
     super(initialState);
@@ -95,7 +95,7 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findUserTickets().pipe(
+      return this._eventProgramService.findUserTickets().pipe(
         concatMap((events) =>
           from(events).pipe(
             concatMap((event) =>

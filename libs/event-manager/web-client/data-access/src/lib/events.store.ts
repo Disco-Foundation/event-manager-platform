@@ -20,8 +20,8 @@ import {
   switchMap,
   toArray,
 } from 'rxjs';
-import { EventAccount } from './event-api.service';
-import { FirebaseService } from './firebase/firebase.service';
+import { EventAccount } from './event-program.service';
+import { EventFirebaseService } from './firebase/event-firebase.service';
 
 export interface EventItem extends EventAccount {
   temporalVault: TokenAccount;
@@ -54,7 +54,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
   readonly error$ = this.select(({ error }) => error);
 
   constructor(
-    private readonly _eventApiService: FirebaseService,
+    private readonly _eventProgramService: EventFirebaseService,
     private readonly _connectionStore: ConnectionStore
   ) {
     super(initialState);
@@ -77,7 +77,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.getPublishedEvents().pipe(
+      return this._eventProgramService.getPublishedEvents().pipe(
         concatMap((events) =>
           from(events).pipe(
             concatMap((event) =>

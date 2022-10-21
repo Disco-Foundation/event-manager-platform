@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { getMint, Mint } from '@solana/spl-token';
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
@@ -19,9 +19,9 @@ import {
 import {
   CreateEventArguments,
   EventAccount,
-  EventApiService,
-} from './event-api.service';
-import { FirebaseService } from './firebase/firebase.service';
+  EventProgramService,
+} from './event-program.service';
+import { EventFirebaseService } from './firebase/event-firebase.service';
 
 export interface EventDetailsView extends EventAccount {
   acceptedMint: Mint | null;
@@ -66,9 +66,9 @@ export class EventStore extends ComponentStore<ViewModel> {
   readonly draft$ = this.select(({ draft }) => draft);
 
   constructor(
-    private readonly _firebaseService: FirebaseService,
+    private readonly _eventFirebaseService: EventFirebaseService,
     private readonly _connectionStore: ConnectionStore,
-    private readonly _eventApiService: EventApiService
+    private readonly _eventProgramService: EventProgramService
   ) {
     super(initialState);
 
@@ -108,45 +108,31 @@ export class EventStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._firebaseService.getEvent(eventId).pipe(
+      return this._eventFirebaseService.getEvent(eventId).pipe(
         concatMap((event) => {
           if (event === undefined) {
             return throwError(() => new Error('Error loading the event'));
           }
 
           return forkJoin({
-            acceptedMint: defer(() =>
-              from(
-                event.account.acceptedMint != null
-                  ? getMint(connection, event.account.acceptedMint!)
-                  : of(null)
-              )
+            acceptedMint: this.buildMint(
+              connection,
+              event.account.acceptedMint
             ),
-            ticketMint:
-              event.account.ticketMint != null
-                ? getMint(connection, event.account.ticketMint)
-                : of(null),
+            ticketMint: this.buildMint(connection, event.account.ticketMint),
           }).pipe(
             map(({ acceptedMint, ticketMint }) => ({
               ...event,
               acceptedMint,
               ticketMint,
-              ticketPrice:
-                event.account.acceptedMint != null
-                  ? event.account.ticketPrice
-                  : 0,
+              ticketPrice: event.account.ticketPrice,
               ticketsSold: event.account.ticketsSold,
               ticketsLeft:
-                event.account.ticketMint != null
-                  ? event.account.ticketQuantity - Number(ticketMint!.supply)
-                  : 0,
-              salesProgress:
-                event.account.ticketMint != null
-                  ? Math.floor(
-                      (Number(ticketMint!.supply) * 100) /
-                        event.account.ticketQuantity
-                    )
-                  : 0,
+                event.account.ticketQuantity - Number(ticketMint?.supply),
+              salesProgress: Math.floor(
+                (Number(ticketMint?.supply) * 100) /
+                  event.account.ticketQuantity
+              ),
               totalValueLocked: event.account.totalValueLocked,
               totalValueLockedInTickets:
                 event.account.totalValueLockedInTickets,
@@ -197,10 +183,12 @@ export class EventStore extends ComponentStore<ViewModel> {
         ticketPrice: event.account.ticketPrice,
         ticketQuantity: event.account.ticketQuantity,
         certifierFunds: 0,
-        fId: event.account.fId,
+        eventId: event.account.eventId,
       };
 
-      return from(this._eventApiService.publish(args as CreateEventArguments));
+      return from(
+        this._eventProgramService.publish(args as CreateEventArguments)
+      );
     });
   }
 
@@ -211,7 +199,10 @@ export class EventStore extends ComponentStore<ViewModel> {
         return of(null);
       }
       return from(
-        this._firebaseService.updateEventTickets(event.account.fId, args)
+        this._eventFirebaseService.updateEventTickets(
+          event.account.eventId,
+          args
+        )
       );
     });
   }
@@ -223,7 +214,7 @@ export class EventStore extends ComponentStore<ViewModel> {
         return of(null);
       }
       return from(
-        this._firebaseService.updateEventDates(event.account.fId, args)
+        this._eventFirebaseService.updateEventDates(event.account.eventId, args)
       );
     });
   }
@@ -240,8 +231,15 @@ export class EventStore extends ComponentStore<ViewModel> {
         return of(null);
       }
       return from(
-        this._firebaseService.updateEventInfo(event.account.fId, args)
+        this._eventFirebaseService.updateEventInfo(event.account.eventId, args)
       );
     });
+  }
+
+  buildMint(connection: Connection, value: PublicKey | null) {
+    if (value === null) {
+      return of(null);
+    }
+    return getMint(connection, value);
   }
 }

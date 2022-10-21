@@ -97,17 +97,22 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                   *ngIf="now$ | async as now"
                   class="italic text-xs m-0 disco-text gold"
                 >
-                  <ng-container *ngIf="now < startDate">
+                  <ng-container *ngIf="now < event.account.eventStartDate">
                     Starts
-                    {{ startDate - now | emRelativeTime }}.
+                    {{ event.account.eventStartDate - now | emRelativeTime }}.
                   </ng-container>
-                  <ng-container *ngIf="now > startDate && now < endDate">
+                  <ng-container
+                    *ngIf="
+                      now > event.account.eventStartDate &&
+                      now < event.account.eventEndDate
+                    "
+                  >
                     Ends
-                    {{ endDate - now | emRelativeTime }}.
+                    {{ event.account.eventEndDate - now | emRelativeTime }}.
                   </ng-container>
-                  <ng-container *ngIf="now > endDate">
+                  <ng-container *ngIf="now > event.account.eventEndDate">
                     Ended
-                    {{ now - endDate | emRelativeTime }}.
+                    {{ now - event.account.eventEndDate | emRelativeTime }}.
                   </ng-container>
                 </p>
               </header>
@@ -117,13 +122,13 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                   <p class="m-0">
                     From <br />
                     <span class="text-xl font-bold">
-                      {{ startDate | date: 'medium' }}
+                      {{ event.account.eventStartDate | date: 'medium' }}
                     </span>
                   </p>
                   <p class="m-0">
                     To <br />
                     <span class="text-xl font-bold">
-                      {{ endDate | date: 'medium' }}
+                      {{ event.account.eventEndDate | date: 'medium' }}
                     </span>
                   </p>
                 </div>
@@ -132,7 +137,10 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                     class="m-0 font-bold uppercase text-2xl text-center disco-text gold"
                   >
                     Lasts
-                    {{ endDate - startDate | emDurationTime }}
+                    {{
+                      event.account.eventEndDate - event.account.eventStartDate
+                        | emDurationTime
+                    }}
                   </p>
                 </div>
               </div>
@@ -193,8 +201,9 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
 
       <ng-container *ngIf="editingInfo">
         <div
+          id="eventContainer"
           class="disco-layer disco-border border-4 disco-glow blue"
-          style="width: 45rem; padding:1rem;"
+          style="width: 50rem; padding:1rem;"
         >
           <h4 class="m-0 text-xl disco-text">Edit Basic Info</h4>
           <form
@@ -214,7 +223,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 required
                 autocomplete="off"
                 maxlength="40"
-                [(ngModel)]="event.account.name"
+                [ngModel]="event.account.name"
               />
               <mat-hint align="end"
                 >{{ infoForm.get('name')?.value?.length || 0 }}/40</mat-hint
@@ -242,7 +251,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 required
                 autocomplete="off"
                 maxlength="500"
-                [(ngModel)]="event.account.description"
+                [ngModel]="event.account.description"
               ></textarea>
               <mat-hint align="end"
                 >{{
@@ -277,7 +286,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 required
                 autocomplete="off"
                 maxlength="40"
-                [(ngModel)]="event.account.location"
+                [ngModel]="event.account.location"
               />
               <mat-hint align="end"
                 >{{ infoForm.get('location')?.value?.length || 0 }}/40</mat-hint
@@ -310,7 +319,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 autocomplete="off"
                 maxlength="40"
                 type="url"
-                [(ngModel)]="event.account.banner"
+                [ngModel]="event.account.banner"
               />
               <mat-hint align="end"
                 >{{ infoForm.get('banner')?.value?.length || 0 }}/40</mat-hint
@@ -348,8 +357,9 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
       </ng-container>
       <ng-container *ngIf="editingDates">
         <div
+          id="datesContainer"
           class="disco-layer disco-border border-4 disco-glow blue"
-          style="width: 45rem; padding:1rem;"
+          style="width: 50rem; padding:1rem;"
         >
           <h4 class="m-0 text-xl disco-text">Edit Dates Info</h4>
           <form
@@ -368,7 +378,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 type="datetime-local"
                 required
                 formControlName="startDate"
-                [(ngModel)]="event.account.eventStartDate"
+                [ngModel]="event.account.eventStartDate | date: 'short'"
               />
               <mat-error
                 *ngIf="
@@ -389,7 +399,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 type="datetime-local"
                 required
                 formControlName="endDate"
-                [(ngModel)]="event.account.eventEndDate"
+                [ngModel]="event.account.eventEndDate | date: 'short'"
               />
               <mat-error
                 *ngIf="
@@ -417,8 +427,9 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
       </ng-container>
       <ng-container *ngIf="editingTickets">
         <div
+          id="ticketsContainer"
           class="disco-layer disco-border border-4 disco-glow blue"
-          style="width: 45rem; padding:1rem;"
+          style="width: 50rem; padding:1rem;"
         >
           <h4 class="m-0 text-xl disco-text">Edit Tickets Info</h4>
           <form
@@ -438,7 +449,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 required
                 type="number"
                 autocomplete="off"
-                [(ngModel)]="event.account.ticketPrice"
+                [ngModel]="event.account.ticketPrice"
               />
               <mat-error
                 *ngIf="
@@ -461,7 +472,7 @@ import { catchError, concatMap, EMPTY, interval, map, startWith } from 'rxjs';
                 required
                 type="number"
                 autocomplete="off"
-                [(ngModel)]="event.account.ticketQuantity"
+                [ngModel]="event.account.ticketQuantity"
               />
               <mat-error
                 *ngIf="
@@ -504,8 +515,6 @@ export class ViewDraftEventComponent implements OnInit {
   editingDates = false;
   editingTickets = false;
   submitted = false;
-  startDate: number = 0;
-  endDate: number = 0;
 
   readonly event$ = this._eventStore.event$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
@@ -563,12 +572,7 @@ export class ViewDraftEventComponent implements OnInit {
     private readonly _formBuilder: UntypedFormBuilder,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _router: Router
-  ) {
-    this.event$.subscribe((event) => {
-      this.startDate = Date.parse(event?.account.eventStartDate);
-      this.endDate = Date.parse(event?.account.eventEndDate);
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this._eventStore.setEventId(
@@ -606,7 +610,9 @@ export class ViewDraftEventComponent implements OnInit {
   showEditTickets() {
     this.editingDates = false;
     this.editingInfo = false;
+
     this.editingTickets = true;
+    this.waitForElement('ticketsContainer');
   }
 
   onSaveTickets() {
@@ -636,9 +642,11 @@ export class ViewDraftEventComponent implements OnInit {
   }
 
   showEditDates() {
-    this.editingDates = true;
     this.editingInfo = false;
     this.editingTickets = false;
+
+    this.editingDates = true;
+    this.waitForElement('datesContainer');
   }
 
   onSaveDates() {
@@ -668,9 +676,10 @@ export class ViewDraftEventComponent implements OnInit {
   }
 
   showEditInfo() {
-    this.editingDates = false;
     this.editingInfo = true;
+    this.editingDates = false;
     this.editingTickets = false;
+    this.waitForElement('eventContainer');
   }
 
   onSaveInfo() {
@@ -705,5 +714,33 @@ export class ViewDraftEventComponent implements OnInit {
     this.editingInfo = false;
     this.editingTickets = false;
     this.onReload();
+  }
+
+  scrollTo(id: string) {
+    const element = document.getElementById(id);
+    if (element === null) {
+      return;
+    }
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  waitForElement(id: string) {
+    this.scrollTo(id);
+    let observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        let nodes = Array.from(mutation.addedNodes);
+        for (var node of nodes) {
+          if (node.contains(document.getElementById(id))) {
+            this.scrollTo(id);
+            observer.disconnect();
+            return;
+          }
+        }
+      });
+    });
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
   }
 }

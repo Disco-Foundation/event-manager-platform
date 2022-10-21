@@ -3,7 +3,7 @@ import { UntypedFormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
   EventsStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
@@ -92,7 +92,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               class="absolute top-0 right-0"
               mat-icon-button
               aria-label="View details"
-              [routerLink]="['/view-event', event.account.fId]"
+              [routerLink]="['/view-event', event.account.eventId]"
             >
               <mat-icon>launch</mat-icon>
             </a>
@@ -202,7 +202,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                     event.publicKey!,
                     event.account.acceptedMint!,
                     $event,
-                    event.account.fId
+                    event.account.eventId
                   )
                 "
               >
@@ -252,7 +252,7 @@ export class ListEventsComponent {
   constructor(
     private readonly _configStore: ConfigStore,
     private readonly _eventsStore: EventsStore,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore,
     private readonly _formBuilder: UntypedFormBuilder
@@ -266,13 +266,14 @@ export class ListEventsComponent {
     event: PublicKey,
     acceptedMint: PublicKey,
     ticketQuantity: number,
-    eventFId: string
+    eventId: string
   ) {
-    this._eventApiService
+    this._eventProgramService
       .buyTickets({
         event,
         ticketQuantity,
         acceptedMint,
+        eventId,
       })
       .pipe(
         concatMap((signature) => {
@@ -290,19 +291,6 @@ export class ListEventsComponent {
 
               return defer(() =>
                 from(connection.confirmTransaction(signature))
-              ).pipe(
-                concatMap(() =>
-                  this._eventApiService
-                    .updateSold(eventFId, ticketQuantity)
-                    .pipe(
-                      catchError((error) => {
-                        this._matSnackBar.open(error.msg, 'close', {
-                          duration: 5000,
-                        });
-                        return EMPTY;
-                      })
-                    )
-                )
               );
             }),
             tap(() => {

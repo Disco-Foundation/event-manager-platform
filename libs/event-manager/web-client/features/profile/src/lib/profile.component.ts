@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
   EventAccount,
-  EventApiService,
+  EventProgramService,
   EventsByOwnerStore,
   TicketsByOwnerStore,
 } from '@event-manager-web-client/data-access';
@@ -299,7 +299,7 @@ import { UserStore } from './user.store';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', ticket.account.fId]"
+                    [routerLink]="['/view-event', ticket.account.eventId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -373,7 +373,7 @@ import { UserStore } from './user.store';
                         ticket.publicKey!,
                         ticket.account.acceptedMint!,
                         $event,
-                        ticket.account.fId
+                        ticket.account.eventId
                       )
                     "
                   >
@@ -438,7 +438,7 @@ import { UserStore } from './user.store';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-event', event.account.fId]"
+                    [routerLink]="['/view-event', event.account.eventId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -549,7 +549,7 @@ import { UserStore } from './user.store';
                           event.publicKey!,
                           event.account.acceptedMint!,
                           $event,
-                          event.account.fId
+                          event.account.eventId
                         )
                       "
                     >
@@ -624,7 +624,7 @@ import { UserStore } from './user.store';
                     class="absolute top-0 right-0"
                     mat-icon-button
                     aria-label="View details"
-                    [routerLink]="['/view-draft-event', draft.account.fId]"
+                    [routerLink]="['/view-draft-event', draft.account.eventId]"
                   >
                     <mat-icon>launch</mat-icon>
                   </a>
@@ -777,7 +777,7 @@ export class ProfileComponent implements OnInit {
     private readonly _configStore: ConfigStore,
     private readonly _eventsByOwnerStore: EventsByOwnerStore,
     private readonly _ticketsByOwnerStore: TicketsByOwnerStore,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _userStore: UserStore,
     private readonly _formBuilder: UntypedFormBuilder
@@ -798,13 +798,14 @@ export class ProfileComponent implements OnInit {
     event: PublicKey,
     acceptedMint: PublicKey,
     ticketQuantity: number,
-    eventFId: string
+    eventId: string
   ) {
-    this._eventApiService
+    this._eventProgramService
       .buyTickets({
         event,
         ticketQuantity,
         acceptedMint,
+        eventId,
       })
       .pipe(
         concatMap((signature) => {
@@ -822,19 +823,6 @@ export class ProfileComponent implements OnInit {
 
               return defer(() =>
                 from(connection.confirmTransaction(signature))
-              ).pipe(
-                concatMap(() =>
-                  this._eventApiService
-                    .updateSold(eventFId, ticketQuantity)
-                    .pipe(
-                      catchError((error) => {
-                        this._matSnackBar.open(error.msg, 'close', {
-                          duration: 5000,
-                        });
-                        return EMPTY;
-                      })
-                    )
-                )
               );
             }),
             tap(() => {
@@ -871,6 +859,7 @@ export class ProfileComponent implements OnInit {
           this.selectedTab = 2;
         }),
         catchError((error) => {
+          console.log(error);
           this._matSnackBar.open(error, 'close', {
             duration: 5000,
           });

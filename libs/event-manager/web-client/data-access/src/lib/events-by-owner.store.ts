@@ -14,8 +14,8 @@ import {
 import {
   CreateEventArguments,
   EventAccount,
-  EventApiService,
-} from './event-api.service';
+  EventProgramService,
+} from './event-program.service';
 
 export interface EventItemByOwner extends EventAccount {
   published: boolean;
@@ -47,7 +47,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
 
-  constructor(private readonly _eventApiService: EventApiService) {
+  constructor(private readonly _eventProgramService: EventProgramService) {
     super(initialState);
 
     this._loadEvents(
@@ -75,7 +75,7 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findUserEvents().pipe(
+      return this._eventProgramService.findUserEvents().pipe(
         concatMap((events) => from(events).pipe(toArray())),
         tapResponse(
           (events) =>
@@ -105,8 +105,8 @@ export class EventsByOwnerStore extends ComponentStore<ViewModel> {
       ticketPrice: event.account.ticketPrice,
       ticketQuantity: event.account.ticketQuantity,
       certifierFunds: 0,
-      fId: event.account.fId,
+      eventId: event.account.eventId,
     };
-    return this._eventApiService.publish(args as CreateEventArguments);
+    return this._eventProgramService.publish(args as CreateEventArguments);
   }
 }

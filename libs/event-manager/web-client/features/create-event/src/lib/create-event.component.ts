@@ -10,7 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
 } from '@event-manager-web-client/data-access';
 import { PublicKey } from '@solana/web3.js';
 import { catchError, concatMap, EMPTY, tap } from 'rxjs';
@@ -484,7 +484,7 @@ export class CreateEventComponent {
 
   constructor(
     private readonly _formBuilder: UntypedFormBuilder,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _router: Router,
     private readonly _configStore: ConfigStore
@@ -494,7 +494,7 @@ export class CreateEventComponent {
     this.submitted = true;
 
     if (this.informationForm.valid && this.ticketsForm.valid) {
-      this._eventApiService
+      this._eventProgramService
         .createEvent({
           ...this.ticketsForm.value,
           ...this.informationForm.value,

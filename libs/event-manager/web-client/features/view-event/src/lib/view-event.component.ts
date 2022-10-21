@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
   EventStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
@@ -171,7 +171,8 @@ import {
                   onBuyTickets(
                     event.publicKey!,
                     event.account.acceptedMint!,
-                    $event
+                    $event,
+                    event.account.eventId
                   )
                 "
               >
@@ -198,17 +199,22 @@ import {
                 *ngIf="now$ | async as now"
                 class="italic text-xs m-0 disco-text gold"
               >
-                <ng-container *ngIf="now < startDate">
+                <ng-container *ngIf="now < event.account.eventStartDate">
                   Starts
-                  {{ startDate - now | emRelativeTime }}.
+                  {{ event.account.eventStartDate - now | emRelativeTime }}.
                 </ng-container>
-                <ng-container *ngIf="now > startDate && now < endDate">
+                <ng-container
+                  *ngIf="
+                    now > event.account.eventStartDate &&
+                    now < event.account.eventEndDate
+                  "
+                >
                   Ends
-                  {{ endDate - now | emRelativeTime }}.
+                  {{ event.account.eventEndDate - now | emRelativeTime }}.
                 </ng-container>
-                <ng-container *ngIf="now > endDate">
+                <ng-container *ngIf="now > event.account.eventEndDate">
                   Ended
-                  {{ now - endDate | emRelativeTime }}.
+                  {{ now - event.account.eventEndDate | emRelativeTime }}.
                 </ng-container>
               </p>
             </header>
@@ -217,13 +223,13 @@ import {
                 <p class="m-0">
                   From <br />
                   <span class="text-xl font-bold">
-                    {{ startDate | date: 'medium' }}
+                    {{ event.account.eventStartDate | date: 'medium' }}
                   </span>
                 </p>
                 <p class="m-0">
                   To <br />
                   <span class="text-xl font-bold">
-                    {{ endDate | date: 'medium' }}
+                    {{ event.account.eventEndDate | date: 'medium' }}
                   </span>
                 </p>
               </div>
@@ -232,7 +238,10 @@ import {
                   class="m-0 font-bold uppercase text-2xl text-center disco-text gold"
                 >
                   Lasts
-                  {{ endDate - startDate | emDurationTime }}
+                  {{
+                    event.account.eventEndDate - event.account.eventStartDate
+                      | emDurationTime
+                  }}
                 </p>
               </div>
             </div>
@@ -504,10 +513,6 @@ export class ViewEventComponent implements OnInit {
     startWith(Date.now()),
     map(() => Date.now())
   );
-
-  startDate: number = 0;
-  endDate: number = 0;
-
   readonly colorScheme = {
     name: 'my-color-scheme',
     selectable: false,
@@ -519,15 +524,10 @@ export class ViewEventComponent implements OnInit {
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _eventStore: EventStore,
     private readonly _configStore: ConfigStore,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore
-  ) {
-    this.event$.subscribe((event) => {
-      this.startDate = Date.parse(event?.account.eventStartDate);
-      this.endDate = Date.parse(event?.account.eventEndDate);
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this._eventStore.setEventId(
@@ -544,13 +544,15 @@ export class ViewEventComponent implements OnInit {
   onBuyTickets(
     event: PublicKey,
     acceptedMint: PublicKey,
-    ticketQuantity: number
+    ticketQuantity: number,
+    eventId: string
   ) {
-    this._eventApiService
+    this._eventProgramService
       .buyTickets({
         event,
         ticketQuantity,
         acceptedMint,
+        eventId,
       })
       .pipe(
         concatMap((signature) => {
@@ -568,13 +570,6 @@ export class ViewEventComponent implements OnInit {
 
               return defer(() =>
                 from(connection.confirmTransaction(signature))
-              ).pipe(
-                catchError((error) => {
-                  this._matSnackBar.open(error.msg, 'close', {
-                    duration: 5000,
-                  });
-                  return EMPTY;
-                })
               );
             }),
             tap(() => {

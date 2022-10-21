@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
@@ -88,8 +88,11 @@ import { catchError, EMPTY } from 'rxjs';
   `,
   providers: [ConfigStore],
 })
-export class ShellComponent implements OnInit {
+export class ShellComponent implements OnInit, OnDestroy {
   readonly loggedIn = this._loginStore.connected$;
+  walletSubscription = this._hdWalletStore.publicKey$.subscribe(
+    async (publicKey) => this.handleWallet(publicKey)
+  );
 
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
@@ -98,31 +101,7 @@ export class ShellComponent implements OnInit {
     private readonly _matSnackBar: MatSnackBar,
     private readonly _router: Router,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
-  ) {
-    _hdWalletStore.publicKey$.subscribe(async (publicKey) => {
-      if (publicKey != undefined) {
-        (await this._loginStore.getNonce(publicKey.toBase58())).subscribe(
-          (msg) => {
-            this._hdWalletStore
-              .signMessage(new TextEncoder().encode(msg))
-              ?.pipe(
-                catchError(() => {
-                  this._hdWalletStore.disconnect().subscribe();
-                  return EMPTY;
-                })
-              )
-              ?.subscribe((signature) => {
-                if (signature != undefined) {
-                  this.singIn(publicKey, signature);
-                }
-              });
-          }
-        );
-      } else {
-        this.signOut();
-      }
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this._hdConnectionStore.setEndpoint(this.environment.network);
@@ -132,6 +111,10 @@ export class ShellComponent implements OnInit {
       new SolflareWalletAdapter(),
       new SolongWalletAdapter(),
     ]);
+  }
+
+  ngOnDestroy() {
+    this.walletSubscription.unsubscribe();
   }
 
   singIn(publicKey: PublicKey, signature: Uint8Array) {
@@ -148,6 +131,35 @@ export class ShellComponent implements OnInit {
   signOut() {
     this._loginStore.signOut().then(() => {
       this._router.navigate(['/list-events']);
+    });
+  }
+
+  signMessage(publicKey: PublicKey, message: string) {
+    this._hdWalletStore
+      .signMessage(new TextEncoder().encode(message))
+      ?.pipe(
+        catchError(() => {
+          this._hdWalletStore.disconnect().subscribe();
+          return EMPTY;
+        })
+      )
+      ?.subscribe((signature) => {
+        if (signature === undefined) {
+          this._matSnackBar.open('Signature error, try again', 'close', {
+            duration: 5000,
+          });
+          return;
+        }
+        this.singIn(publicKey, signature);
+      });
+  }
+
+  async handleWallet(publicKey: PublicKey | null) {
+    if (publicKey === null) {
+      return this.signOut();
+    }
+    (await this._loginStore.getNonce(publicKey.toBase58())).subscribe((msg) => {
+      this.signMessage(publicKey, msg);
     });
   }
 }
