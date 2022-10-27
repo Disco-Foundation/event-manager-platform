@@ -2,10 +2,10 @@
 seeds = true
 
 [programs.devnet]
-event_manager = "5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 [programs.localnet]
-event_manager = "5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR"
+event_manager = "915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF"
 
 # [programs.mainnet]
 # event_manager = "DiscoLyCxPPhN5uUw5v1gpCPX62cvwzPHXA84fsr7BEr"

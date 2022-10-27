@@ -7,7 +7,7 @@ mod utils;
 
 use instructions::*;
 
-declare_id!("5eAvRjnhVvnRWLjgProwQACmB6FofBQJ58WsjYKvkXR");
+declare_id!("915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF");
 
 #[program]
 pub mod event_manager {
