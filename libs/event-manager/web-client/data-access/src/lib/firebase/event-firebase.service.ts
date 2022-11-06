@@ -18,7 +18,7 @@ import {
   LoginStore,
 } from '@event-manager-web-client/data-access';
 import { PublicKey } from '@solana/web3.js';
-import { runTransaction } from 'firebase/firestore';
+import { addDoc, runTransaction } from 'firebase/firestore';
 import { defer, from, map, Observable, throwError } from 'rxjs';
 
 export interface User {
@@ -28,6 +28,11 @@ export interface User {
   image: string | null;
   email: string | null;
   discoTokens: number;
+}
+
+export interface Ticket {
+  eventId: string;
+  quantity: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +47,7 @@ export class EventFirebaseService {
   }
 
   // get event details by id
-  getEvent(eventId: string): Observable<EventAccount | undefined> {
+  getEvent(eventId: string): Observable<EventAccount> {
     const eventRef = doc(this._firestore, `events/${eventId}`);
 
     return docData(eventRef).pipe(
@@ -420,6 +425,24 @@ export class EventFirebaseService {
     );
   }
 
+  getUserTickets(userId: string): Observable<Ticket[]> {
+    const ticketsRef = collection(this._firestore, `users/${userId}/tickets`);
+
+    return collectionData(
+      ticketsRef.withConverter({
+        fromFirestore: (snapshot) => {
+          const ticket = snapshot.data();
+
+          return {
+            eventId: ticket['eventId'],
+            quantity: ticket['quantity'],
+          } as Ticket;
+        },
+        toFirestore: (it) => it,
+      })
+    );
+  }
+
   updateUser(
     userId: string,
     changes: {
@@ -437,6 +460,23 @@ export class EventFirebaseService {
         })
       )
     );
+  }
+
+  async addUserTickets(userId: string, eventId: string, quantity: number) {
+    const ticketsRef = collection(this._firestore, `users/${userId}/tickets`);
+    console.log(ticketsRef);
+
+    return await addDoc(ticketsRef, {
+      eventId,
+      quantity,
+    })
+      .catch((error) => {
+        console.log(error);
+        return throwError(() => new Error(error));
+      })
+      .then(() => {
+        this.updateSoldTickets(eventId, quantity);
+      });
   }
 
   buildPublicKey(value: string | null) {
