@@ -426,18 +426,19 @@ export class EventProgramService {
     });
   }
 
-  getEventAddress(
+  async getEventAddress(
     eventId: string,
     reader: Program<EventManager>,
     provider: AnchorProvider
   ) {
-    return PublicKey.findProgramAddress(
+    const [eventAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('event', 'utf-8'),
         Buffer.from(eventId, 'utf-8'),
         provider.wallet.publicKey.toBuffer(),
       ],
       reader.programId
-    ).then(([eventAddress]) => eventAddress);
+    );
+    return eventAddress;
   }
 }

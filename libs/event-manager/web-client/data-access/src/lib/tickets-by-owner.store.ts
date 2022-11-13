@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import {
@@ -24,7 +25,6 @@ import {
   EventProgramService,
   EVENT_PROGRAM_ID,
 } from './event-program.service';
-import { EventFirebaseService } from './firebase/event-firebase.service';
 
 export interface TicketByOwner extends EventAccount {
   ticketVault: TokenAccount;
@@ -54,16 +54,13 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
   private readonly reloadSubject = new BehaviorSubject(null);
 
   readonly owner$ = this.select(({ owner }) => owner);
-  readonly tickets$ = this.select(({ tickets }) => {
-    console.log('TICKETS', tickets);
-    return tickets;
-  });
+  readonly tickets$ = this.select(({ tickets }) => tickets);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
 
   constructor(
     private readonly _eventProgramService: EventProgramService,
-    private readonly _eventFirebaseService: EventFirebaseService,
+    //private readonly _eventFirebaseService: EventFirebaseService,
     private readonly _connectionStore: ConnectionStore
   ) {
     super(initialState);
@@ -87,6 +84,51 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
     owner,
   }));
 
+  // private readonly _loadTickets = this.effect<{
+  //   connection: Connection | null;
+  //   owner: PublicKey | null;
+  // }>(
+  //   switchMap(({ connection, owner }) => {
+  //     // If there's no connection ignore loading call
+  //     if (connection === null || owner === null) {
+  //       return EMPTY;
+  //     }
+
+  //     this.patchState({ loading: true });
+
+  //     return this._eventFirebaseService.getUserTickets(owner.toBase58()).pipe(
+  //       concatMap((tickets) => {
+  //         console.log('TICKETS:', tickets);
+  //         return from(tickets).pipe(
+  //           concatMap((ticket) => {
+  //             console.log('TICKET:', ticket);
+  //             return this._eventFirebaseService.getEvent(ticket.eventId).pipe(
+  //               concatMap((event) => {
+  //                 console.log('EVENT:', event);
+  //                 return this.buildTicket(event, connection, owner);
+  //               })
+  //             );
+  //           }),
+  //           toArray()
+  //         );
+  //       }),
+  //       tapResponse(
+  //         (tickets) => {
+  //           console.log(tickets);
+  //           this.patchState({
+  //             tickets: tickets,
+  //             loading: false,
+  //           });
+  //         },
+  //         (error) => {
+  //           console.log(error);
+  //           this.patchState({ error, loading: false });
+  //         }
+  //       )
+  //     );
+  //   })
+  // );
+
   private readonly _loadTickets = this.effect<{
     connection: Connection | null;
     owner: PublicKey | null;
@@ -99,71 +141,24 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventFirebaseService.getUserTickets(owner.toBase58()).pipe(
-        concatMap((tickets) => {
-          console.log('TICKETS:', tickets);
-          return from(tickets).pipe(
-            concatMap((ticket) => {
-              console.log('TICKET:', ticket);
-              return this._eventFirebaseService.getEvent(ticket.eventId).pipe(
-                concatMap((event) => {
-                  console.log('EVENT:', event);
-                  return this.buildTicket(event, connection, owner);
-                })
-              );
-            }),
+      return this._eventProgramService.findUserTickets().pipe(
+        concatMap((events) =>
+          from(events).pipe(
+            concatMap((event) => this.buildTicket(event, connection, owner)),
             toArray()
-          );
-        }),
+          )
+        ),
         tapResponse(
-          (tickets) => {
-            console.log(tickets);
+          (tickets) =>
             this.patchState({
               tickets: tickets,
               loading: false,
-            });
-          },
-          (error) => {
-            console.log(error);
-            this.patchState({ error, loading: false });
-          }
+            }),
+          (error) => this.patchState({ error, loading: false })
         )
       );
     })
   );
-
-  // private readonly _loadTickets2 = this.effect<{
-  //   connection: Connection | null;
-  //   owner: PublicKey | null;
-  // }>(
-  //   switchMap(({ connection, owner }) => {
-  //     // If there's no connection ignore loading call
-  //     if (connection === null || owner === null) {
-  //       return EMPTY;
-  //     }
-
-  //     this.patchState({ loading: true });
-
-  //     return this._eventProgramService.findUserTickets().pipe(
-  //       concatMap((events) =>
-  //         from(events).pipe(
-  //           concatMap((event) =>
-  //             this.buildTicket(event, connection, owner)
-  //           ),
-  //           toArray()
-  //         )
-  //       ),
-  //       tapResponse(
-  //         (tickets) =>
-  //           this.patchState({
-  //             tickets: tickets,
-  //             loading: false,
-  //           }),
-  //         (error) => this.patchState({ error, loading: false })
-  //       )
-  //     );
-  //   })
-  // );
 
   buildTicket(event: EventAccount, connection: Connection, owner: PublicKey) {
     return forkJoin({
@@ -183,10 +178,10 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
         acceptedMint,
         ticketVault,
         ticketMint,
-        ticketPrice: event.account.ticketPrice,
-        /*.div(new BN(10).pow(new BN(acceptedMint.decimals)))
-              .toNumber(),*/ ticketsLeft:
-          event.account.ticketQuantity - Number(ticketMint.supply),
+        ticketPrice: event.account.ticketPrice
+          .div(new BN(10).pow(new BN(acceptedMint.decimals)))
+          .toNumber(),
+        ticketsLeft: event.account.ticketQuantity - Number(ticketMint.supply),
         ticketQuantity: Number(ticketVault.amount),
       }))
     );

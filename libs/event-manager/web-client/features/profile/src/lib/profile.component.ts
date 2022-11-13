@@ -212,6 +212,12 @@ import { UserStore } from './user.store';
                         "
                         >Maximum length is 40.</mat-error
                       >
+                      <mat-error
+                        *ngIf="
+                          submitted && userForm.get('email')?.hasError('email')
+                        "
+                        >Enter a valid email address</mat-error
+                      >
                     </mat-form-field>
 
                     <mat-form-field
@@ -232,14 +238,14 @@ import { UserStore } from './user.store';
                       <mat-hint align="end"
                         >{{
                           userForm.get('image')?.value?.length || 0
-                        }}/40</mat-hint
+                        }}/80</mat-hint
                       >
                       <mat-error
                         *ngIf="
                           submitted &&
                           userForm.get('image')?.hasError('maxlength')
                         "
-                        >Maximum length is 40.</mat-error
+                        >Maximum length is 80.</mat-error
                       >
                     </mat-form-field>
                   </form>
@@ -764,10 +770,10 @@ export class ProfileComponent implements OnInit {
       validators: [Validators.required, Validators.maxLength(40)],
     }),
     email: this._formBuilder.control(null, {
-      validators: [Validators.required, Validators.maxLength(40)],
+      validators: [Validators.maxLength(40), Validators.email],
     }),
     image: this._formBuilder.control(null, {
-      validators: [Validators.required, Validators.maxLength(40)],
+      validators: [Validators.required, Validators.maxLength(80)],
     }),
   });
 
