@@ -385,10 +385,14 @@ export class EventProgramService {
       }
       console.log('ARGUMENTS:', args);
 
+      if (args.eventId === undefined) {
+        return throwError(() => new Error('ProgramWriterMissing'));
+      }
+
       return from(
         writer.methods
           .createEvent(
-            args.eventId!,
+            args.eventId,
             args.name,
             args.description,
             args.banner,
@@ -409,8 +413,11 @@ export class EventProgramService {
           .signers([certifierKeypair])
           .rpc()
       ).pipe(
-        concatMap(() =>
-          this.findById(args.eventId!).pipe(
+        concatMap(() => {
+          if (args.eventId === undefined) {
+            return throwError(() => new Error('EventMissing'));
+          }
+          return this.findById(args.eventId).pipe(
             concatMap((event) => {
               console.log('EVENT CREATED', event);
               if (event === undefined) {
@@ -420,8 +427,8 @@ export class EventProgramService {
                 .setPublishedEvent(event)
                 .pipe(map(() => event));
             })
-          )
-        )
+          );
+        })
       );
     });
   }

@@ -11,15 +11,15 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
+import { PublicKey } from '@solana/web3.js';
+import { addDoc, runTransaction } from 'firebase/firestore';
+import { defer, from, map, Observable, throwError } from 'rxjs';
 import {
   CreateEventArguments,
   EventAccount,
   EventItemByOwner,
   LoginStore,
-} from '@event-manager-web-client/data-access';
-import { PublicKey } from '@solana/web3.js';
-import { addDoc, runTransaction } from 'firebase/firestore';
-import { defer, from, map, Observable, throwError } from 'rxjs';
+} from './../../';
 
 export interface User {
   id: string;
@@ -384,12 +384,12 @@ export class EventFirebaseService {
             return;
           }
           // Compute new number of soldTickets
-          var newTicketsSold = data['ticketsSold'] + quantity;
-          var newValueLockedInTickets =
+          const newTicketsSold = data['ticketsSold'] + quantity;
+          const newValueLockedInTickets =
             data['totalValueLockedInTickets'] + data['ticketPrice'] * quantity;
-          var newValueLocked =
+          const newValueLocked =
             data['totalValueLocked'] + newValueLockedInTickets;
-          var newValueDeposited =
+          const newValueDeposited =
             data['totalValueDeposited'] + newValueLockedInTickets;
 
           // Commit to Firestore

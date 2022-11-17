@@ -18,6 +18,7 @@ import {
   from,
   map,
   switchMap,
+  throwError,
   toArray,
 } from 'rxjs';
 import {
@@ -161,13 +162,21 @@ export class TicketsByOwnerStore extends ComponentStore<ViewModel> {
   );
 
   buildTicket(event: EventAccount, connection: Connection, owner: PublicKey) {
+    if (event.account.ticketMint === null) {
+      return throwError(() => new Error('ProgramWriterMissing'));
+    }
+
+    if (event.account.acceptedMint === null) {
+      return throwError(() => new Error('ProgramWriterMissing'));
+    }
+
     return forkJoin({
-      ticketMint: getMint(connection, event.account.ticketMint!),
-      acceptedMint: getMint(connection, event.account.acceptedMint!),
+      ticketMint: getMint(connection, event.account.ticketMint),
+      acceptedMint: getMint(connection, event.account.acceptedMint),
       ticketVault: PublicKey.findProgramAddress(
         [
           Buffer.from('ticket_vault', 'utf-8'),
-          event.account.ticketMint!.toBuffer(),
+          event.account.ticketMint.toBuffer(),
           owner.toBuffer(),
         ],
         EVENT_PROGRAM_ID

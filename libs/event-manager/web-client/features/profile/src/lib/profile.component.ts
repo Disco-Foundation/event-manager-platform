@@ -53,7 +53,7 @@ import { UserStore } from './user.store';
               <article
                 class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
                 style="width: 36rem;"
-                *ngIf="user != undefined; else loading"
+                *ngIf="user !== undefined; else loading"
               >
                 <header class="relative flex flex-row gap-2">
                   <figure
@@ -91,7 +91,7 @@ import { UserStore } from './user.store';
                     <div
                       class="mt-3"
                       style="display: flex;align-items: center;"
-                      *ngIf="user.email != null"
+                      *ngIf="user.email !== null"
                     >
                       <mat-icon>email</mat-icon>
                       <p class="line-clamp-3 text-justify m-0 flex-grow ml-2">
@@ -759,7 +759,7 @@ import { UserStore } from './user.store';
   providers: [EventsByOwnerStore, ConfigStore, TicketsByOwnerStore],
 })
 export class ProfileComponent implements OnInit {
-  @Input() selectedTab: number = 0; // Account Info
+  @Input() selectedTab = 0; // Account Info
   editingInfo = false;
   submitted = false;
   readonly events$ = this._eventsByOwnerStore.events$;
@@ -886,6 +886,7 @@ export class ProfileComponent implements OnInit {
 
   onSaveUser() {
     this.submitted = true;
+
     if (this.userForm.valid) {
       this._userStore
         .updateUserInfo({

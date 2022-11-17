@@ -18,6 +18,7 @@ import {
   from,
   map,
   switchMap,
+  throwError,
   toArray,
 } from 'rxjs';
 import { EventAccount } from './event-program.service';
@@ -80,22 +81,36 @@ export class EventsStore extends ComponentStore<ViewModel> {
       return this._eventProgramService.getPublishedEvents().pipe(
         concatMap((events) =>
           from(events).pipe(
-            concatMap((event) =>
-              forkJoin({
-                temporalVault: defer(() =>
-                  from(
-                    getTokenAccount(connection, event.account.temporalVault!)
-                  )
-                ),
-                gainVault: defer(() =>
-                  from(getTokenAccount(connection, event.account.gainVault!))
-                ),
-                acceptedMint: defer(() =>
-                  from(getMint(connection, event.account.acceptedMint!))
-                ),
-                ticketMint: defer(() =>
-                  from(getMint(connection, event.account.ticketMint!))
-                ),
+            concatMap((event) => {
+              return forkJoin({
+                temporalVault: defer(() => {
+                  if (event.account.temporalVault === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(
+                    getTokenAccount(connection, event.account.temporalVault)
+                  );
+                }),
+                gainVault: defer(() => {
+                  if (event.account.gainVault === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(
+                    getTokenAccount(connection, event.account.gainVault)
+                  );
+                }),
+                acceptedMint: defer(() => {
+                  if (event.account.acceptedMint === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(getMint(connection, event.account.acceptedMint));
+                }),
+                ticketMint: defer(() => {
+                  if (event.account.ticketMint === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(getMint(connection, event.account.ticketMint));
+                }),
               }).pipe(
                 map(({ temporalVault, acceptedMint, ticketMint }) => ({
                   ...event,
@@ -103,7 +118,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   acceptedMint,
                   ticketMint,
                   ticketPrice: event.account.ticketPrice,
-                  ticketsSold: event.account.ticketsSold!,
+                  ticketsSold: event.account.ticketsSold,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /
                       event.account.ticketQuantity
@@ -111,8 +126,8 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   ticketsLeft:
                     event.account.ticketQuantity - Number(ticketMint.supply),
                 }))
-              )
-            ),
+              );
+            }),
             toArray()
           )
         ),

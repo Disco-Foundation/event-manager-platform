@@ -726,10 +726,10 @@ export class ViewDraftEventComponent implements OnInit {
 
   waitForElement(id: string) {
     this.scrollTo(id);
-    let observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        let nodes = Array.from(mutation.addedNodes);
-        for (var node of nodes) {
+        const nodes = Array.from(mutation.addedNodes);
+        for (const node of nodes) {
           if (node.contains(document.getElementById(id))) {
             this.scrollTo(id);
             observer.disconnect();

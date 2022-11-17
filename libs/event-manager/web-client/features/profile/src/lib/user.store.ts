@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
+import { EventFirebaseService } from '@event-manager-web-client/data-access';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { PublicKey } from '@solana/web3.js';
-import { EventFirebaseService } from 'libs/event-manager/web-client/data-access/src/lib/firebase/event-firebase.service';
-import { combineLatest, defer, EMPTY, from, map, switchMap } from 'rxjs';
+import {
+  combineLatest,
+  defer,
+  EMPTY,
+  from,
+  map,
+  switchMap,
+  throwError,
+} from 'rxjs';
 
 interface UserState {
   id: PublicKey | null;
@@ -91,7 +99,12 @@ export class UserStore extends ComponentStore<UserState> {
     email: string;
     image: string;
   }) {
-    const userId = this.get().id!;
+    const userId = this.get().id;
+
+    if (userId === null) {
+      return throwError(() => new Error('ProgramReaderMissing'));
+    }
+
     return defer(() => {
       return from(
         this._eventFirebaseService.updateUser(userId?.toBase58(), args)
