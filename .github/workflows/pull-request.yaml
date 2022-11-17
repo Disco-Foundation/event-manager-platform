@@ -57,6 +57,7 @@ jobs:
           npm i -g typescript
           npm install -g mocha
           npm install -g ts-mocha
+          npm install -g ts-mocha typescript
       - id: linting-projects
         name: 🔦 Linting Platform projects
         run: |
