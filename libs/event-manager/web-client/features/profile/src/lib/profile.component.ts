@@ -31,6 +31,12 @@ import { UserStore } from './user.store';
             >Create event</a
           >
         </p>
+        <button
+          (click)="onReload()"
+          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+        >
+          Reload
+        </button>
       </header>
       <div>
         <mat-tab-group
@@ -865,7 +871,6 @@ export class ProfileComponent implements OnInit {
           this.selectedTab = 2;
         }),
         catchError((error) => {
-          console.log(error);
           this._matSnackBar.open(error, 'close', {
             duration: 5000,
           });

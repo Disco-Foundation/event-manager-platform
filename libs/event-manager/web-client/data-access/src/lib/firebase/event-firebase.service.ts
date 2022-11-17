@@ -464,14 +464,12 @@ export class EventFirebaseService {
 
   async addUserTickets(userId: string, eventId: string, quantity: number) {
     const ticketsRef = collection(this._firestore, `users/${userId}/tickets`);
-    console.log(ticketsRef);
 
     return await addDoc(ticketsRef, {
       eventId,
       quantity,
     })
       .catch((error) => {
-        console.log(error);
         return throwError(() => new Error(error));
       })
       .then(() => {
