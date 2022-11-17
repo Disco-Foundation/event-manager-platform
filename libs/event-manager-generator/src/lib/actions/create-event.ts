@@ -24,16 +24,15 @@ export const createEvent = async (
       acceptedMint: new PublicKey(eventData.acceptedMint).toBase58(),
       certifier: certifier.publicKey.toBase58(),
     });
-    const EVENT_ID = new BN(eventData.id);
+    const EVENT_ID = eventData.id;
     const [eventAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('event', 'utf-8'),
-        EVENT_ID.toBuffer('le', 8),
+        Buffer.from(EVENT_ID, 'utf-8'),
         userWallet.publicKey.toBuffer(),
       ],
       program.programId
     );
-
     // Check if the event already exist
     const eventAccount = await connection.getAccountInfo(eventAddress);
     if (eventAccount) throw new CreateEventError('Event already created');

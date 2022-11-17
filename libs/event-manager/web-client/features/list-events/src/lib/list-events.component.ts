@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
   EventsStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
@@ -31,21 +32,39 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
         <p class="text-center" *ngIf="error$ | async as error">
           {{ error }}
         </p>
-
-        <button
-          (click)="onReload()"
-          class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
-        >
-          Reload
-        </button>
+        <div class="flex flex-wrap gap-8 justify-center mt-1">
+          <form
+            [formGroup]="searchForm"
+            style="width: 25rem; display: flex; flex-direction: row;align-items: center;"
+          >
+            <mat-form-field class="w-full" appearance="fill">
+              <input
+                matInput
+                formControlName="search"
+                required
+                type="string"
+                autocomplete="off"
+                placeholder="Search event..."
+              />
+            </mat-form-field>
+          </form>
+          <!--<button
+            (click)="onReload()"
+            class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
+          >
+            Reload
+          </button>-->
+        </div>
       </header>
 
       <section
         *ngIf="events$ | async as events; else notLoaded"
         class="flex flex-wrap gap-8 justify-center"
       >
+        <p *ngIf="events.length === 0">No Events Found</p>
+
         <article
-          *ngFor="let event of events"
+          *ngFor="let event of events | searchFilter: searchForm.value.search"
           class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           style="width: 30rem"
         >
@@ -73,7 +92,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
               class="absolute top-0 right-0"
               mat-icon-button
               aria-label="View details"
-              [routerLink]="['/view-event', event.publicKey.toBase58()]"
+              [routerLink]="['/view-event', event.account.eventId]"
             >
               <mat-icon>launch</mat-icon>
             </a>
@@ -89,7 +108,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Starts at: <br />
 
                 <span class="font-bold">{{
-                  event.account.eventStartDate.toNumber() | date: 'short'
+                  event.account.eventStartDate | date: 'short'
                 }}</span>
               </p>
 
@@ -97,7 +116,7 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 Ends at: <br />
 
                 <span class="font-bold">{{
-                  event.account.eventEndDate.toNumber() | date: 'short'
+                  event.account.eventEndDate | date: 'short'
                 }}</span>
               </p>
             </div>
@@ -108,24 +127,28 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                   *ngIf="event.account.ticketQuantity > 0"
                   class="m-0 text-justify disco-text gold"
                 >
-                  <ng-container *ngIf="event.ticketsSold === 0">
+                  <ng-container *ngIf="event.account.ticketsSold === 0">
                     Out of the total of
                     <b class="text-lg">{{
                       event.account.ticketQuantity | number
                     }}</b>
                     tickets, none have been sold.
                   </ng-container>
-                  <ng-container *ngIf="event.ticketsSold > 0">
+                  <ng-container *ngIf="event.account.ticketsSold > 0">
                     Out of the total of
                     <b class="text-lg">{{
                       event.account.ticketQuantity | number
                     }}</b>
                     tickets,
-                    <b class="text-lg">{{ event.ticketsSold | number }}</b>
+                    <b class="text-lg">{{
+                      event.account.ticketsSold | number
+                    }}</b>
                     have been already sold.
                   </ng-container>
                   <ng-container
-                    *ngIf="event.ticketsSold === event.account.ticketQuantity"
+                    *ngIf="
+                      event.account.ticketsSold === event.account.ticketQuantity
+                    "
                   >
                     All
                     <b class="text-lg">{{
@@ -140,7 +163,6 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 <mat-progress-bar
                   mode="determinate"
                   color="accent"
-                  [value]="event.salesProgress"
                 ></mat-progress-bar>
                 <div class="flex justify-between items-baseline">
                   <div class="flex gap-2 items-center">
@@ -156,13 +178,13 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                       </figure>
                       <span
                         class="text-2xl font-bold leading-none disco-text green"
-                        >{{ event.ticketPrice | number: '1.2-2' }}</span
+                        >{{ event.account.ticketPrice | number: '1.2-2' }}</span
                       >
                     </div>
                   </div>
 
                   <p class="m-0">
-                    {{ event.ticketsSold | number }}/{{
+                    {{ event.account.ticketsSold | number }}/{{
                       event.account.ticketQuantity | number
                     }}
                   </p>
@@ -173,13 +195,14 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                 emBuyTicketsTrigger
                 [eventName]="event.account.name"
-                [ticketPrice]="event.ticketPrice"
-                [eventId]="event.publicKey.toBase58()"
+                [ticketPrice]="event.account.ticketPrice"
+                [eventId]="event.account.eventId"
                 (buyTickets)="
                   onBuyTickets(
-                    event.publicKey,
-                    event.account.acceptedMint,
-                    $event
+                    event.publicKey!,
+                    event.account.acceptedMint!,
+                    $event,
+                    event.account.eventId
                   )
                 "
               >
@@ -187,7 +210,14 @@ import { catchError, concatMap, defer, EMPTY, first, from, tap } from 'rxjs';
                   <span class="uppercase text-2xl"> Buy Tickets! </span>
                   <span class="text-xs italic">
                     Only
-                    <b>{{ event.ticketsLeft | number }} ticket(s)</b> left.
+                    <b
+                      >{{
+                        event.account.ticketQuantity - event.account.ticketsSold
+                          | number
+                      }}
+                      ticket(s)</b
+                    >
+                    left.
                   </span>
                 </div>
               </button>
@@ -215,12 +245,17 @@ export class ListEventsComponent {
   readonly error$ = this._eventsStore.error$;
   readonly acceptedMintLogo$ = this._configStore.acceptedMintLogo$;
 
+  readonly searchForm = this._formBuilder.group({
+    search: '',
+  });
+
   constructor(
     private readonly _configStore: ConfigStore,
     private readonly _eventsStore: EventsStore,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
-    private readonly _connectionStore: ConnectionStore
+    private readonly _connectionStore: ConnectionStore,
+    private readonly _formBuilder: UntypedFormBuilder
   ) {}
 
   onReload() {
@@ -230,13 +265,15 @@ export class ListEventsComponent {
   onBuyTickets(
     event: PublicKey,
     acceptedMint: PublicKey,
-    ticketQuantity: number
+    ticketQuantity: number,
+    eventId: string
   ) {
-    this._eventApiService
+    this._eventProgramService
       .buyTickets({
         event,
         ticketQuantity,
         acceptedMint,
+        eventId,
       })
       .pipe(
         concatMap((signature) => {
@@ -246,17 +283,14 @@ export class ListEventsComponent {
             first(),
             concatMap((connection) => {
               if (connection === null) {
-                this._matSnackBar.open('Connection missing');
+                this._matSnackBar.open('Connection missing', 'close', {
+                  duration: 5000,
+                });
                 return EMPTY;
               }
 
               return defer(() =>
                 from(connection.confirmTransaction(signature))
-              ).pipe(
-                catchError((error) => {
-                  this._matSnackBar.open(error.msg);
-                  return EMPTY;
-                })
               );
             }),
             tap(() => {
@@ -272,7 +306,9 @@ export class ListEventsComponent {
           );
         }),
         catchError((error) => {
-          this._matSnackBar.open(error, 'close');
+          this._matSnackBar.open(error, 'close', {
+            duration: 5000,
+          });
           return EMPTY;
         })
       )

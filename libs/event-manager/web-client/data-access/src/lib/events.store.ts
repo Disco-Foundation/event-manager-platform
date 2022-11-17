@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import {
@@ -19,9 +18,11 @@ import {
   from,
   map,
   switchMap,
+  throwError,
   toArray,
 } from 'rxjs';
-import { EventAccount, EventApiService } from './event-api.service';
+import { EventAccount } from './event-program.service';
+import { EventFirebaseService } from './firebase/event-firebase.service';
 
 export interface EventItem extends EventAccount {
   temporalVault: TokenAccount;
@@ -54,7 +55,7 @@ export class EventsStore extends ComponentStore<ViewModel> {
   readonly error$ = this.select(({ error }) => error);
 
   constructor(
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventFirebaseService,
     private readonly _connectionStore: ConnectionStore
   ) {
     super(initialState);
@@ -77,29 +78,46 @@ export class EventsStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findAll().pipe(
+      return this._eventProgramService.getPublishedEvents().pipe(
         concatMap((events) =>
           from(events).pipe(
-            concatMap((event) =>
-              forkJoin({
-                temporalVault: defer(() =>
-                  from(getTokenAccount(connection, event.account.temporalVault))
-                ),
-                acceptedMint: defer(() =>
-                  from(getMint(connection, event.account.acceptedMint))
-                ),
-                ticketMint: defer(() =>
-                  from(getMint(connection, event.account.ticketMint))
-                ),
+            concatMap((event) => {
+              return forkJoin({
+                temporalVault: defer(() => {
+                  if (event.account.temporalVault === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(
+                    getTokenAccount(connection, event.account.temporalVault)
+                  );
+                }),
+                gainVault: defer(() => {
+                  if (event.account.gainVault === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(
+                    getTokenAccount(connection, event.account.gainVault)
+                  );
+                }),
+                acceptedMint: defer(() => {
+                  if (event.account.acceptedMint === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(getMint(connection, event.account.acceptedMint));
+                }),
+                ticketMint: defer(() => {
+                  if (event.account.ticketMint === null) {
+                    return throwError(() => new Error('InfoMissing'));
+                  }
+                  return from(getMint(connection, event.account.ticketMint));
+                }),
               }).pipe(
                 map(({ temporalVault, acceptedMint, ticketMint }) => ({
                   ...event,
                   temporalVault,
                   acceptedMint,
                   ticketMint,
-                  ticketPrice: event.account.ticketPrice
-                    .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                    .toNumber(),
+                  ticketPrice: event.account.ticketPrice,
                   ticketsSold: event.account.ticketsSold,
                   salesProgress: Math.floor(
                     (Number(ticketMint.supply) * 100) /
@@ -108,8 +126,8 @@ export class EventsStore extends ComponentStore<ViewModel> {
                   ticketsLeft:
                     event.account.ticketQuantity - Number(ticketMint.supply),
                 }))
-              )
-            ),
+              );
+            }),
             toArray()
           )
         ),

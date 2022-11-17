@@ -6,8 +6,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: [17.6.0]
-        solana: [1.9.29, 1.10.27]
+        node: [18.2.0]
+        solana: [1.10.8]
         anchor: [0.24.2]
         os: [ubuntu-22.04]
     steps:
@@ -57,6 +57,7 @@ jobs:
           npm i -g typescript
           npm install -g mocha
           npm install -g ts-mocha
+          npm install -g ts-mocha typescript
       - id: linting-projects
         name: 🔦 Linting Platform projects
         run: |

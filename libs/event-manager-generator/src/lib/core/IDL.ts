@@ -18,7 +18,7 @@ export type EventManager = {
               },
               {
                 kind: 'arg';
-                type: 'u64';
+                type: 'string';
                 path: 'event_id';
               },
               {
@@ -143,7 +143,7 @@ export type EventManager = {
       args: [
         {
           name: 'eventId';
-          type: 'u64';
+          type: 'string';
         },
         {
           name: 'name';
@@ -851,7 +851,7 @@ export type EventManager = {
           },
           {
             name: 'eventId';
-            type: 'u64';
+            type: 'string';
           },
           {
             name: 'eventBump';
@@ -944,7 +944,7 @@ export const IDL: EventManager = {
               },
               {
                 kind: 'arg',
-                type: 'u64',
+                type: 'string',
                 path: 'event_id',
               },
               {
@@ -1069,7 +1069,7 @@ export const IDL: EventManager = {
       args: [
         {
           name: 'eventId',
-          type: 'u64',
+          type: 'string',
         },
         {
           name: 'name',
@@ -1777,7 +1777,7 @@ export const IDL: EventManager = {
           },
           {
             name: 'eventId',
-            type: 'u64',
+            type: 'string',
           },
           {
             name: 'eventBump',

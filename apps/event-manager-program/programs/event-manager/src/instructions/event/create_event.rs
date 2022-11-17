@@ -2,7 +2,7 @@ use {crate::collections::Event, anchor_lang::prelude::*, anchor_spl::token::*};
 
 #[derive(Accounts)]
 #[instruction(
-  event_id: u64, 
+  event_id: String, 
   name: String,
   description: String,
   banner: String,
@@ -16,7 +16,7 @@ pub struct CreateEvent<'info> {
     init,
     seeds = [
       b"event".as_ref(),
-      event_id.to_le_bytes().as_ref(),
+      event_id.as_bytes(),
       authority.key().as_ref(),
     ],
     bump,
@@ -81,7 +81,7 @@ pub struct CreateEvent<'info> {
 
 pub fn handle(
   ctx: Context<CreateEvent>, 
-  event_id: u64, 
+  event_id: String, 
   name: String, 
   description: String,
   banner: String,

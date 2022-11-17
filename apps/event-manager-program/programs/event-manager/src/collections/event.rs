@@ -26,7 +26,7 @@ pub struct Event {
   pub attendance_mint: Pubkey,              // 32
   pub gain_vault: Pubkey,                   // 32
   pub temporal_vault: Pubkey,               // 32
-  pub event_id: u64,                        // 8
+  pub event_id: String,                     // (40 + 4)
   pub event_bump: u8,                       // 1
   pub event_mint_bump: u8,                  // 1
   pub ticket_mint_bump: u8,                 // 1
@@ -61,7 +61,7 @@ impl Event {
     + 8
     + 8
     + 8
-    + 8
+    + (40 + 4)
     + 1
     + 1
     + 1

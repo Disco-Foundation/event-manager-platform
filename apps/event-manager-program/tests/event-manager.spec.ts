@@ -16,7 +16,7 @@ describe('New Solana X Party Reloaded', () => {
   const eventProgram = anchor.workspace.EventManager as Program<EventManager>;
   const acceptedMintDecimals = 8;
   const wearableId = new BN(1);
-  const eventId = new BN(5);
+  const eventId = 'eventId3344';
   const eventDescription = 'A super event';
   const eventBanner = 'http://image.com';
   const eventLocation = 'Metaverse';
@@ -59,7 +59,7 @@ describe('New Solana X Party Reloaded', () => {
     [eventAddress] = await PublicKey.findProgramAddress(
       [
         Buffer.from('event', 'utf-8'),
-        eventId.toBuffer('le', 8),
+        Buffer.from(eventId, 'utf-8'),
         provider.wallet.publicKey.toBuffer(),
       ],
       eventProgram.programId

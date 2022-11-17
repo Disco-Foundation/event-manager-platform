@@ -1,6 +1,20 @@
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { ModuleWithProviders, NgModule } from '@angular/core';
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { connectAuthEmulator, getAuth, provideAuth } from '@angular/fire/auth';
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+  provideFirestore,
+} from '@angular/fire/firestore';
+import {
+  connectFunctionsEmulator,
+  getFunctions,
+  provideFunctions,
+} from '@angular/fire/functions';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 import {
   EnvironmentConfig,
@@ -13,17 +27,43 @@ import {
   HdWalletIconComponent,
 } from '@heavy-duty/wallet-adapter-cdk';
 import { HdWalletModalButtonDirective } from '@heavy-duty/wallet-adapter-material';
+import { environment } from './config/config';
 import { ShellComponent } from './shell.component';
+import { Authenticated } from './utils';
 
 @NgModule({
   declarations: [ShellComponent],
   imports: [
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAuth(() => {
+      const auth = getAuth();
+      if (environment.useEmulators) {
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+      }
+      return auth;
+    }),
+    provideFunctions(() => {
+      const functions = getFunctions();
+      if (environment.useEmulators) {
+        connectFunctionsEmulator(functions, 'localhost', 5001);
+      }
+      return functions;
+    }),
+    provideFirestore(() => {
+      const firestore = getFirestore();
+      if (environment.useEmulators) {
+        connectFirestoreEmulator(firestore, 'localhost', 8080);
+      }
+      return firestore;
+    }),
+    HttpClientModule,
     CommonModule,
     RouterModule.forChild([
       {
         path: '',
         component: ShellComponent,
         children: [
+          { path: '', redirectTo: '/list-events', pathMatch: 'full' },
           {
             path: 'list-events',
             loadChildren: () =>
@@ -46,13 +86,21 @@ import { ShellComponent } from './shell.component';
               ),
           },
           {
+            path: 'view-draft-event/:eventId',
+            canActivate: [Authenticated],
+            loadChildren: () =>
+              import('@event-manager-web-client/view-draft-event').then(
+                (m) => m.ViewDraftEventModule
+              ),
+          },
+          {
             path: 'profile',
+            canActivate: [Authenticated],
             loadChildren: () =>
               import('@event-manager-web-client/profile').then(
                 (m) => m.ProfileModule
               ),
           },
-          { path: '', redirectTo: '/list-events', pathMatch: 'full' },
         ],
       },
     ]),
@@ -62,7 +110,9 @@ import { ShellComponent } from './shell.component';
     HdWalletConnectButtonDirective,
     HdWalletDisconnectButtonDirective,
     HdWalletModalButtonDirective,
+    MatSnackBarModule,
   ],
+  providers: [Authenticated],
 })
 export class ShellModule {
   static forRoot(

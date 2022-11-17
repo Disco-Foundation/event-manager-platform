@@ -22,7 +22,8 @@
         "scripts": [],
         "customWebpackConfig": {
           "path": "apps/event-manager-web-client/webpack.config.js"
-        }
+        },
+        "buildLibsFromSource": false
       },
       "configurations": {
         "production": {
@@ -30,7 +31,7 @@
             {
               "type": "initial",
               "maximumWarning": "500kb",
-              "maximumError": "6mb"
+              "maximumError": "7mb"
             },
             {
               "type": "anyComponentStyle",
@@ -58,7 +59,7 @@
       "defaultConfiguration": "production"
     },
     "serve": {
-      "executor": "@nrwl/angular:webpack-server",
+      "executor": "@nrwl/angular:webpack-dev-server",
       "configurations": {
         "production": {
           "browserTarget": "event-manager-web-client:build:production"

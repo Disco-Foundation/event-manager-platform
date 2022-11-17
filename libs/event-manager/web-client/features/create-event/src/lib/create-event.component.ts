@@ -10,9 +10,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
 } from '@event-manager-web-client/data-access';
-import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { catchError, concatMap, EMPTY, tap } from 'rxjs';
 
@@ -26,17 +25,6 @@ export function publicKeyValidator(): ValidatorFn {
     }
   };
 }
-
-/* const downloadCertifier = (certifierSecret: Uint8Array) => {
-  const a = document.createElement('a');
-
-  a.href = URL.createObjectURL(
-    new Blob([`[${certifierSecret.toString()}]`], { type: 'application/json' })
-  );
-  a.download = 'certifier.json';
-  a.click();
-  a.remove();
-}; */
 
 @Component({
   selector: 'em-create-event',
@@ -210,27 +198,6 @@ export function publicKeyValidator(): ValidatorFn {
                     >Maximum length is 40.</mat-error
                   >
                 </mat-form-field>
-
-                <!-- <mat-form-field
-                  class="w-full"
-                  appearance="fill"
-                  hintLabel="Enter the certifier funds."
-                >
-                  <mat-label>Certifier Funds</mat-label>
-                  <input
-                    matInput
-                    formControlName="certifierFunds"
-                    required
-                    type="number"
-                  />
-                  <mat-error
-                    *ngIf="
-                      submitted &&
-                      informationForm.get('certifier')?.hasError('required')
-                    "
-                    >The certifier is mandatory.</mat-error
-                  >
-                </mat-form-field> -->
 
                 <mat-form-field
                   class="w-full"
@@ -465,7 +432,7 @@ export function publicKeyValidator(): ValidatorFn {
                   class="disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                   (click)="onSubmit()"
                 >
-                  Submit
+                  Save
                 </button>
               </div>
             </div>
@@ -499,9 +466,6 @@ export class CreateEventComponent {
     banner: this._formBuilder.control(null, {
       validators: [Validators.required, Validators.maxLength(40)],
     }),
-    /* certifierFunds: this._formBuilder.control(null, {
-      validators: [Validators.required],
-    }), */
     startDate: this._formBuilder.control(null, {
       validators: [Validators.required],
     }),
@@ -520,9 +484,8 @@ export class CreateEventComponent {
 
   constructor(
     private readonly _formBuilder: UntypedFormBuilder,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
-    private readonly _connectionStore: ConnectionStore,
     private readonly _router: Router,
     private readonly _configStore: ConfigStore
   ) {}
@@ -531,28 +494,30 @@ export class CreateEventComponent {
     this.submitted = true;
 
     if (this.informationForm.valid && this.ticketsForm.valid) {
-      this._eventApiService
-        .create({
+      this._eventProgramService
+        .createEvent({
           ...this.ticketsForm.value,
           ...this.informationForm.value,
         })
         .pipe(
           concatMap(() => {
             return this._matSnackBar
-              .open('Event created!', 'View events list', {
+              .open('Event draft created!', 'Check your profile', {
                 duration: 5000,
               })
               .afterDismissed()
               .pipe(
                 tap(({ dismissedByAction }) => {
                   if (dismissedByAction) {
-                    this._router.navigate(['/list-events']);
+                    this._router.navigate(['/profile']);
                   }
                 })
               );
           }),
           catchError((error) => {
-            this._matSnackBar.open(error.message);
+            this._matSnackBar.open(error.message, 'close', {
+              duration: 5000,
+            });
             return EMPTY;
           })
         )

@@ -64,10 +64,10 @@ pub fn handle(ctx: Context<BuyTickets>, quantity: u32) -> Result<()> {
         .checked_mul(quantity as u64)
         .unwrap();
     let (accepted_token_amount_to_transfer, _) = get_tokens_amounts(amount, 1);
-    let event_id = ctx.accounts.event.event_id.to_le_bytes();
+    let event_id = &ctx.accounts.event.event_id;
     let seeds = [
         "event".as_bytes(),
-        event_id.as_ref(),
+        event_id.as_bytes(),
         ctx.accounts.event.authority.as_ref(),
         &[ctx.accounts.event.event_bump],
     ];

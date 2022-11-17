@@ -1,8 +1,11 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import {
   ConfigStore,
   EnvironmentConfig,
   ENVIRONMENT_CONFIG,
+  LoginStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
@@ -11,6 +14,8 @@ import {
   SolflareWalletAdapter,
   SolongWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
+import { PublicKey } from '@solana/web3.js';
+import { catchError, EMPTY } from 'rxjs';
 
 @Component({
   selector: 'em-shell',
@@ -27,6 +32,7 @@ import {
       </div>
       <div class="flex justify-between items-center gap-8">
         <a
+          *ngIf="loggedIn | async; loggedIn"
           class="underline disco-text purple disco-text-glow"
           [routerLink]="['/profile']"
           >My Profile</a
@@ -82,10 +88,18 @@ import {
   `,
   providers: [ConfigStore],
 })
-export class ShellComponent implements OnInit {
+export class ShellComponent implements OnInit, OnDestroy {
+  readonly loggedIn = this._loginStore.connected$;
+  walletSubscription = this._hdWalletStore.publicKey$.subscribe(
+    async (publicKey) => this.handleWallet(publicKey)
+  );
+
   constructor(
     private readonly _hdConnectionStore: ConnectionStore,
     private readonly _hdWalletStore: WalletStore,
+    private readonly _loginStore: LoginStore,
+    private readonly _matSnackBar: MatSnackBar,
+    private readonly _router: Router,
     @Inject(ENVIRONMENT_CONFIG) private environment: EnvironmentConfig
   ) {}
 
@@ -97,5 +111,55 @@ export class ShellComponent implements OnInit {
       new SolflareWalletAdapter(),
       new SolongWalletAdapter(),
     ]);
+  }
+
+  ngOnDestroy() {
+    this.walletSubscription.unsubscribe();
+  }
+
+  singIn(publicKey: PublicKey, signature: Uint8Array) {
+    this._loginStore
+      .signIn(Buffer.from(signature), publicKey.toBase58())
+      .catch((error) => {
+        this._matSnackBar.open(error, 'close', {
+          duration: 5000,
+        });
+        this._hdWalletStore.disconnect().subscribe();
+      });
+  }
+
+  signOut() {
+    this._loginStore.signOut().then(() => {
+      this._router.navigate(['/list-events']);
+    });
+  }
+
+  signMessage(publicKey: PublicKey, message: string) {
+    this._hdWalletStore
+      .signMessage(new TextEncoder().encode(message))
+      ?.pipe(
+        catchError(() => {
+          this._hdWalletStore.disconnect().subscribe();
+          return EMPTY;
+        })
+      )
+      ?.subscribe((signature) => {
+        if (signature === undefined) {
+          this._matSnackBar.open('Signature error, try again', 'close', {
+            duration: 5000,
+          });
+          return;
+        }
+        this.singIn(publicKey, signature);
+      });
+  }
+
+  async handleWallet(publicKey: PublicKey | null) {
+    if (publicKey === null) {
+      return this.signOut();
+    }
+    (await this._loginStore.getNonce(publicKey.toBase58())).subscribe((msg) => {
+      this.signMessage(publicKey, msg);
+    });
   }
 }

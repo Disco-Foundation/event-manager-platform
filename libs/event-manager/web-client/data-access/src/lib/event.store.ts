@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BN } from '@heavy-duty/anchor';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { getMint, Mint } from '@solana/spl-token';
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import {
   BehaviorSubject,
   combineLatest,
@@ -15,12 +14,18 @@ import {
   map,
   of,
   switchMap,
+  throwError,
 } from 'rxjs';
-import { EventAccount, EventApiService } from './event-api.service';
+import {
+  CreateEventArguments,
+  EventAccount,
+  EventProgramService,
+} from './event-program.service';
+import { EventFirebaseService } from './firebase/event-firebase.service';
 
 export interface EventDetailsView extends EventAccount {
-  acceptedMint: Mint;
-  ticketMint: Mint;
+  acceptedMint: Mint | null;
+  ticketMint: Mint | null;
   salesProgress: number;
   ticketPrice: number;
   ticketsSold: number;
@@ -39,6 +44,7 @@ interface ViewModel {
   eventId: string | null;
   event: EventDetailsView | null;
   error: unknown | null;
+  draft: boolean;
 }
 
 const initialState: ViewModel = {
@@ -46,6 +52,7 @@ const initialState: ViewModel = {
   event: null,
   eventId: null,
   error: null,
+  draft: false,
 };
 
 @Injectable()
@@ -56,10 +63,12 @@ export class EventStore extends ComponentStore<ViewModel> {
   readonly event$ = this.select(({ event }) => event);
   readonly loading$ = this.select(({ loading }) => loading);
   readonly error$ = this.select(({ error }) => error);
+  readonly draft$ = this.select(({ draft }) => draft);
 
   constructor(
-    private readonly _eventApiService: EventApiService,
-    private readonly _connectionStore: ConnectionStore
+    private readonly _eventFirebaseService: EventFirebaseService,
+    private readonly _connectionStore: ConnectionStore,
+    private readonly _eventProgramService: EventProgramService
   ) {
     super(initialState);
 
@@ -82,6 +91,11 @@ export class EventStore extends ComponentStore<ViewModel> {
     eventId,
   }));
 
+  readonly setDraft = this.updater<boolean>((state, draft) => ({
+    ...state,
+    draft,
+  }));
+
   private readonly _loadEvent = this.effect<{
     eventId: string | null;
     connection: Connection | null;
@@ -94,53 +108,40 @@ export class EventStore extends ComponentStore<ViewModel> {
 
       this.patchState({ loading: true });
 
-      return this._eventApiService.findById(eventId).pipe(
+      return this._eventFirebaseService.getEvent(eventId).pipe(
         concatMap((event) => {
-          if (event === null) {
-            return of(null);
+          if (event === undefined) {
+            return throwError(() => new Error('Error loading the event'));
           }
 
           return forkJoin({
-            acceptedMint: defer(() =>
-              from(getMint(connection, event.account.acceptedMint))
+            acceptedMint: this.buildMint(
+              connection,
+              event.account.acceptedMint
             ),
-            ticketMint: getMint(connection, event.account.ticketMint),
+            ticketMint: this.buildMint(connection, event.account.ticketMint),
           }).pipe(
             map(({ acceptedMint, ticketMint }) => ({
               ...event,
               acceptedMint,
               ticketMint,
-              ticketPrice: event.account.ticketPrice
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
+              ticketPrice: event.account.ticketPrice,
               ticketsSold: event.account.ticketsSold,
               ticketsLeft:
-                event.account.ticketQuantity - Number(ticketMint.supply),
+                event.account.ticketQuantity - Number(ticketMint?.supply),
               salesProgress: Math.floor(
-                (Number(ticketMint.supply) * 100) / event.account.ticketQuantity
+                (Number(ticketMint?.supply) * 100) /
+                  event.account.ticketQuantity
               ),
-              totalValueLocked: event.account.totalValueLocked
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalValueLockedInTickets: event.account.totalValueLockedInTickets
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
+              totalValueLocked: event.account.totalValueLocked,
+              totalValueLockedInTickets:
+                event.account.totalValueLockedInTickets,
               totalValueLockedInRecharges:
-                event.account.totalValueLockedInRecharges
-                  .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                  .toNumber(),
-              totalDeposited: event.account.totalDeposited
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfit: event.account.totalProfit
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfitInTickets: event.account.totalProfitInTickets
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
-              totalProfitInPurchases: event.account.totalProfitInPurchases
-                .div(new BN(10).pow(new BN(acceptedMint.decimals)))
-                .toNumber(),
+                event.account.totalValueLockedInRecharges,
+              totalDeposited: event.account.totalDeposited,
+              totalProfit: event.account.totalProfit,
+              totalProfitInTickets: event.account.totalProfitInTickets,
+              totalProfitInPurchases: event.account.totalProfitInPurchases,
             }))
           );
         }),
@@ -151,7 +152,10 @@ export class EventStore extends ComponentStore<ViewModel> {
               loading: false,
             });
           },
-          (error) => this.patchState({ error, loading: false })
+          (error) => {
+            this.patchState({ error, loading: false });
+            throwError(() => new Error(error as string));
+          }
         )
       );
     })
@@ -159,5 +163,83 @@ export class EventStore extends ComponentStore<ViewModel> {
 
   reload() {
     this.reloadSubject.next(null);
+  }
+
+  publishEvent() {
+    const event = this.get().event;
+
+    return defer(() => {
+      if (event === null) {
+        return of(null);
+      }
+
+      const args = {
+        name: event.account.name,
+        description: event.account.description,
+        location: event.account.location,
+        banner: event.account.banner,
+        startDate: event.account.eventStartDate,
+        endDate: event.account.eventEndDate,
+        ticketPrice: event.account.ticketPrice,
+        ticketQuantity: event.account.ticketQuantity,
+        certifierFunds: 0,
+        eventId: event.account.eventId,
+      };
+
+      return from(
+        this._eventProgramService.publish(args as CreateEventArguments)
+      );
+    });
+  }
+
+  updateEventTickets(args: { ticketPrice: number; ticketQuantity: number }) {
+    const event = this.get().event;
+    return defer(() => {
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._eventFirebaseService.updateEventTickets(
+          event.account.eventId,
+          args
+        )
+      );
+    });
+  }
+
+  updateEventDates(args: { startDate: string; endDate: string }) {
+    const event = this.get().event;
+    return defer(() => {
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._eventFirebaseService.updateEventDates(event.account.eventId, args)
+      );
+    });
+  }
+
+  updateEventInfo(args: {
+    name: string;
+    description: string;
+    location: string;
+    banner: string;
+  }) {
+    const event = this.get().event;
+    return defer(() => {
+      if (event === null) {
+        return of(null);
+      }
+      return from(
+        this._eventFirebaseService.updateEventInfo(event.account.eventId, args)
+      );
+    });
+  }
+
+  buildMint(connection: Connection, value: PublicKey | null) {
+    if (value === null) {
+      return of(null);
+    }
+    return getMint(connection, value);
   }
 }

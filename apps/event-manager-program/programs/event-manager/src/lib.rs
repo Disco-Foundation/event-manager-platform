@@ -15,7 +15,7 @@ pub mod event_manager {
 
     pub fn create_event(
         ctx: Context<CreateEvent>,
-        event_id: u64,
+        event_id: String,
         name: String,
         description: String,
         banner: String,
@@ -23,7 +23,7 @@ pub mod event_manager {
         event_start_date: i64,
         event_end_date: i64,
         ticket_price: u64,
-        ticket_quantity: u32,
+        ticket_quantity: u32
     ) -> Result<()> {
         instructions::event::create_event::handle(
             ctx,
@@ -35,7 +35,7 @@ pub mod event_manager {
             event_start_date,
             event_end_date,
             ticket_price,
-            ticket_quantity,
+            ticket_quantity
         )
     }
 

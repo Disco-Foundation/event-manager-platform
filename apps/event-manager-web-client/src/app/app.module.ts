@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
+import { LoginStore } from '@event-manager-web-client/data-access';
 import { ShellModule } from '@event-manager-web-client/shell';
 import { HdWalletAdapterModule } from '@heavy-duty/wallet-adapter';
 import { environment } from '../environments/environment';
@@ -28,7 +29,7 @@ import { AppComponent } from './app.component';
       network: environment.network,
     }),
   ],
-  providers: [],
+  providers: [LoginStore],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

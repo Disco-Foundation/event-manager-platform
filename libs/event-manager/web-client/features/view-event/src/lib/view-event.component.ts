@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import {
   ConfigStore,
-  EventApiService,
+  EventProgramService,
   EventStore,
 } from '@event-manager-web-client/data-access';
 import { ConnectionStore } from '@heavy-duty/wallet-adapter';
@@ -11,7 +11,6 @@ import { PublicKey } from '@solana/web3.js';
 import { ScaleType } from '@swimlane/ngx-charts';
 import {
   catchError,
-  combineLatest,
   concatMap,
   defer,
   EMPTY,
@@ -35,16 +34,13 @@ import {
         >
           {{ event.account.name }}
         </h2>
-
         <p class="m-0 text-center">
           Everything you'll need to know about
           <b class="disco-text gold">{{ event.account.name }}</b> goes here.
         </p>
-
         <p class="m-0" *ngIf="error$ | async as error">
           {{ error }}
         </p>
-
         <button
           (click)="onReload()"
           class="disco-btn green ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
@@ -52,7 +48,6 @@ import {
           Reload
         </button>
       </header>
-
       <div class="flex flex-wrap justify-center gap-4">
         <div class="flex flex-col gap-4" style="width: 30rem">
           <section
@@ -62,12 +57,10 @@ import {
               <figure class="h-48 overflow-hidden bg-black">
                 <img [src]="event.account.banner" alt="" />
               </figure>
-
               <div>
                 <h3 class="text-3xl uppercase m-0 disco-text blue disco-font">
                   {{ event.account.name }}
                 </h3>
-
                 <p
                   class="text-xs m-0 italic flex items-center text-opacity-50  disco-text gold"
                 >
@@ -76,7 +69,6 @@ import {
                 </p>
               </div>
             </header>
-
             <div class="flex flex-col gap-3">
               <p class="m-0 text-justify">
                 {{ event.account.description }}
@@ -85,13 +77,12 @@ import {
                 class="disco-text purple disco-text-glow text-left w-32"
                 emGenerateEventQrTrigger
                 [eventName]="event.account.name"
-                [eventId]="event.publicKey.toBase58()"
+                [eventId]="event.publicKey!.toBase58()"
               >
                 Pair with App
               </button>
             </div>
           </section>
-
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           >
@@ -100,7 +91,6 @@ import {
                 Tickets
               </h3>
             </header>
-
             <div class="flex flex-col items-center gap-3">
               <div class="px-4 py-2 disco-layer disco-border border-2 blue">
                 <p
@@ -134,18 +124,16 @@ import {
                   </ng-container>
                 </p>
               </div>
-
               <mat-progress-bar
                 mode="determinate"
                 color="accent"
                 [value]="event.salesProgress"
               ></mat-progress-bar>
-
               <div class="flex justify-between w-full">
                 <a
                   [href]="
                     'https://solscan.io/token/' +
-                    event.ticketMint.address.toBase58()
+                    event.ticketMint!.address.toBase58()
                   "
                   class="disco-text purple disco-text-glow"
                   target="__blank"
@@ -157,10 +145,8 @@ import {
                   }}
                 </p>
               </div>
-
               <div class="flex flex-col gap-2">
                 <p class="text-center m-0">Ticket price:</p>
-
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
@@ -175,18 +161,18 @@ import {
                   >
                 </div>
               </div>
-
               <button
                 class="w-full disco-btn pink ease-in duration-300 text-lg uppercase border-4 px-8 py-2 cursor-pointer font-bold"
                 emBuyTicketsTrigger
                 [eventName]="event.account.name"
                 [ticketPrice]="event.ticketPrice"
-                [eventId]="event.publicKey.toBase58()"
+                [eventId]="event.publicKey!.toBase58()"
                 (buyTickets)="
                   onBuyTickets(
-                    event.publicKey,
-                    event.account.acceptedMint,
-                    $event
+                    event.publicKey!,
+                    event.account.acceptedMint!,
+                    $event,
+                    event.account.eventId
                   )
                 "
               >
@@ -201,7 +187,6 @@ import {
             </div>
           </section>
         </div>
-
         <div class="flex flex-col gap-4 w-96">
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
@@ -210,76 +195,57 @@ import {
               <h3 class="disco-font m-0 text-3xl uppercase disco-text blue">
                 Dates
               </h3>
-
               <p
                 *ngIf="now$ | async as now"
                 class="italic text-xs m-0 disco-text gold"
               >
-                <ng-container
-                  *ngIf="now < event.account.eventStartDate.toNumber()"
-                >
+                <ng-container *ngIf="now < event.account.eventStartDate">
                   Starts
-                  {{
-                    event.account.eventStartDate.toNumber() - now
-                      | emRelativeTime
-                  }}.
+                  {{ event.account.eventStartDate - now | emRelativeTime }}.
                 </ng-container>
                 <ng-container
                   *ngIf="
-                    now > event.account.eventStartDate.toNumber() &&
-                    now < event.account.eventEndDate.toNumber()
+                    now > event.account.eventStartDate &&
+                    now < event.account.eventEndDate
                   "
                 >
                   Ends
-                  {{
-                    event.account.eventEndDate.toNumber() - now
-                      | emRelativeTime
-                  }}.
+                  {{ event.account.eventEndDate - now | emRelativeTime }}.
                 </ng-container>
-                <ng-container
-                  *ngIf="now > event.account.eventEndDate.toNumber()"
-                >
+                <ng-container *ngIf="now > event.account.eventEndDate">
                   Ended
-                  {{
-                    now - event.account.eventEndDate.toNumber()
-                      | emRelativeTime
-                  }}.
+                  {{ now - event.account.eventEndDate | emRelativeTime }}.
                 </ng-container>
               </p>
             </header>
-
             <div class="flex flex-col gap-3">
               <div>
                 <p class="m-0">
                   From <br />
                   <span class="text-xl font-bold">
-                    {{
-                      event.account.eventStartDate.toNumber() | date: 'medium'
-                    }}
+                    {{ event.account.eventStartDate | date: 'medium' }}
                   </span>
                 </p>
                 <p class="m-0">
                   To <br />
                   <span class="text-xl font-bold">
-                    {{ event.account.eventEndDate.toNumber() | date: 'medium' }}
+                    {{ event.account.eventEndDate | date: 'medium' }}
                   </span>
                 </p>
               </div>
-
               <div class="py-4 disco-layer disco-border border-2 blue">
                 <p
                   class="m-0 font-bold uppercase text-2xl text-center disco-text gold"
                 >
                   Lasts
                   {{
-                    event.account.eventEndDate.toNumber() -
-                      event.account.eventStartDate.toNumber() | emDurationTime
+                    event.account.eventEndDate - event.account.eventStartDate
+                      | emDurationTime
                   }}
                 </p>
               </div>
             </div>
           </section>
-
           <section
             class="p-4 border-4 disco-layer disco-border disco-glow ease-out duration-300 blue flex flex-col gap-3"
           >
@@ -288,7 +254,6 @@ import {
                 Treasury
               </h3>
             </header>
-
             <div class="flex flex-col gap-3">
               <div class="flex flex-col gap-2">
                 <div>Accepted Mint</div>
@@ -304,18 +269,16 @@ import {
                 <a
                   [href]="
                     'https://solscan.io/token/' +
-                    event.account.acceptedMint.toBase58()
+                    event.account.acceptedMint!.toBase58()
                   "
                   target="__blank"
                   class="disco-text purple disco-text-glow"
                   >[view in explorer]</a
                 >
               </div>
-
               <div class="flex justify-between">
                 <div class="flex flex-col">
                   <p class="m-0">Total Value Locked</p>
-
                   <div class="flex items-center gap-2">
                     <figure>
                       <img
@@ -330,10 +293,8 @@ import {
                     >
                   </div>
                 </div>
-
                 <div class="flex flex-col">
                   <p class="m-0">Total Deposited</p>
-
                   <div class="flex items-center gap-2">
                     <figure>
                       <img
@@ -349,7 +310,6 @@ import {
                   </div>
                 </div>
               </div>
-
               <div class="flex justify-between items-center gap-4">
                 <div class="w-full h-full flex justify-end items-center">
                   <ngx-charts-advanced-pie-chart
@@ -369,7 +329,6 @@ import {
                     ]"
                   >
                   </ngx-charts-advanced-pie-chart>
-
                   <p *ngIf="event.totalValueLocked === 0">
                     There's no total value locked.
                   </p>
@@ -382,10 +341,8 @@ import {
                       class="inline-block w-4 h-4 rounded-full"
                       style="background-color: #19fb9b"
                     ></div>
-
                     <div>
                       <p class="m-0 text-lg font-bold">Tickets</p>
-
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
@@ -404,7 +361,6 @@ import {
                       </div>
                     </div>
                   </div>
-
                   <div
                     class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
                   >
@@ -412,10 +368,8 @@ import {
                       class="inline-block w-4 h-4 rounded-full"
                       style="background-color: #ff5ef9"
                     ></div>
-
                     <div>
                       <p class="m-0 text-lg font-bold">Recharges</p>
-
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
@@ -436,10 +390,8 @@ import {
                   </div>
                 </div>
               </div>
-
               <div class="flex flex-col">
                 <p class="m-0">Profit</p>
-
                 <div class="flex items-center gap-2">
                   <figure>
                     <img
@@ -462,7 +414,6 @@ import {
                   </div>
                 </div>
               </div>
-
               <div class="flex justify-between items-center gap-4">
                 <div class="w-full h-full flex justify-end items-center ">
                   <ngx-charts-advanced-pie-chart
@@ -482,7 +433,6 @@ import {
                     ]"
                   >
                   </ngx-charts-advanced-pie-chart>
-
                   <p *ngIf="event.totalProfit === 0">There's no profit yet.</p>
                 </div>
                 <div class="w-full h-full flex flex-col gap-2 justify-center">
@@ -493,10 +443,8 @@ import {
                       class="inline-block w-4 h-4 rounded-full"
                       style="background-color: #19fb9b"
                     ></div>
-
                     <div>
                       <p class="m-0 text-lg font-bold">Tickets</p>
-
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
@@ -513,7 +461,6 @@ import {
                       </div>
                     </div>
                   </div>
-
                   <div
                     class="flex items-center gap-4 px-4 py-2 disco-layer disco-border blue border-2"
                   >
@@ -521,10 +468,8 @@ import {
                       class="inline-block w-4 h-4 rounded-full"
                       style="background-color: #ff5ef9"
                     ></div>
-
                     <div>
                       <p class="m-0 text-lg font-bold">Purchases</p>
-
                       <div class="flex items-center gap-2">
                         <figure>
                           <img
@@ -568,15 +513,6 @@ export class ViewEventComponent implements OnInit {
     startWith(Date.now()),
     map(() => Date.now())
   );
-  readonly beforeStart$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventStartDate.toNumber() - now)
-  );
-  readonly beforeEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => event?.account.eventEndDate.toNumber() - now)
-  );
-  readonly sinceEnd$ = combineLatest([this.event$, this.now$]).pipe(
-    map(([event, now]) => now - event?.account.eventEndDate.toNumber())
-  );
   readonly colorScheme = {
     name: 'my-color-scheme',
     selectable: false,
@@ -588,7 +524,7 @@ export class ViewEventComponent implements OnInit {
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _eventStore: EventStore,
     private readonly _configStore: ConfigStore,
-    private readonly _eventApiService: EventApiService,
+    private readonly _eventProgramService: EventProgramService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore
   ) {}
@@ -608,13 +544,15 @@ export class ViewEventComponent implements OnInit {
   onBuyTickets(
     event: PublicKey,
     acceptedMint: PublicKey,
-    ticketQuantity: number
+    ticketQuantity: number,
+    eventId: string
   ) {
-    this._eventApiService
+    this._eventProgramService
       .buyTickets({
         event,
         ticketQuantity,
         acceptedMint,
+        eventId,
       })
       .pipe(
         concatMap((signature) => {
@@ -624,17 +562,14 @@ export class ViewEventComponent implements OnInit {
             first(),
             concatMap((connection) => {
               if (connection === null) {
-                this._matSnackBar.open('Connection missing');
+                this._matSnackBar.open('Connection missing', 'close', {
+                  duration: 5000,
+                });
                 return EMPTY;
               }
 
               return defer(() =>
                 from(connection.confirmTransaction(signature))
-              ).pipe(
-                catchError((error) => {
-                  this._matSnackBar.open(error.msg);
-                  return EMPTY;
-                })
               );
             }),
             tap(() => {
@@ -650,7 +585,9 @@ export class ViewEventComponent implements OnInit {
           );
         }),
         catchError((error) => {
-          this._matSnackBar.open(error, 'close');
+          this._matSnackBar.open(error, 'close', {
+            duration: 5000,
+          });
           return EMPTY;
         })
       )

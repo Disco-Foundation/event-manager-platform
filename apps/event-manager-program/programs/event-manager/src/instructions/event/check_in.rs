@@ -101,11 +101,11 @@ pub fn handle(ctx: Context<CheckIn>, wearable_id: u64) -> Result<()> {
   ctx.accounts.wearable.wearable_bump = *ctx.bumps.get(Wearable::BUMP_NAME).unwrap();
   ctx.accounts.wearable.wearable_vault_bump = *ctx.bumps.get(Wearable::BUMP_VAULT_NAME).unwrap();
 
-  let event_id = ctx.accounts.event.event_id.to_le_bytes();
+  let event_id = &ctx.accounts.event.event_id;
 
   let seeds = &[
     "event".as_bytes(),
-    event_id.as_ref(),
+    event_id.as_bytes(),
     ctx.accounts.event.authority.as_ref(),
     &[ctx.accounts.event.event_bump],
   ];
