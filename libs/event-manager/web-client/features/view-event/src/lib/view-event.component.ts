@@ -10,11 +10,11 @@ import { ConnectionStore } from '@heavy-duty/wallet-adapter';
 import { PublicKey } from '@solana/web3.js';
 import { ScaleType } from '@swimlane/ngx-charts';
 import {
+  EMPTY,
   catchError,
   combineLatest,
   concatMap,
   defer,
-  EMPTY,
   first,
   from,
   interval,
@@ -81,14 +81,14 @@ import {
               <p class="m-0 text-justify">
                 {{ event.account.description }}
               </p>
-              <button
+              <!-- <button
                 class="disco-text purple disco-text-glow text-left w-32"
                 emGenerateEventQrTrigger
                 [eventName]="event.account.name"
                 [eventId]="event.publicKey.toBase58()"
               >
                 Pair with App
-              </button>
+              </button> -->
             </div>
           </section>
 
@@ -591,7 +591,7 @@ export class ViewEventComponent implements OnInit {
     private readonly _eventApiService: EventApiService,
     private readonly _matSnackBar: MatSnackBar,
     private readonly _connectionStore: ConnectionStore
-  ) {}
+  ) { }
 
   ngOnInit() {
     this._eventStore.setEventId(

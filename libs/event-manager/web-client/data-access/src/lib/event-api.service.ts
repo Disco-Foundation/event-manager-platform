@@ -6,15 +6,15 @@ import {
 import { AnchorProvider, BN, Program } from '@heavy-duty/anchor';
 import { ConnectionStore, WalletStore } from '@heavy-duty/wallet-adapter';
 import {
+  TOKEN_PROGRAM_ID,
   getAccount,
   getAssociatedTokenAddress,
   getMint,
-  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { Keypair, PublicKey, TransactionSignature } from '@solana/web3.js';
-import { combineLatest, defer, from, map, Observable, throwError } from 'rxjs';
+import { Observable, combineLatest, defer, from, map, throwError } from 'rxjs';
 import { EventManager, IDL } from './event_manager';
-import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './types/environment';
+import { ENVIRONMENT_CONFIG, EnvironmentConfig } from './types/environment';
 
 export interface EventAccountInfo {
   acceptedMint: PublicKey;
@@ -72,7 +72,7 @@ export interface BuyTicketsArguments {
 }
 
 export const EVENT_PROGRAM_ID = new PublicKey(
-  '915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  'Aro6UKiRAsfDawMNSBQ1TrgvtqKjtD1TLH82ixX69GMd'
 );
 
 @Injectable({ providedIn: 'root' })
@@ -164,9 +164,9 @@ export class EventApiService {
         map((event) =>
           event
             ? ({
-                publicKey: new PublicKey(eventId),
-                account: event,
-              } as EventAccount)
+              publicKey: new PublicKey(eventId),
+              account: event,
+            } as EventAccount)
             : null
         )
       );

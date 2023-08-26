@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
 
 export const PROGRAM_PUBKEY = new PublicKey(
-  '915QrkcaL8SVxn3DPnsNXgexddZbiXUhKtJPksEgNjRF'
+  'Aro6UKiRAsfDawMNSBQ1TrgvtqKjtD1TLH82ixX69GMd'
 );
 export const DISCO_MINT = new PublicKey(
   'GpkezdzsMoerjxCviax6rSPN6suTpSTg9eFzaRBGwLtf'

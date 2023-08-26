@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "disco-protocol-cf9d5"
+  },
+  "targets": {
+    "disco-protocol-cf9d5": {
+      "hosting": {
+        "web-client": [
+          "disco-protocol-cf9d5"
+        ]
+      }
+    }
+  }
+}
